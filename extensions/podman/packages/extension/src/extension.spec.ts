@@ -50,7 +50,7 @@ import {
 } from './extension';
 import type { UpdateCheck } from './installer/podman-install';
 import { PodmanInstall } from './installer/podman-install';
-import { WinPlatform } from './platforms/win-platform';
+import type { WinPlatform } from './platforms/win-platform';
 import * as compatibilityModeLib from './utils/compatibility-mode';
 import type { InstalledPodman } from './utils/podman-cli';
 import * as podmanCli from './utils/podman-cli';
@@ -2487,11 +2487,7 @@ describe('calcPodmanMachineSetting', () => {
 
 test('checkForUpdate func should be called if there is no podman installed', async () => {
   const extensionContext = { subscriptions: [], storagePath: '' } as unknown as extensionApi.ExtensionContext;
-  const podmanInstall: PodmanInstall = new PodmanInstall(
-    extensionContext,
-    telemetryLogger,
-    new WinPlatform(extensionContext, telemetryLogger),
-  );
+  const podmanInstall: PodmanInstall = new PodmanInstall(extensionContext, telemetryLogger, {} as WinPlatform);
 
   vi.spyOn(podmanCli, 'getPodmanInstallation').mockResolvedValue(undefined);
   vi.spyOn(podmanInstall, 'checkForUpdate').mockResolvedValue({

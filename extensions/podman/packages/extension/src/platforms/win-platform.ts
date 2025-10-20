@@ -35,35 +35,41 @@ import { ExtensionContextSymbol, TelemetryLoggerSymbol } from '../inject/symbols
 export class WinPlatform {
   readonly type = 'win';
 
-  private readonly winBitCheck: WinBitCheck;
-  private readonly winVersionCheck: WinVersionCheck;
-  private readonly winMemoryCheck: WinMemoryCheck;
   private readonly windowsVirtualizationCheck: OrCheck;
   private readonly wslCheck: SequenceCheck;
-  private readonly hyperVCheck: SequenceCheck;
+  private readonly hyperVSequenceCheck: SequenceCheck;
 
   constructor(
     @inject(ExtensionContextSymbol)
     readonly extensionContext: extensionApi.ExtensionContext,
     @inject(TelemetryLoggerSymbol)
     readonly telemetryLogger: extensionApi.TelemetryLogger,
+    @inject(WinBitCheck)
+    readonly winBitCheck: WinBitCheck,
+    @inject(WinVersionCheck)
+    readonly winVersionCheck: WinVersionCheck,
+    @inject(WinMemoryCheck)
+    readonly winMemoryCheck: WinMemoryCheck,
+    @inject(HyperVPodmanVersionCheck)
+    readonly hyperVPodmanVersionCheck: HyperVPodmanVersionCheck,
+    @inject(HyperVCheck)
+    readonly hyperVCheck: HyperVCheck,
+    @inject(VirtualMachinePlatformCheck)
+    readonly virtualMachinePlatformCheck: VirtualMachinePlatformCheck,
+    @inject(WSLVersionCheck)
+    readonly wSLVersionCheck: WSLVersionCheck,
+    @inject(WSL2Check)
+    readonly wSL2Check: WSL2Check,
   ) {
-    this.winBitCheck = new WinBitCheck();
-    this.winVersionCheck = new WinVersionCheck();
-    this.winMemoryCheck = new WinMemoryCheck();
-
-    this.hyperVCheck = new SequenceCheck('Hyper-V Platform', [
-      new HyperVPodmanVersionCheck(),
-      new HyperVCheck(this.telemetryLogger),
-    ]);
+    this.hyperVSequenceCheck = new SequenceCheck('Hyper-V Platform', [this.hyperVPodmanVersionCheck, this.hyperVCheck]);
 
     this.wslCheck = new SequenceCheck('WSL platform', [
-      new VirtualMachinePlatformCheck(this.telemetryLogger),
-      new WSLVersionCheck(),
-      new WSL2Check(this.telemetryLogger, this.extensionContext),
+      this.virtualMachinePlatformCheck,
+      this.wSLVersionCheck,
+      this.wSL2Check,
     ]);
 
-    this.windowsVirtualizationCheck = new OrCheck('Windows virtualization', this.wslCheck, this.hyperVCheck);
+    this.windowsVirtualizationCheck = new OrCheck('Windows virtualization', this.wslCheck, this.hyperVSequenceCheck);
   }
 
   getPreflightChecks(): InstallCheck[] {
@@ -82,7 +88,7 @@ export class WinPlatform {
     if (!extensionApi.env.isWindows) {
       return false;
     }
-    const hyperVCheckResult = await this.hyperVCheck.execute();
+    const hyperVCheckResult = await this.hyperVSequenceCheck.execute();
     return hyperVCheckResult.successful;
   }
 }

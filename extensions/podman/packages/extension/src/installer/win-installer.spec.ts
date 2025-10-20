@@ -18,11 +18,11 @@
 
 import { existsSync, readdirSync } from 'node:fs';
 
-import type { ExtensionContext, TelemetryLogger } from '@podman-desktop/api';
+import type { ExtensionContext } from '@podman-desktop/api';
 import * as extensionApi from '@podman-desktop/api';
 import { beforeEach, expect, test, vi } from 'vitest';
 
-import { WinPlatform } from '../platforms/win-platform';
+import type { WinPlatform } from '../platforms/win-platform';
 import { getAssetsFolder } from '../utils/util';
 import { WinInstaller } from './win-installer';
 
@@ -50,8 +50,6 @@ const progress = {
   report: (): void => {},
 };
 
-const mockTelemetryLogger = {} as TelemetryLogger;
-
 vi.mock(import('./../utils/util'), () => ({
   getAssetsFolder: vi.fn(),
 }));
@@ -68,13 +66,15 @@ beforeEach(() => {
   });
 });
 
+const WinPlatformMock = {} as WinPlatform;
+
 test('expect update on windows to show notification in case of 0 exit code', async () => {
   vi.mocked(extensionApi.process.exec).mockImplementation(() => Promise.resolve({} as extensionApi.RunResult));
 
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readdirSync).mockReturnValue([]);
 
-  const installer = new WinInstaller(new WinPlatform(extensionContext, mockTelemetryLogger));
+  const installer = new WinInstaller(WinPlatformMock);
   const result = await installer.update();
   expect(result).toBeTruthy();
   expect(extensionApi.window.showNotification).toHaveBeenCalled();
@@ -89,7 +89,7 @@ test('expect update on windows not to show notification in case of 1602 exit cod
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readdirSync).mockReturnValue([]);
 
-  const installer = new WinInstaller(new WinPlatform(extensionContext, mockTelemetryLogger));
+  const installer = new WinInstaller(WinPlatformMock);
   const result = await installer.update();
   expect(result).toBeTruthy();
   expect(extensionApi.window.showNotification).not.toHaveBeenCalled();
@@ -105,7 +105,7 @@ test('expect update on windows to throw error if non zero exit code', async () =
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readdirSync).mockReturnValue([]);
 
-  const installer = new WinInstaller(new WinPlatform(extensionContext, mockTelemetryLogger));
+  const installer = new WinInstaller(WinPlatformMock);
   const result = await installer.update();
   expect(result).toBeFalsy();
   expect(extensionApi.window.showErrorMessage).toHaveBeenCalled();

@@ -22,7 +22,7 @@ import * as extensionApi from '@podman-desktop/api';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import * as extensionObj from '../extension';
-import { WinPlatform } from '../platforms/win-platform';
+import type { WinPlatform } from '../platforms/win-platform';
 import { releaseNotes } from '../podman5.json';
 import { getBundledPodmanVersion } from '../utils/podman-bundled';
 import type { InstalledPodman } from '../utils/podman-cli';
@@ -148,14 +148,11 @@ beforeAll(async () => {
   extensionObj.initExtensionContext(extensionContext);
   await extensionObj.initInversify(extensionContext, telemetryLogger);
 });
+
 beforeEach(() => {
   vi.clearAllMocks();
 
-  podmanInstall = new TestPodmanInstall(
-    extensionContext,
-    mockTelemetryLogger,
-    new WinPlatform(extensionContext, mockTelemetryLogger),
-  );
+  podmanInstall = new TestPodmanInstall(extensionContext, mockTelemetryLogger, {} as WinPlatform);
   // reset array of subscriptions
   extensionContext.subscriptions.length = 0;
   console.error = consoleErrorMock;
