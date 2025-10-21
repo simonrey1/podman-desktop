@@ -23,7 +23,8 @@ import path from 'node:path';
 import type { InstallCheck, RunError } from '@podman-desktop/api';
 import { process as processAPI, ProgressLocation, window } from '@podman-desktop/api';
 
-import type { WinPlatform } from '../platforms/win-platform';
+import type { WinPlatform } from '/@/platforms/win-platform';
+
 import podman5Json from '../podman5.json';
 import { getAssetsFolder } from '../utils/util';
 import { BaseInstaller } from './base-installer';

@@ -30,6 +30,7 @@ import {
   USER_MODE_NETWORKING_SUPPORTED_KEY,
 } from '/@/constants';
 import { ExtensionContextSymbol, TelemetryLoggerSymbol } from '/@/inject/symbols';
+import { WinPlatform } from '/@/platforms/win-platform';
 import { MachineJSON } from '/@/types';
 
 import { getDetectionChecks } from '../checks/detection-checks';
@@ -43,7 +44,6 @@ import {
   isStartNowAtMachineInitSupported,
   isUserModeNetworkingSupported,
 } from '../extension';
-import { WinPlatform } from '../platforms/win-platform';
 import * as podman5JSON from '../podman5.json';
 import { getBundledPodmanVersion } from '../utils/podman-bundled';
 import type { InstalledPodman } from '../utils/podman-cli';

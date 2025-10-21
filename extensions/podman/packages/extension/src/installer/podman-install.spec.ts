@@ -21,8 +21,9 @@ import * as fs from 'node:fs';
 import * as extensionApi from '@podman-desktop/api';
 import { afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import type { WinPlatform } from '/@/platforms/win-platform';
+
 import * as extensionObj from '../extension';
-import type { WinPlatform } from '../platforms/win-platform';
 import { releaseNotes } from '../podman5.json';
 import { getBundledPodmanVersion } from '../utils/podman-bundled';
 import type { InstalledPodman } from '../utils/podman-cli';

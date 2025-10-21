@@ -22,7 +22,8 @@ import type { ExtensionContext } from '@podman-desktop/api';
 import * as extensionApi from '@podman-desktop/api';
 import { beforeEach, expect, test, vi } from 'vitest';
 
-import type { WinPlatform } from '../platforms/win-platform';
+import type { WinPlatform } from '/@/platforms/win-platform';
+
 import { getAssetsFolder } from '../utils/util';
 import { WinInstaller } from './win-installer';
 
