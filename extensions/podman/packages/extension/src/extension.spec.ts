@@ -414,7 +414,7 @@ describe.each([
     { version: '6.3.2', image: 'image' },
     { version: '5.0.0', image: 'image' },
     { version: '4.5.0', image: 'image-path' },
-  ])('verify create command called with correct values for %s', async ({ version, image }) => {
+  ])(`verify create command called with correct values for %s`, async ({ version, image }) => {
     vi.mocked(extensionApi.process.exec).mockResolvedValueOnce({
       stdout: `podman version ${version}`,
     } as extensionApi.RunResult);
