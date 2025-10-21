@@ -37,14 +37,14 @@ vi.mock('@podman-desktop/api', () => ({ env: { isWindows: false } }));
 const extensionContextMock = {} as ExtensionContext;
 const telemetryLoggerMock = {} as TelemetryLogger;
 
-const WinBitCheckMock = { execute: vi.fn() } as unknown as WinBitCheck;
-const WinVersionCheckMock = { execute: vi.fn() } as unknown as WinVersionCheck;
-const WinMemoryCheckMock = { execute: vi.fn() } as unknown as WinMemoryCheck;
-const HyperVPodmanVersionCheckMock = { execute: vi.fn() } as unknown as HyperVPodmanVersionCheck;
-const HyperVCheckMock = { execute: vi.fn() } as unknown as HyperVCheck;
-const VirtualMachinePlatformCheckMock = { execute: vi.fn() } as unknown as VirtualMachinePlatformCheck;
-const WSLVersionCheckMock = { execute: vi.fn() } as unknown as WSLVersionCheck;
-const WSL2CheckMock = { execute: vi.fn() } as unknown as WSL2Check;
+const winBitCheckMock = { execute: vi.fn() } as unknown as WinBitCheck;
+const winVersionCheckMock = { execute: vi.fn() } as unknown as WinVersionCheck;
+const winMemoryCheckMock = { execute: vi.fn() } as unknown as WinMemoryCheck;
+const hyperVPodmanVersionCheckMock = { execute: vi.fn() } as unknown as HyperVPodmanVersionCheck;
+const hyperVCheckMock = { execute: vi.fn() } as unknown as HyperVCheck;
+const virtualMachinePlatformCheckMock = { execute: vi.fn() } as unknown as VirtualMachinePlatformCheck;
+const wSLVersionCheckMock = { execute: vi.fn() } as unknown as WSLVersionCheck;
+const wSL2CheckMock = { execute: vi.fn() } as unknown as WSL2Check;
 
 const successfulCheckResult = { successful: true };
 const failedCheckResult = { successful: false };
@@ -55,14 +55,14 @@ beforeEach(() => {
   winPlatform = new WinPlatform(
     extensionContextMock,
     telemetryLoggerMock,
-    WinBitCheckMock,
-    WinVersionCheckMock,
-    WinMemoryCheckMock,
-    HyperVPodmanVersionCheckMock,
-    HyperVCheckMock,
-    VirtualMachinePlatformCheckMock,
-    WSLVersionCheckMock,
-    WSL2CheckMock,
+    winBitCheckMock,
+    winVersionCheckMock,
+    winMemoryCheckMock,
+    hyperVPodmanVersionCheckMock,
+    hyperVCheckMock,
+    virtualMachinePlatformCheckMock,
+    wSLVersionCheckMock,
+    wSL2CheckMock,
   );
 });
 
@@ -77,8 +77,8 @@ test('isHyperVEnabled should return false if it is not a Windows environment', a
 test('isHyperVEnabled should return false if Hyper-V check fails', async () => {
   vi.mocked(extensionApi.env).isWindows = true;
 
-  vi.mocked(HyperVCheckMock.execute).mockResolvedValue(failedCheckResult);
-  vi.mocked(HyperVPodmanVersionCheckMock.execute).mockResolvedValue(failedCheckResult);
+  vi.mocked(hyperVCheckMock.execute).mockResolvedValue(failedCheckResult);
+  vi.mocked(hyperVPodmanVersionCheckMock.execute).mockResolvedValue(failedCheckResult);
 
   const hypervEnabled = await winPlatform.isHyperVEnabled();
 
@@ -88,8 +88,8 @@ test('isHyperVEnabled should return false if Hyper-V check fails', async () => {
 test('isHyperVEnabled should return true if all Hyper-V checks succeed', async () => {
   vi.mocked(extensionApi.env).isWindows = true;
 
-  vi.mocked(HyperVCheckMock.execute).mockResolvedValue(successfulCheckResult);
-  vi.mocked(HyperVPodmanVersionCheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(hyperVCheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(hyperVPodmanVersionCheckMock.execute).mockResolvedValue(successfulCheckResult);
 
   const hypervEnabled = await winPlatform.isHyperVEnabled();
 
@@ -107,9 +107,9 @@ test('isWSLEnabled should return false if not on Windows', async () => {
 test('isWSLEnabled should return false if any WSL check fails', async () => {
   vi.mocked(extensionApi.env).isWindows = true;
 
-  vi.mocked(VirtualMachinePlatformCheckMock.execute).mockResolvedValue(successfulCheckResult);
-  vi.mocked(WSLVersionCheckMock.execute).mockResolvedValue(failedCheckResult);
-  vi.mocked(WSL2CheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(virtualMachinePlatformCheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(wSLVersionCheckMock.execute).mockResolvedValue(failedCheckResult);
+  vi.mocked(wSL2CheckMock.execute).mockResolvedValue(successfulCheckResult);
 
   const wslEnabled = await winPlatform.isWSLEnabled();
 
@@ -119,9 +119,9 @@ test('isWSLEnabled should return false if any WSL check fails', async () => {
 test('isWSLEnabled should return true if all WSL checks succeed', async () => {
   vi.mocked(extensionApi.env).isWindows = true;
 
-  vi.mocked(VirtualMachinePlatformCheckMock.execute).mockResolvedValue(successfulCheckResult);
-  vi.mocked(WSLVersionCheckMock.execute).mockResolvedValue(successfulCheckResult);
-  vi.mocked(WSL2CheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(virtualMachinePlatformCheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(wSLVersionCheckMock.execute).mockResolvedValue(successfulCheckResult);
+  vi.mocked(wSL2CheckMock.execute).mockResolvedValue(successfulCheckResult);
 
   const wslEnabled = await winPlatform.isWSLEnabled();
 

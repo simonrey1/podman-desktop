@@ -67,7 +67,7 @@ beforeEach(() => {
   });
 });
 
-const WinPlatformMock = {} as WinPlatform;
+const winPlatformMock = {} as WinPlatform;
 
 test('expect update on windows to show notification in case of 0 exit code', async () => {
   vi.mocked(extensionApi.process.exec).mockImplementation(() => Promise.resolve({} as extensionApi.RunResult));
@@ -75,7 +75,7 @@ test('expect update on windows to show notification in case of 0 exit code', asy
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readdirSync).mockReturnValue([]);
 
-  const installer = new WinInstaller(WinPlatformMock);
+  const installer = new WinInstaller(winPlatformMock);
   const result = await installer.update();
   expect(result).toBeTruthy();
   expect(extensionApi.window.showNotification).toHaveBeenCalled();
@@ -90,7 +90,7 @@ test('expect update on windows not to show notification in case of 1602 exit cod
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readdirSync).mockReturnValue([]);
 
-  const installer = new WinInstaller(WinPlatformMock);
+  const installer = new WinInstaller(winPlatformMock);
   const result = await installer.update();
   expect(result).toBeTruthy();
   expect(extensionApi.window.showNotification).not.toHaveBeenCalled();
@@ -106,7 +106,7 @@ test('expect update on windows to throw error if non zero exit code', async () =
   vi.mocked(existsSync).mockReturnValue(true);
   vi.mocked(readdirSync).mockReturnValue([]);
 
-  const installer = new WinInstaller(WinPlatformMock);
+  const installer = new WinInstaller(winPlatformMock);
   const result = await installer.update();
   expect(result).toBeFalsy();
   expect(extensionApi.window.showErrorMessage).toHaveBeenCalled();
