@@ -21,15 +21,15 @@ import type { ExtensionContext, TelemetryLogger } from '@podman-desktop/api';
 import * as extensionApi from '@podman-desktop/api';
 import { beforeEach, expect, test, vi } from 'vitest';
 
+import type { HyperVCheck } from '/@/checks/windows/hyperv-check';
+import type { HyperVPodmanVersionCheck } from '/@/checks/windows/hyperv-podman-version-check';
+import type { VirtualMachinePlatformCheck } from '/@/checks/windows/virtual-machine-platform-check';
 import type { WinBitCheck } from '/@/checks/windows/win-bit-check';
 import type { WinMemoryCheck } from '/@/checks/windows/win-memory-check';
 import type { WinVersionCheck } from '/@/checks/windows/win-version-check';
+import type { WSLVersionCheck } from '/@/checks/windows/wsl-version-check';
+import type { WSL2Check } from '/@/checks/windows/wsl2-check';
 
-import type { HyperVCheck } from '../checks/windows/hyperv-check';
-import type { HyperVPodmanVersionCheck } from '../checks/windows/hyperv-podman-version-check';
-import type { VirtualMachinePlatformCheck } from '../checks/windows/virtual-machine-platform-check';
-import type { WSLVersionCheck } from '../checks/windows/wsl-version-check';
-import type { WSL2Check } from '../checks/windows/wsl2-check';
 import { WinPlatform } from './win-platform';
 
 vi.mock('@podman-desktop/api', () => ({ env: { isWindows: false } }));
