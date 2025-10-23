@@ -54,24 +54,23 @@ $effect(() => {
 </script>
 
 {#if pod}
-  {@const currentPod = pod}
   <DetailsPage title={pod.name} subtitle={pod.shortId} bind:this={detailsPage}>
     {#snippet iconSnippet()}
-      <StatusIcon icon={PodIcon} size={24} status={currentPod.status} />
+      <StatusIcon icon={PodIcon} size={24} status={pod.status} />
     {/snippet}
     {#snippet actionsSnippet()}
       <div class="flex items-center w-5">
-        {#if currentPod.actionError}
-          <ErrorMessage error={currentPod.actionError} icon wrapMessage />
+        {#if pod.actionError}
+          <ErrorMessage error={pod.actionError} icon wrapMessage />
         {:else}
           <div>&nbsp;</div>
         {/if}
       </div>
-      <PodActions pod={currentPod} detailed={true}/>
+      <PodActions pod={pod} detailed={true}/>
     {/snippet}
     {#snippet detailSnippet()}
       <div class="flex py-2 w-full justify-end text-sm text-[var(--pd-content-text)]">
-        <StateChange state={currentPod.status} />
+        <StateChange state={pod.status} />
       </div>
     {/snippet}
     {#snippet tabsSnippet()}
@@ -82,16 +81,16 @@ $effect(() => {
     {/snippet}
     {#snippet contentSnippet()}
       <Route path="/summary" breadcrumb="Summary" navigationHint="tab">
-        <PodmanPodDetailsSummary pod={currentPod} />
+        <PodmanPodDetailsSummary pod={pod} />
       </Route>
       <Route path="/logs" breadcrumb="Logs" navigationHint="tab">
-        <PodDetailsLogs pod={currentPod} />
+        <PodDetailsLogs pod={pod} />
       </Route>
       <Route path="/inspect" breadcrumb="Inspect" navigationHint="tab">
-        <PodDetailsInspect pod={currentPod} />
+        <PodDetailsInspect pod={pod} />
       </Route>
       <Route path="/kube" breadcrumb="Kube" navigationHint="tab">
-        <PodDetailsKube pod={currentPod} />
+        <PodDetailsKube pod={pod} />
       </Route>
     {/snippet}
   </DetailsPage>
