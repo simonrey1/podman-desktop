@@ -13,7 +13,6 @@ import PodActions from './PodActions.svelte';
 import PodDetailsInspect from './PodDetailsInspect.svelte';
 import PodDetailsKube from './PodDetailsKube.svelte';
 import PodDetailsLogs from './PodDetailsLogs.svelte';
-import type { PodInfoUI } from './PodInfoUI';
 import PodmanPodDetailsSummary from './PodmanPodDetailsSummary.svelte';
 
 interface Props {
@@ -23,19 +22,22 @@ interface Props {
 
 let { podName, engineId }: Props = $props();
 
-let pod = $state<PodInfoUI | undefined>();
 let detailsPage = $state<DetailsPage | undefined>();
 
-const matchingPod = $derived(
-  $podsInfos.find(podInPods => podInPods.Name === podName && podInPods.engineId === engineId),
-);
 const podUtils = new PodUtils();
 
-$effect(() => {
-  if (matchingPod) {
-    try {
-      pod = podUtils.getPodInfoUI(matchingPod);
+const pod = $derived.by(() => {
+  const matchingPod = $podsInfos.find(podInPods => podInPods.Name === podName && podInPods.engineId === engineId);
 
+  if (matchingPod) {
+    return podUtils.getPodInfoUI(matchingPod);
+  }
+  return undefined;
+});
+
+$effect(() => {
+  if (pod) {
+    try {
       const currentRouterPath = $router.path;
 
       if (currentRouterPath.endsWith('/')) {
