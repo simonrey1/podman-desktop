@@ -140,14 +140,7 @@ function deployToKubernetes(): void {
 }
 // If dropdownMenu = true, we'll change style to the imported dropdownMenu style
 // otherwise, leave blank.
-let actionsStyle = $state<typeof DropdownMenu | typeof FlatMenu>();
-if (dropdownMenu) {
-  actionsStyle = DropdownMenu;
-} else {
-  actionsStyle = FlatMenu;
-}
-
-const SvelteComponent = $derived(actionsStyle);
+const MenuComponent = $derived(dropdownMenu ? DropdownMenu : FlatMenu);
 </script>
 
 <ListItemButtonIcon
@@ -172,7 +165,7 @@ const SvelteComponent = $derived(actionsStyle);
   inProgress={pod.actionInProgress && pod.status === 'DELETING'} />
 
 <!-- If dropdownMenu is true, use it, otherwise just show the regular buttons -->
-<SvelteComponent>
+<MenuComponent>
   {#if !detailed}
     <ListItemButtonIcon
       title="Generate Kube"
@@ -231,4 +224,4 @@ const SvelteComponent = $derived(actionsStyle);
     contributions={contributions}
     detailed={detailed}
     onError={handleError} />
-</SvelteComponent>
+</MenuComponent>
