@@ -2,6 +2,23 @@
 
 ## Production code
 
+### Imports
+
+Prefer using path aliases for all cross-directory imports to improve readability and maintainability.
+
+**Good:**
+
+```typescript
+import type { WSL2Check } from '/@/checks/windows/wsl2-check';
+import { WinPlatform } from './win-platform';
+```
+
+**Bad:**
+
+```typescript
+import type { WSL2Check } from './../checks/windows/wsl2-check';
+```
+
 ## Unit tests code
 
 ### Use `vi.mocked`, not a generic `myFunctionMock`
