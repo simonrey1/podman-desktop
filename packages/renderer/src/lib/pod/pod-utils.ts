@@ -19,6 +19,7 @@
 import humanizeDuration from 'humanize-duration';
 import moment from 'moment';
 
+import { podsInfoUiOverrides } from '/@/state/pods-info-ui-overrides.svelte';
 import type { PodInfo } from '/@api/pod-info';
 
 import type { PodInfoUI } from './PodInfoUI';
@@ -59,7 +60,8 @@ export class PodUtils {
   }
 
   getPodInfoUI(podinfo: PodInfo): PodInfoUI {
-    return {
+    const overrides = podsInfoUiOverrides.value[podinfo.Id];
+    const res = {
       id: podinfo.Id,
       shortId: podinfo.Id.substring(0, 8),
       name: podinfo.Name,
@@ -73,6 +75,7 @@ export class PodUtils {
       node: podinfo.node,
       namespace: podinfo.Namespace,
     };
+    return { ...res, ...overrides };
   }
 
   calculateNewPodName(existedPods?: PodInfo[]): string {

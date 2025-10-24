@@ -18,6 +18,7 @@
 
 import { derived, type Writable, writable } from 'svelte/store';
 
+import { podsInfoUiOverrides } from '/@/state/pods-info-ui-overrides.svelte';
 import type { PodInfo } from '/@api/pod-info';
 
 import PodIcon from '../lib/images/PodIcon.svelte';
@@ -80,7 +81,9 @@ export const filtered = derived([searchPattern, podsInfos], ([$searchPattern, $i
 });
 
 const listPods = (): Promise<PodInfo[]> => {
-  return window.listPods();
+  const res = window.listPods();
+  podsInfoUiOverrides.value = {};
+  return res;
 };
 
 export const podsEventStore = new EventStore<PodInfo[]>(

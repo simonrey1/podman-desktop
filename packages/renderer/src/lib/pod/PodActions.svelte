@@ -9,11 +9,16 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import { DropdownMenu } from '@podman-desktop/ui-svelte';
-import { createEventDispatcher, onMount } from 'svelte';
+import { onMount } from 'svelte';
 import { router } from 'tinro';
 
 import ContributionActions from '/@/lib/actions/ContributionActions.svelte';
 import { withConfirmation } from '/@/lib/dialogs/messagebox-utils';
+import {
+  type PodInfoOverride,
+  podsInfoUiOverrides,
+  type TransientStatus,
+} from '/@/state/pods-info-ui-overrides.svelte';
 import type { Menu } from '/@api/menu.js';
 import { MenuContext } from '/@api/menu-context.js';
 
@@ -25,11 +30,6 @@ import type { PodInfoUI } from './PodInfoUI';
 export let pod: PodInfoUI;
 export let dropdownMenu = false;
 export let detailed = false;
-
-const dispatch = createEventDispatcher<{ update: PodInfoUI }>();
-export let onUpdate: (update: PodInfoUI) => void = update => {
-  dispatch('update', update);
-};
 
 let contributions: Menu[] = [];
 onMount(async () => {
@@ -60,66 +60,57 @@ onMount(async () => {
   });
 });
 
-function inProgress(inProgress: boolean, state?: string): void {
-  pod.actionInProgress = inProgress;
-  // reset error when starting task
-  if (inProgress) {
-    pod.actionError = '';
-  }
+function inProgress(state: TransientStatus): void {
+  const overrides: PodInfoOverride = {
+    actionInProgress: true,
+    // reset error when starting task
+    actionError: '',
+  };
+
   if (state) {
-    pod.status = state;
+    overrides.status = state;
   }
 
-  onUpdate(pod);
+  podsInfoUiOverrides.value[pod.id] = overrides;
 }
 
 function handleError(errorMessage: string): void {
-  pod.actionError = errorMessage;
-  pod.status = 'ERROR';
-  onUpdate(pod);
+  podsInfoUiOverrides.value[pod.id] = { status: 'ERROR', actionError: errorMessage };
 }
 
 async function startPod(): Promise<void> {
-  inProgress(true, 'STARTING');
+  inProgress('STARTING');
   try {
     await window.startPod(pod.engineId, pod.id);
   } catch (error) {
     handleError(String(error));
-  } finally {
-    inProgress(false);
   }
 }
 
 async function restartPod(): Promise<void> {
-  inProgress(false, 'RESTARTING');
+  inProgress('RESTARTING');
   try {
     await window.restartPod(pod.engineId, pod.id);
   } catch (error) {
     handleError(String(error));
-  } finally {
-    inProgress(false);
   }
 }
 
 async function stopPod(): Promise<void> {
-  inProgress(false, 'STOPPING');
+  inProgress('STOPPING');
   try {
     await window.stopPod(pod.engineId, pod.id);
   } catch (error) {
     handleError(String(error));
-  } finally {
-    inProgress(false);
   }
 }
 
 async function deletePod(): Promise<void> {
-  inProgress(false, 'DELETING');
+  inProgress('DELETING');
   try {
     await window.removePod(pod.engineId, pod.id);
   } catch (error) {
     handleError(String(error));
-  } finally {
-    inProgress(false);
   }
 }
 
