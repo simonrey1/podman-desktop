@@ -16,7 +16,7 @@ import { WinPlatform } from './win-platform';
 **Bad:**
 
 ```typescript
-import type { WSL2Check } from './../checks/windows/wsl2-check';
+import type { WSL2Check } from '../checks/windows/wsl2-check';
 ```
 
 ## Unit tests code
