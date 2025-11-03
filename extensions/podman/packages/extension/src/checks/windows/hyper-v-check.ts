@@ -18,10 +18,10 @@
 import type { CheckResult, TelemetryLogger } from '@podman-desktop/api';
 import { inject, injectable } from 'inversify';
 
+import { BaseCheck, SequenceCheck } from '/@/checks/base-check';
 import { TelemetryLoggerSymbol } from '/@/inject/symbols';
 
 import { getPowerShellClient } from '../../utils/powershell';
-import { BaseCheck } from '../base-check';
 import { HyperVInstalledCheck } from './hyper-v-installed-check';
 import { HyperVRunningCheck } from './hyper-v-running-check';
 import { PodmanDesktopElevatedCheck } from './podman-desktop-elevated-check';
@@ -48,21 +48,11 @@ export class HyperVCheck extends BaseCheck {
   }
 
   async execute(): Promise<CheckResult> {
-    const userAdminResult = await this.userAdminCheck.execute();
-    if (!userAdminResult.successful) {
-      return userAdminResult;
-    }
-
-    const podmanDesktopElevatedResult = await this.isPodmanDesktopElevatedCheck.execute();
-    if (!podmanDesktopElevatedResult.successful) {
-      return podmanDesktopElevatedResult;
-    }
-
-    const hyperVInstalledResult = await this.isHyperVInstalledCheck.execute();
-    if (!hyperVInstalledResult.successful) {
-      return hyperVInstalledResult;
-    }
-
-    return this.isHyperVRunningCheck.execute();
+    return new SequenceCheck(this.title, [
+      this.userAdminCheck,
+      this.isPodmanDesktopElevatedCheck,
+      this.isHyperVInstalledCheck,
+      this.isHyperVRunningCheck,
+    ]).execute();
   }
 }
