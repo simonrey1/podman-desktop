@@ -3629,14 +3629,11 @@ test('check handleEvents with loadArchive', async () => {
   const content = { status: 'loadfromarchive', Type: 'image', id: '123456' };
   passThrough.emit('data', JSON.stringify(content));
 
-  // wait 1s
-  await new Promise(resolve => setTimeout(resolve, 3000));
-
   // check callback is defined
   expect(eventsMockCallback).toBeDefined();
 
   // check we send the event to notify renderer part
-  expect(apiSender.send).toBeCalledWith('image-loadfromarchive-event', '123456');
+  await vi.waitFor(() => expect(apiSender.send).toBeCalledWith('image-loadfromarchive-event', '123456'));
 
   // expect we have a call to log the event
   expect(consoleLogSpy).toBeCalledWith('event is', content);
