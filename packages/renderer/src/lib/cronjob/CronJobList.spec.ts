@@ -20,6 +20,7 @@ import '@testing-library/jest-dom/vitest';
 
 import type { KubernetesObject, V1CronJob } from '@kubernetes/client-node';
 import { render, screen } from '@testing-library/svelte';
+import { tick } from 'svelte';
 import { writable } from 'svelte/store';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -90,10 +91,9 @@ describe.each<{
   test('Expect cronjob empty screen', async () => {
     initObjectsList([]);
     render(CronJobList);
-    await vi.waitFor(() => {
-      const noCronJobs = screen.getByRole('heading', { name: 'No cronjobs' });
-      expect(noCronJobs).toBeInTheDocument();
-    });
+    await tick();
+    const noCronJobs = screen.getByRole('heading', { name: 'No cronjobs' });
+    expect(noCronJobs).toBeInTheDocument();
   });
 
   test('Expect cronjobs list', async () => {
@@ -121,21 +121,18 @@ describe.each<{
     initObjectsList([cronjob]);
 
     render(CronJobList);
-    await vi.waitFor(() => {
-      const cronjobName = screen.getByRole('cell', { name: 'my-cronjob test-namespace' });
-      expect(cronjobName).toBeInTheDocument();
-    });
+    await tick();
+    const cronjobName = screen.getByRole('cell', { name: 'my-cronjob test-namespace' });
+    expect(cronjobName).toBeInTheDocument();
   });
 
   test('Expect filter empty screen', async () => {
     initObjectsList([]);
 
     render(CronJobList, { searchTerm: 'No match' });
-
-    await vi.waitFor(() => {
-      const filterButton = screen.getByRole('button', { name: 'Clear filter' });
-      expect(filterButton).toBeInTheDocument();
-    });
+    await tick();
+    const filterButton = screen.getByRole('button', { name: 'Clear filter' });
+    expect(filterButton).toBeInTheDocument();
   });
 
   test('Expect cronjob list is updated when kubernetesCurrentContextCronJobsFiltered changes', async () => {
@@ -185,21 +182,19 @@ describe.each<{
     const list = initObjectsList([cronjob1, cronjob2]);
 
     const component = render(CronJobList);
-    await vi.waitFor(() => {
-      const cronjobName1 = screen.getByRole('cell', { name: 'my-cronjob-1 test-namespace' });
-      expect(cronjobName1).toBeInTheDocument();
-      const cronjobName2 = screen.getByRole('cell', { name: 'my-cronjob-2 test-namespace' });
-      expect(cronjobName2).toBeInTheDocument();
-    });
+    await tick();
+    const cronjobName1 = screen.getByRole('cell', { name: 'my-cronjob-1 test-namespace' });
+    expect(cronjobName1).toBeInTheDocument();
+    const cronjobName2 = screen.getByRole('cell', { name: 'my-cronjob-2 test-namespace' });
+    expect(cronjobName2).toBeInTheDocument();
 
     list.update([cronjob2]);
     await component.rerender({});
+    await tick();
 
-    await vi.waitFor(() => {
-      const cronjobName1after = screen.queryByRole('cell', { name: 'my-cronjob-1 test-namespace' });
-      expect(cronjobName1after).not.toBeInTheDocument();
-      const cronjobName2after = screen.getByRole('cell', { name: 'my-cronjob-2 test-namespace' });
-      expect(cronjobName2after).toBeInTheDocument();
-    });
+    const cronjobName1after = screen.queryByRole('cell', { name: 'my-cronjob-1 test-namespace' });
+    expect(cronjobName1after).not.toBeInTheDocument();
+    const cronjobName2after = screen.getByRole('cell', { name: 'my-cronjob-2 test-namespace' });
+    expect(cronjobName2after).toBeInTheDocument();
   });
 });
