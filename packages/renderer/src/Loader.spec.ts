@@ -109,16 +109,11 @@ test('Loader should send the event if extensions take time to start', async () =
   // check we don't have yet received the 'extensions-already-started' event
   expect(dispatchEventMock.mock.calls.length).toBe(0);
 
-  // wait one second (to simulate a long initialization of extensions)
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
   // now, flag remote extensions being ready
   extensionSystemIsExtensionsStartedMock.mockResolvedValue(true);
 
   // wait dispatchEvent method being called
-  while (dispatchEventMock.mock.calls.length === 0) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
+  await vi.waitFor(() => expect(dispatchEventMock).toHaveBeenCalled());
 
   // check that we have received the 'extensions-already-started' event
   expect(dispatchEventMock.mock.calls.length).toBe(1);
