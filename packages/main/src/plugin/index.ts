@@ -50,6 +50,7 @@ import type { IpcMainInvokeEvent } from 'electron/main';
 import { Container } from 'inversify';
 
 import type { KubernetesGeneratorInfo } from '/@/plugin/api/KubernetesGeneratorInfo.js';
+import { ContainerfileParser } from '/@/plugin/containerfile-parser.js';
 import { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { ExtensionWatcher } from '/@/plugin/extension/extension-watcher.js';
 import type {
@@ -84,6 +85,7 @@ import type {
 } from '/@api/container-info.js';
 import type { ContainerInspectInfo } from '/@api/container-inspect-info.js';
 import type { ContainerStatsInfo } from '/@api/container-stats-info.js';
+import type { ContainerfileInfo } from '/@api/containerfile-info.js';
 import type { ContributionInfo } from '/@api/contribution-info.js';
 import type { MessageBoxOptions, MessageBoxReturnValue } from '/@api/dialog.js';
 import type { IDisposable } from '/@api/disposable.js';
@@ -1442,8 +1444,9 @@ export class PluginSystem {
         target?: string,
       ): Promise<unknown> => {
         // create task
+        const targetDisplay = target ? `(${target})` : '';
         const task = taskManager.createTask({
-          title: `Building image ${imageName ?? ''}`,
+          title: `Building image ${imageName ?? ''} ${targetDisplay}`,
           action: {
             name: 'Go to task >',
             execute: () => {
@@ -3150,6 +3153,10 @@ export class PluginSystem {
 
     this.ipcHandle('explore-features:closeFeatureCard', async (_listener, featureId: string): Promise<void> => {
       return exploreFeatures.closeFeatureCard(featureId);
+    });
+
+    this.ipcHandle('containerfile:getInfo', async (_listener, path: string): Promise<ContainerfileInfo> => {
+      return ContainerfileParser.parse(path);
     });
 
     this.ipcHandle(

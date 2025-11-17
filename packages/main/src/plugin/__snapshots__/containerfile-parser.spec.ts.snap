@@ -1,0 +1,32 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Should parse info from container files > should parse targets from 'casing.Containerfile' 1`] = `
+[
+  "lower",
+  "UPPER",
+  "MiXeD",
+]
+`;
+
+exports[`Should parse info from container files > should parse targets from 'comments-and-empty-lines.Containerfile' 1`] = `
+[
+  "stage1",
+  "stage2",
+]
+`;
+
+exports[`Should parse info from container files > should parse targets from 'empty.Containerfile' 1`] = `[]`;
+
+exports[`Should parse info from container files > should parse targets from 'multiple-targets.Containerfile' 1`] = `
+[
+  "base",
+  "builder",
+  "final",
+]
+`;
+
+exports[`Should parse info from container files > should parse targets from 'single-target.Containerfile' 1`] = `
+[
+  "base",
+]
+`;
