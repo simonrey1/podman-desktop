@@ -50,6 +50,7 @@ import type { IpcMainInvokeEvent } from 'electron/main';
 import { Container } from 'inversify';
 
 import type { KubernetesGeneratorInfo } from '/@/plugin/api/KubernetesGeneratorInfo.js';
+import { ContainerfileParser } from '/@/plugin/containerfile-parser.js';
 import { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { ExtensionWatcher } from '/@/plugin/extension/extension-watcher.js';
 import type {
@@ -600,6 +601,10 @@ export class PluginSystem {
 
     container.bind<AutostartEngine>(AutostartEngine).toSelf().inSingletonScope();
     const autoStartEngine = container.get<AutostartEngine>(AutostartEngine);
+
+    container.bind<ContainerfileParser>(ContainerfileParser).toSelf().inSingletonScope();
+    const containerfileParser = container.get(ContainerfileParser);
+    containerfileParser.init();
 
     const providerRegistry = container.get<ProviderRegistry>(ProviderRegistry);
     providerRegistry.registerAutostartEngine(autoStartEngine);

@@ -61,6 +61,7 @@ import type {
 } from '/@api/container-info';
 import type { ContainerInspectInfo } from '/@api/container-inspect-info';
 import type { ContainerStatsInfo } from '/@api/container-stats-info';
+import type { ContainerfileInfo } from '/@api/containerfile-info';
 import type { ContributionInfo } from '/@api/contribution-info';
 import type { MessageBoxOptions, MessageBoxReturnValue } from '/@api/dialog';
 import type { IDisposable } from '/@api/disposable';
@@ -2611,6 +2612,10 @@ export function initExposure(): void {
 
   contextBridge.exposeInMainWorld('closeFeatureCard', async (featureId: string): Promise<void> => {
     return ipcInvoke('explore-features:closeFeatureCard', featureId);
+  });
+
+  contextBridge.exposeInMainWorld('containerfileGetInfo', async (path: string): Promise<ContainerfileInfo> => {
+    return ipcInvoke('containerfile:getInfo', path);
   });
 
   contextBridge.exposeInMainWorld('contextCollectAllValues', async (): Promise<Record<string, unknown>> => {
