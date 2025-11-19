@@ -35,7 +35,6 @@ import ContainerList from './ContainerList.svelte';
 
 beforeEach(() => {
   vi.resetAllMocks();
-  containersInfos.set([]);
   vi.mocked(window.listPods).mockResolvedValue([]);
   vi.mocked(window.listViewsContributions).mockResolvedValue([]);
   vi.mocked(window.getContributedMenus).mockResolvedValue([]);
