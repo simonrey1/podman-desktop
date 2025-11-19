@@ -24,7 +24,7 @@ import userEvent from '@testing-library/user-event';
 import { type Component, type ComponentProps, tick } from 'svelte';
 import { get, type Writable } from 'svelte/store';
 /* eslint-enable import/no-duplicates */
-import { beforeEach, expect, test, vi } from 'vitest';
+import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 
 import type { ContainerInfo } from '/@api/container-info';
 import type { ProviderInfo } from '/@api/provider-info';
@@ -33,6 +33,10 @@ import { providerInfos } from '../../stores/providers';
 import ContainerList from './ContainerList.svelte';
 
 let containersInfos: Writable<ContainerInfo[]>;
+
+afterEach(() => {
+  vi.resetModules();
+});
 
 beforeEach(async () => {
   vi.resetAllMocks();
