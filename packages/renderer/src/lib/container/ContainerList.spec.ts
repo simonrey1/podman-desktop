@@ -23,7 +23,7 @@ import { fireEvent, render, type RenderResult, screen } from '@testing-library/s
 import { type Component, type ComponentProps, tick } from 'svelte';
 import { get } from 'svelte/store';
 /* eslint-enable import/no-duplicates */
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
 import type { ContainerInfo } from '/@api/container-info';
 import type { ProviderInfo } from '/@api/provider-info';
@@ -69,246 +69,244 @@ async function waitRender(
   return result;
 }
 
-describe.sequential('container list tests in sequence', () => {
-  test('Expect to display running / stopped containers depending on tab', { timeout: 20_000 }, async () => {
-    window.dispatchEvent(new CustomEvent('extensions-already-started'));
-    window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
-    window.dispatchEvent(new CustomEvent('tray:update-provider'));
+test('Expect to display running / stopped containers depending on tab', { timeout: 20_000 }, async () => {
+  window.dispatchEvent(new CustomEvent('extensions-already-started'));
+  window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
+  window.dispatchEvent(new CustomEvent('tray:update-provider'));
 
-    // wait for the store to be cleared
-    await vi.waitFor(() => expect(get(containersInfos).length).toBe(0), { timeout: 5_000 });
+  // wait for the store to be cleared
+  await vi.waitFor(() => expect(get(containersInfos).length).toBe(0), { timeout: 5_000 });
 
-    vi.mocked(window.getProviderInfos).mockResolvedValue([
-      {
-        name: 'podman',
-        status: 'started',
-        internalId: 'podman-internal-id',
-        containerConnections: [
-          {
-            name: 'podman-machine-default',
-            status: 'started',
-          },
-        ],
-      } as ProviderInfo,
-    ]);
-
-    const pod1Id = 'pod1-id';
-    const pod2Id = 'pod2-id';
-    const pod3Id = 'pod3-id';
-
-    // 3 pods with 2 containers each
-    const mockedContainers = [
-      // 2 / 2 containers are running on this pod
-      {
-        Id: 'sha256:68347658374683476',
-        Image: 'sha256:234',
-        Names: ['container1-pod1'],
-        State: 'Running',
-        pod: {
-          name: 'pod1',
-          id: pod1Id,
-          status: 'Running',
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
+    {
+      name: 'podman',
+      status: 'started',
+      internalId: 'podman-internal-id',
+      containerConnections: [
+        {
+          name: 'podman-machine-default',
+          status: 'started',
         },
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
-      {
-        Id: 'sha256:7897891234567890123',
-        Image: 'sha256:345',
-        Names: ['container2-pod1'],
-        State: 'Running',
-        pod: {
-          name: 'pod1',
-          id: pod1Id,
-          status: 'Running',
-        },
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
+      ],
+    } as ProviderInfo,
+  ]);
 
-      // 1 / 2 containers are running on this pod
-      {
-        Id: 'sha256:876532948235',
-        Image: 'sha256:876',
-        Names: ['container1-pod2'],
-        State: 'Running',
-        pod: {
-          name: 'pod2',
-          id: pod2Id,
-          status: 'Running',
-        },
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
-      {
-        Id: 'sha256:834752375490',
-        Image: 'sha256:834',
-        Names: ['container2-pod2'],
-        State: 'Stopped',
-        pod: {
-          name: 'pod2',
-          id: pod2Id,
-          status: 'Running',
-        },
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
+  const pod1Id = 'pod1-id';
+  const pod2Id = 'pod2-id';
+  const pod3Id = 'pod3-id';
 
-      // 0 / 2 containers are running on this pod
-      {
-        Id: 'sha256:56283769268',
-        Image: 'sha256:562',
-        Names: ['container1-pod3'],
-        State: 'Stopped',
-        pod: {
-          name: 'pod3',
-          id: pod3Id,
-          status: 'Stopped',
-        },
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
-      {
-        Id: 'sha256:834752375490',
-        Image: 'sha256:834',
-        Names: ['container2-pod3'],
-        State: 'Stopped',
-        pod: {
-          name: 'pod3',
-          id: pod3Id,
-          status: 'Stopped',
-        },
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
-    ];
-
-    vi.mocked(window.listContainers).mockResolvedValue(mockedContainers);
-
-    window.dispatchEvent(new CustomEvent('extensions-already-started'));
-    window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
-    window.dispatchEvent(new CustomEvent('tray:update-provider'));
-
-    // wait until store is populated
-    await vi.waitFor(() => expect(get(containersInfos).length).toBe(6), { timeout: 5_000 });
-    await vi.waitFor(() => expect(get(providerInfos).length).toBe(1), { timeout: 5_000 });
-
-    await waitRender({});
-
-    const tests = [
-      {
-        tabLabel: undefined,
-        presentCells: [
-          'pod1 (pod) 2 containers',
-          'container1-pod1 RUNNING',
-          'container2-pod1 RUNNING',
-          'pod2 (pod) 2 containers',
-          'container1-pod2 RUNNING',
-          'container2-pod2 STOPPED',
-          'pod3 (pod) 2 containers',
-          'container1-pod3 STOPPED',
-          'container2-pod3 STOPPED',
-        ],
-        absentLabels: [],
+  // 3 pods with 2 containers each
+  const mockedContainers = [
+    // 2 / 2 containers are running on this pod
+    {
+      Id: 'sha256:68347658374683476',
+      Image: 'sha256:234',
+      Names: ['container1-pod1'],
+      State: 'Running',
+      pod: {
+        name: 'pod1',
+        id: pod1Id,
+        status: 'Running',
       },
-      {
-        tabLabel: 'Running',
-        presentCells: [
-          'pod1 (pod) 2 containers',
-          'container1-pod1 RUNNING',
-          'container2-pod1 RUNNING',
-          'pod2 (pod) 2 containers (1 filtered)',
-          'container1-pod2 RUNNING',
-        ],
-        absentLabels: [/container2-pod2.*/, /pod3 \(pod\).*/, /container1-pod3.*/, /container2-pod3.*/],
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+    {
+      Id: 'sha256:7897891234567890123',
+      Image: 'sha256:345',
+      Names: ['container2-pod1'],
+      State: 'Running',
+      pod: {
+        name: 'pod1',
+        id: pod1Id,
+        status: 'Running',
       },
-      {
-        tabLabel: 'Stopped',
-        presentCells: [
-          'pod2 (pod) 2 containers (1 filtered)',
-          'container2-pod2 STOPPED',
-          'pod3 (pod) 2 containers',
-          'container1-pod3 STOPPED',
-          'container2-pod3 STOPPED',
-        ],
-        absentLabels: [/pod1 \(pod\).*/, /container1-pod1.*/, /container2-pod1.*/, /container1-pod2.*/],
-      },
-    ];
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
 
-    for (const tt of tests) {
-      if (tt.tabLabel) {
-        const tab = screen.getByRole('button', { name: tt.tabLabel });
-        await fireEvent.click(tab);
-      }
-      for (const presentCell of tt.presentCells) {
-        await vi.waitFor(() => {
-          expect(screen.getByRole('button', { name: presentCell })).toBeInTheDocument();
-        });
-      }
-      for (const absentCell of tt.absentLabels) {
-        await vi.waitFor(() => {
-          expect(screen.queryByText(absentCell)).not.toBeInTheDocument();
-        });
-      }
+    // 1 / 2 containers are running on this pod
+    {
+      Id: 'sha256:876532948235',
+      Image: 'sha256:876',
+      Names: ['container1-pod2'],
+      State: 'Running',
+      pod: {
+        name: 'pod2',
+        id: pod2Id,
+        status: 'Running',
+      },
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+    {
+      Id: 'sha256:834752375490',
+      Image: 'sha256:834',
+      Names: ['container2-pod2'],
+      State: 'Stopped',
+      pod: {
+        name: 'pod2',
+        id: pod2Id,
+        status: 'Running',
+      },
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+
+    // 0 / 2 containers are running on this pod
+    {
+      Id: 'sha256:56283769268',
+      Image: 'sha256:562',
+      Names: ['container1-pod3'],
+      State: 'Stopped',
+      pod: {
+        name: 'pod3',
+        id: pod3Id,
+        status: 'Stopped',
+      },
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+    {
+      Id: 'sha256:834752375490',
+      Image: 'sha256:834',
+      Names: ['container2-pod3'],
+      State: 'Stopped',
+      pod: {
+        name: 'pod3',
+        id: pod3Id,
+        status: 'Stopped',
+      },
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+  ];
+
+  vi.mocked(window.listContainers).mockResolvedValue(mockedContainers);
+
+  window.dispatchEvent(new CustomEvent('extensions-already-started'));
+  window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
+  window.dispatchEvent(new CustomEvent('tray:update-provider'));
+
+  // wait until store is populated
+  await vi.waitFor(() => expect(get(containersInfos).length).toBe(6), { timeout: 5_000 });
+  await vi.waitFor(() => expect(get(providerInfos).length).toBe(1), { timeout: 5_000 });
+
+  await waitRender({});
+
+  const tests = [
+    {
+      tabLabel: undefined,
+      presentCells: [
+        'pod1 (pod) 2 containers',
+        'container1-pod1 RUNNING',
+        'container2-pod1 RUNNING',
+        'pod2 (pod) 2 containers',
+        'container1-pod2 RUNNING',
+        'container2-pod2 STOPPED',
+        'pod3 (pod) 2 containers',
+        'container1-pod3 STOPPED',
+        'container2-pod3 STOPPED',
+      ],
+      absentLabels: [],
+    },
+    {
+      tabLabel: 'Running',
+      presentCells: [
+        'pod1 (pod) 2 containers',
+        'container1-pod1 RUNNING',
+        'container2-pod1 RUNNING',
+        'pod2 (pod) 2 containers (1 filtered)',
+        'container1-pod2 RUNNING',
+      ],
+      absentLabels: [/container2-pod2.*/, /pod3 \(pod\).*/, /container1-pod3.*/, /container2-pod3.*/],
+    },
+    {
+      tabLabel: 'Stopped',
+      presentCells: [
+        'pod2 (pod) 2 containers (1 filtered)',
+        'container2-pod2 STOPPED',
+        'pod3 (pod) 2 containers',
+        'container1-pod3 STOPPED',
+        'container2-pod3 STOPPED',
+      ],
+      absentLabels: [/pod1 \(pod\).*/, /container1-pod1.*/, /container2-pod1.*/, /container1-pod2.*/],
+    },
+  ];
+
+  for (const tt of tests) {
+    if (tt.tabLabel) {
+      const tab = screen.getByRole('button', { name: tt.tabLabel });
+      await fireEvent.click(tab);
     }
-  });
+    for (const presentCell of tt.presentCells) {
+      await vi.waitFor(() => {
+        expect(screen.getByRole('button', { name: presentCell })).toBeInTheDocument();
+      });
+    }
+    for (const absentCell of tt.absentLabels) {
+      await vi.waitFor(() => {
+        expect(screen.queryByText(absentCell)).not.toBeInTheDocument();
+      });
+    }
+  }
+});
 
-  test('Expect user confirmation to pop up when preferences require', async () => {
-    vi.mocked(window.listContainers).mockResolvedValue([]);
-    vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
-    vi.mocked(window.showMessageBox).mockResolvedValue({ response: 1 });
+test('Expect user confirmation to pop up when preferences require', async () => {
+  vi.mocked(window.listContainers).mockResolvedValue([]);
+  vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
+  vi.mocked(window.showMessageBox).mockResolvedValue({ response: 1 });
 
-    window.dispatchEvent(new CustomEvent('extensions-already-started'));
-    window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
-    window.dispatchEvent(new CustomEvent('tray:update-provider'));
+  window.dispatchEvent(new CustomEvent('extensions-already-started'));
+  window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
+  window.dispatchEvent(new CustomEvent('tray:update-provider'));
 
-    // wait for the store to be cleared
-    await vi.waitFor(() => get(containersInfos).length === 0);
+  // wait for the store to be cleared
+  await vi.waitFor(() => get(containersInfos).length === 0);
 
-    // one single container and a container as part of a pod
-    const mockedContainers = [
-      {
-        Id: 'sha256:123454321',
-        Image: 'sha256:123',
-        Names: ['foo1'],
-        Status: 'Running',
-        engineId: 'podman',
-        engineName: 'podman',
-        ImageID: 'dummy-image-id',
-      } as ContainerInfo,
-    ];
+  // one single container and a container as part of a pod
+  const mockedContainers = [
+    {
+      Id: 'sha256:123454321',
+      Image: 'sha256:123',
+      Names: ['foo1'],
+      Status: 'Running',
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+  ];
 
-    vi.mocked(window.listContainers).mockResolvedValue(mockedContainers);
+  vi.mocked(window.listContainers).mockResolvedValue(mockedContainers);
 
-    window.dispatchEvent(new CustomEvent('extensions-already-started'));
-    window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
-    window.dispatchEvent(new CustomEvent('tray:update-provider'));
+  window.dispatchEvent(new CustomEvent('extensions-already-started'));
+  window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
+  window.dispatchEvent(new CustomEvent('tray:update-provider'));
 
-    // wait until the store is populated
-    await vi.waitFor(() => get(containersInfos).length > 0);
+  // wait until the store is populated
+  await vi.waitFor(() => get(containersInfos).length > 0);
 
-    await waitRender({});
+  await waitRender({});
 
-    // select the standalone container checkbox
-    const checkboxes = screen.getAllByRole('checkbox', { name: 'Toggle container' });
-    await fireEvent.click(checkboxes[0]);
+  // select the standalone container checkbox
+  const checkboxes = screen.getAllByRole('checkbox', { name: 'Toggle container' });
+  await fireEvent.click(checkboxes[0]);
 
-    const deleteButton = await vi.waitFor(() =>
-      screen.getByRole('button', { name: 'Delete selected containers and pods' }),
-    );
-    await fireEvent.click(deleteButton);
+  const deleteButton = await vi.waitFor(() =>
+    screen.getByRole('button', { name: 'Delete selected containers and pods' }),
+  );
+  await fireEvent.click(deleteButton);
 
-    expect(window.showMessageBox).toHaveBeenCalledOnce();
+  expect(window.showMessageBox).toHaveBeenCalledOnce();
 
-    vi.mocked(window.showMessageBox).mockResolvedValue({ response: 0 });
-    await fireEvent.click(deleteButton);
-    expect(window.showMessageBox).toHaveBeenCalledTimes(2);
-    await vi.waitFor(() => expect(window.deleteContainer).toHaveBeenCalled());
-  });
+  vi.mocked(window.showMessageBox).mockResolvedValue({ response: 0 });
+  await fireEvent.click(deleteButton);
+  expect(window.showMessageBox).toHaveBeenCalledTimes(2);
+  await vi.waitFor(() => expect(window.deleteContainer).toHaveBeenCalled());
 });
