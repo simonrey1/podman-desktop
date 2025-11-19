@@ -797,16 +797,31 @@ test('Sort containers based on selected parameter', async () => {
 });
 
 test('Expect user confirmation to pop up when preferences require', async () => {
+  let a, b, duration;
+  const startTest = performance.now();
+
+  a = performance.now();
   vi.mocked(window.listContainers).mockResolvedValue([]);
   vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
   vi.mocked(window.showMessageBox).mockResolvedValue({ response: 1 });
+  b = performance.now();
+  duration = b - a;
+  console.log(`[SETUP] Mocking initial functions: ${duration.toFixed(0)}ms`);
 
+  a = performance.now();
   window.dispatchEvent(new CustomEvent('extensions-already-started'));
   window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
   window.dispatchEvent(new CustomEvent('tray:update-provider'));
+  b = performance.now();
+  duration = b - a;
+  console.log(`[EVENT] Dispatching initial events: ${duration.toFixed(0)}ms`);
 
   // wait for the store to be cleared
+  a = performance.now();
   await vi.waitFor(() => get(containersInfos).length === 0);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[WAIT] Store cleared: ${duration.toFixed(0)}ms`);
 
   // one single container and a container as part of a pod
   const mockedContainers = [
@@ -821,32 +836,83 @@ test('Expect user confirmation to pop up when preferences require', async () => 
     } as ContainerInfo,
   ];
 
+  a = performance.now();
   vi.mocked(window.listContainers).mockResolvedValue(mockedContainers);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[SETUP] Mocking containers list: ${duration.toFixed(0)}ms`);
 
+  a = performance.now();
   window.dispatchEvent(new CustomEvent('extensions-already-started'));
   window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
   window.dispatchEvent(new CustomEvent('tray:update-provider'));
+  b = performance.now();
+  duration = b - a;
+  console.log(`[EVENT] Dispatching population events: ${duration.toFixed(0)}ms`);
 
   // wait until the store is populated
+  a = performance.now();
   await vi.waitFor(() => get(containersInfos).length > 0);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[WAIT] Store populated: ${duration.toFixed(0)}ms`);
 
+  a = performance.now();
   await waitRender({});
+  b = performance.now();
+  duration = b - a;
+  console.log(`[RENDER] Initial render: ${duration.toFixed(0)}ms`);
 
   // select the standalone container checkbox
+  a = performance.now();
   const checkboxes = screen.getAllByRole('checkbox', { name: 'Toggle container' });
   await fireEvent.click(checkboxes[0]);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[ACTION] Click checkbox: ${duration.toFixed(0)}ms`);
 
+  a = performance.now();
   const deleteButton = await vi.waitFor(() =>
     screen.getByRole('button', { name: 'Delete selected containers and pods' }),
   );
+  b = performance.now();
+  duration = b - a;
+  console.log(`[WAIT] Get delete button: ${duration.toFixed(0)}ms`);
+
+  a = performance.now();
   await fireEvent.click(deleteButton);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[ACTION] First delete button click: ${duration.toFixed(0)}ms`);
 
+  a = performance.now();
   expect(window.showMessageBox).toHaveBeenCalledOnce();
+  b = performance.now();
+  duration = b - a;
+  console.log(`[ASSERT] First showMessageBox call: ${duration.toFixed(0)}ms`);
 
+  a = performance.now();
   vi.mocked(window.showMessageBox).mockResolvedValue({ response: 0 });
   await fireEvent.click(deleteButton);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[ACTION] Second delete button click: ${duration.toFixed(0)}ms`);
+
+  a = performance.now();
   expect(window.showMessageBox).toHaveBeenCalledTimes(2);
+  b = performance.now();
+  duration = b - a;
+  console.log(`[ASSERT] Second showMessageBox call: ${duration.toFixed(0)}ms`);
+
+  a = performance.now();
   await vi.waitFor(() => expect(window.deleteContainer).toHaveBeenCalled());
+  b = performance.now();
+  duration = b - a;
+  console.log(`[WAIT] deleteContainer called: ${duration.toFixed(0)}ms`);
+
+  const endTest = performance.now();
+  const totalDuration = endTest - startTest;
+  console.log(`--- TOTAL TEST DURATION: ${totalDuration.toFixed(0)}ms ---`);
 });
 
 test('Try to run pods in bulk', async () => {
