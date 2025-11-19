@@ -29,13 +29,13 @@ import { beforeEach, expect, test, vi } from 'vitest';
 import type { ContainerInfo } from '/@api/container-info';
 import type { ProviderInfo } from '/@api/provider-info';
 
-import { containersInfos, reset } from '../../stores/containers';
+import { containersInfos } from '../../stores/containers';
 import { providerInfos } from '../../stores/providers';
 import ContainerList from './ContainerList.svelte';
 
 beforeEach(() => {
   vi.resetAllMocks();
-  reset();
+  containersInfos.set([]);
   vi.mocked(window.listPods).mockResolvedValue([]);
   vi.mocked(window.listViewsContributions).mockResolvedValue([]);
   vi.mocked(window.getContributedMenus).mockResolvedValue([]);
