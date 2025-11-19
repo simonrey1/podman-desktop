@@ -801,12 +801,21 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
   vi.mocked(window.showMessageBox).mockResolvedValue({ response: 1 });
 
-  // one single container and a container as part of a pod
+  // Provide multiple containers to ensure bulk delete button is enabled
   const mockedContainers = [
     {
       Id: 'sha256:123454321',
       Image: 'sha256:123',
       Names: ['foo1'],
+      Status: 'Running',
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+    {
+      Id: 'sha256:543210987',
+      Image: 'sha256:456',
+      Names: ['bar2'],
       Status: 'Running',
       engineId: 'podman',
       engineName: 'podman',
@@ -825,10 +834,13 @@ test('Expect user confirmation to pop up when preferences require', async () => 
 
   await waitRender({});
 
-  // select the standalone container checkbox
-  const checkboxes = screen.getAllByRole('checkbox', { name: 'Toggle container' });
-  await fireEvent.click(checkboxes[0]);
+  // Select all container checkboxes to enable bulk delete
+  const checkboxes = await vi.waitFor(() => screen.getAllByRole('checkbox', { name: 'Toggle container' }));
+  for (const checkbox of checkboxes) {
+    await fireEvent.click(checkbox);
+  }
 
+  // Ensure the selectedItemsNumber is updated, making the bulk delete button visible
   const deleteButton = await vi.waitFor(() =>
     screen.getByRole('button', { name: 'Delete selected containers and pods' }),
   );
