@@ -852,6 +852,7 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   // wait until the store is populated
   a = performance.now();
   await vi.waitFor(() => get(containersInfos).length > 0);
+  await vi.waitFor(() => get(providerInfos).length > 0);
   b = performance.now();
   duration = b - a;
   console.log(`[WAIT] Store populated: ${duration.toFixed(0)}ms`);
