@@ -802,13 +802,6 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
   vi.mocked(window.showMessageBox).mockResolvedValue({ response: 1 });
 
-  window.dispatchEvent(new CustomEvent('extensions-already-started'));
-  window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
-  window.dispatchEvent(new CustomEvent('tray:update-provider'));
-
-  // wait for the store to be cleared
-  await vi.waitFor(() => get(containersInfos).length === 0);
-
   // one single container and a container as part of a pod
   const mockedContainers = [
     {
