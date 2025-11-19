@@ -1301,6 +1301,7 @@ export function initExposure(): void {
       cancellableTokenId?: number,
       buildargs?: { [key: string]: string },
       taskId?: number,
+      target?: string,
     ): Promise<unknown> => {
       onDataCallbacksBuildImageId++;
       onDataCallbacksBuildImage.set(onDataCallbacksBuildImageId, eventCollect);
@@ -1316,6 +1317,7 @@ export function initExposure(): void {
         cancellableTokenId,
         buildargs,
         taskId,
+        target,
       );
     },
   );

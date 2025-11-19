@@ -1439,6 +1439,7 @@ export class PluginSystem {
         cancellableTokenId?: number,
         buildargs?: { [key: string]: string },
         taskId?: number,
+        target?: string,
       ): Promise<unknown> => {
         // create task
         const task = taskManager.createTask({
@@ -1478,6 +1479,7 @@ export class PluginSystem {
               provider: selectedProvider,
               abortController,
               buildargs,
+              target,
             },
           )
           .then(result => {
