@@ -871,10 +871,13 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   duration = b - a;
   console.log(`[ACTION] Click checkbox: ${duration.toFixed(0)}ms`);
 
+  console.log(screen.logTestingPlaygroundURL());
+
   a = performance.now();
-  const deleteButton = await vi.waitFor(() =>
-    screen.getByRole('button', { name: 'Delete selected containers and pods' }),
-  );
+  const deleteButton = await vi.waitFor(() => {
+    console.log(screen.logTestingPlaygroundURL());
+    return screen.getByRole('button', { name: 'Delete selected containers and pods' });
+  });
   b = performance.now();
   duration = b - a;
   console.log(`[WAIT] Get delete button: ${duration.toFixed(0)}ms`);
