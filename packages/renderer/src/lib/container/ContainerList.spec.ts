@@ -799,7 +799,6 @@ test('Sort containers based on selected parameter', async () => {
 test('Expect user confirmation to pop up when preferences require', async () => {
   let a, b, duration;
   const startTest = performance.now();
-
   a = performance.now();
   vi.mocked(window.listContainers).mockResolvedValue([]);
   vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
