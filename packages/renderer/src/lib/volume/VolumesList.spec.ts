@@ -427,7 +427,7 @@ test('Expect to see empty page and no table when no container engine is running'
   window.dispatchEvent(new CustomEvent('extensions-already-started'));
 
   // wait imageInfo store is populated
-  await vi.waitFor(() => get(volumeListInfos).length > 0);
+  await vi.waitUntil(() => get(volumeListInfos).length > 0);
 
   await waitRender({});
 

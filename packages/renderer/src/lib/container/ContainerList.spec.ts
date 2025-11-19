@@ -806,7 +806,7 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   window.dispatchEvent(new CustomEvent('tray:update-provider'));
 
   // wait for the store to be cleared
-  await vi.waitFor(() => get(containersInfos).length === 0);
+  await vi.waitUntil(() => get(containersInfos).length === 0);
 
   // one single container and a container as part of a pod
   const mockedContainers = [
@@ -828,7 +828,7 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   window.dispatchEvent(new CustomEvent('tray:update-provider'));
 
   // wait until the store is populated
-  await vi.waitFor(() => get(containersInfos).length > 0);
+  await vi.waitUntil(() => get(containersInfos).length > 0);
 
   await waitRender({});
 
@@ -952,7 +952,7 @@ test('Ensuring the table and empty screen are not visible at the same time', asy
   window.dispatchEvent(new CustomEvent('tray:update-provider'));
 
   // wait until the stores are populated
-  await vi.waitFor(() => get(containersInfos).length === 1 && get(providerInfos).length === 0);
+  await vi.waitUntil(() => get(containersInfos).length === 1 && get(providerInfos).length === 0);
 
   const { getByRole, queryByRole } = await waitRender({});
 

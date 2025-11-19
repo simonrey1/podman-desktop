@@ -692,7 +692,7 @@ test('Expect to see empty page and no table when no container engine is running'
   window.dispatchEvent(new CustomEvent('image-build'));
 
   // wait imageInfo store is populated
-  await vi.waitFor(() => get(imagesInfos).length > 0);
+  await vi.waitUntil(() => get(imagesInfos).length > 0);
 
   await waitRender({});
 
