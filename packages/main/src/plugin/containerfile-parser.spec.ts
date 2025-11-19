@@ -21,10 +21,16 @@ import { join } from 'node:path';
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import type { IPCHandle } from '/@/plugin/api.js';
+
 import { ContainerfileParser } from './containerfile-parser.js';
 
+let containerFileParser: ContainerfileParser;
+
+const ipcHandle = {} as unknown as IPCHandle;
 beforeEach(() => {
   vi.resetAllMocks();
+  containerFileParser = new ContainerfileParser(ipcHandle);
 });
 
 const fixturesDir = join(__dirname, '__tests__', 'fixtures', 'containerfile-parser');
@@ -36,12 +42,12 @@ describe('Should parse info from container files', async () => {
       path: join(fixturesDir, file),
     })),
   )('should parse targets from $name', async ({ path }) => {
-    const info = await ContainerfileParser.parse(path);
+    const info = await containerFileParser.parse(path);
     expect(info.targets).toMatchSnapshot();
   });
 
   test('should throw error if file does not exist', async () => {
-    await expect(ContainerfileParser.parse('/tmp/nonexistent-Containerfile')).rejects.toThrow(
+    await expect(containerFileParser.parse('/tmp/nonexistent-Containerfile')).rejects.toThrow(
       'ENOENT: no such file or directory',
     );
   });
