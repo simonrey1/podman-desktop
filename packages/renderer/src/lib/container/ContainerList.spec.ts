@@ -33,7 +33,7 @@ import { providerInfos } from '../../stores/providers';
 import ContainerList from './ContainerList.svelte';
 
 beforeEach(() => {
-  vi.resetAllMocks();
+  vi.clearAllMocks();
   vi.mocked(window.listPods).mockResolvedValue([]);
   vi.mocked(window.listViewsContributions).mockResolvedValue([]);
   vi.mocked(window.getContributedMenus).mockResolvedValue([]);
