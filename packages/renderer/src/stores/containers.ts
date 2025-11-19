@@ -67,3 +67,8 @@ export const containersEventStore = new EventStore<ContainerInfo[]>(
   ContainerIcon,
 );
 containersEventStore.setupWithDebounce();
+
+export function reset(): void {
+  readyToUpdate = false;
+  containersInfos.set([]);
+}

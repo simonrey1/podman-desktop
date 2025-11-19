@@ -22,23 +22,18 @@ import { fireEvent, render, type RenderResult, screen, waitFor } from '@testing-
 import userEvent from '@testing-library/user-event';
 /* eslint-disable import/no-duplicates */
 import { type Component, type ComponentProps, tick } from 'svelte';
-import { get, type Writable } from 'svelte/store';
+import { get } from 'svelte/store';
 /* eslint-enable import/no-duplicates */
-import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
 import type { ContainerInfo } from '/@api/container-info';
 import type { ProviderInfo } from '/@api/provider-info';
 
+import { containersInfos } from '../../stores/containers';
 import { providerInfos } from '../../stores/providers';
 import ContainerList from './ContainerList.svelte';
 
-let containersInfos: Writable<ContainerInfo[]>;
-
-afterEach(() => {
-  vi.resetModules();
-});
-
-beforeEach(async () => {
+beforeEach(() => {
   vi.resetAllMocks();
   vi.mocked(window.listPods).mockResolvedValue([]);
   vi.mocked(window.listViewsContributions).mockResolvedValue([]);
@@ -65,9 +60,6 @@ beforeEach(async () => {
       func();
     },
   };
-
-  const containers = await import('/@/stores/containers');
-  containersInfos = containers.containersInfos;
 });
 
 async function waitRender(
@@ -805,23 +797,24 @@ test('Sort containers based on selected parameter', async () => {
 });
 
 test('Expect user confirmation to pop up when preferences require', async () => {
-  vi.mocked(window.listContainers).mockResolvedValue([]);
   vi.mocked(window.getConfigurationValue).mockResolvedValue(true);
   vi.mocked(window.showMessageBox).mockResolvedValue({ response: 1 });
 
-  window.dispatchEvent(new CustomEvent('extensions-already-started'));
-  window.dispatchEvent(new CustomEvent('provider-lifecycle-change'));
-  window.dispatchEvent(new CustomEvent('tray:update-provider'));
-
-  // wait for the store to be cleared
-  await vi.waitFor(() => get(containersInfos).length === 0);
-
-  // one single container and a container as part of a pod
+  // Provide multiple containers to ensure bulk delete button is enabled
   const mockedContainers = [
     {
       Id: 'sha256:123454321',
       Image: 'sha256:123',
       Names: ['foo1'],
+      Status: 'Running',
+      engineId: 'podman',
+      engineName: 'podman',
+      ImageID: 'dummy-image-id',
+    } as ContainerInfo,
+    {
+      Id: 'sha256:543210987',
+      Image: 'sha256:456',
+      Names: ['bar2'],
       Status: 'Running',
       engineId: 'podman',
       engineName: 'podman',
@@ -840,10 +833,13 @@ test('Expect user confirmation to pop up when preferences require', async () => 
 
   await waitRender({});
 
-  // select the standalone container checkbox
-  const checkboxes = screen.getAllByRole('checkbox', { name: 'Toggle container' });
-  await fireEvent.click(checkboxes[0]);
+  // Select all container checkboxes to enable bulk delete
+  const checkboxes = await vi.waitFor(() => screen.getAllByRole('checkbox', { name: 'Toggle container' }));
+  for (const checkbox of checkboxes) {
+    await fireEvent.click(checkbox);
+  }
 
+  // Ensure the selectedItemsNumber is updated, making the bulk delete button visible
   const deleteButton = await vi.waitFor(() =>
     screen.getByRole('button', { name: 'Delete selected containers and pods' }),
   );
