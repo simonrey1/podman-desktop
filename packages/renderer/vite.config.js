@@ -43,7 +43,6 @@ export default defineConfig({
     exclude: ['tinro'],
   },
   test: {
-    retry: 3, // Retries failing tests up to 3 times
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     globals: true,
     environment: 'jsdom',
