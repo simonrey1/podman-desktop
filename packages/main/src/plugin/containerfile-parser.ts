@@ -32,12 +32,16 @@ export class ContainerfileParser {
   ) {}
   init(): void {
     this.ipcHandle('containerfile:getInfo', async (_listener, path: string): Promise<ContainerfileInfo> => {
-      return this.parse(path);
+      return this.parseContainerFile(path);
     });
   }
 
-  async parse(containerfilePath: string): Promise<ContainerfileInfo> {
+  async parseContainerFile(containerfilePath: string): Promise<ContainerfileInfo> {
     const content = await readFile(containerfilePath, 'utf-8');
+    return this.parseContent(content);
+  }
+
+  async parseContent(content: string): Promise<ContainerfileInfo> {
     const lines = content.split('\n');
     const targets: string[] = [];
 
