@@ -247,6 +247,12 @@ describe('Create volume', () => {
       } as unknown as ProviderInfo,
     ]);
 
+    await waitFor(() => {
+      // wait store are populated
+      expect(get(volumeListInfos)).not.toHaveLength(0);
+      expect(get(providerInfos)).not.toHaveLength(0);
+    });
+
     await waitRender({});
 
     // now check if we have a create volume button, it should not be there
