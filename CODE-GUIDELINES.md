@@ -189,18 +189,20 @@ expect(text).toHaveStyle({ color: '#FFFFF'});
 
 ### `waitFor` vs `waitUntil`
 
-Use `waitFor` to retry an assertion until it passes, and `waitUntil` to wait for a function to return a truthy value.
+Use `waitFor` (https://vitest.dev/api/vi.html#vi-waitfor) to retry an assertion until it passes, and `waitUntil` (https://vitest.dev/api/vi.html#vi-waituntil) to wait for a function to return a truthy value.
 
-`waitFor` in tests are only used when an exception in thrown.
+→ `waitFor` → needs an exception
+
+→ `waitUntil` → needs a boolean
 
 **Example:**
 
 ```typescript
-// Use waitUntil with a boolean value
-await vi.waitUntil(() => get(imagesInfos).length > 0);
-
 // Use waitFor with an assertion
 await waitFor(() => expect(get(providerInfos)).not.toHaveLength(0));
+
+// Use waitUntil with a boolean value
+await vi.waitUntil(() => get(imagesInfos).length > 0);
 ```
 
 ### Mocking a sub-component
