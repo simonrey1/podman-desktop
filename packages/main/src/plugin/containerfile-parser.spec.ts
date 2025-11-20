@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import { readdirSync } from 'node:fs';
+import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
@@ -27,23 +27,32 @@ import { ContainerfileParser } from './containerfile-parser.js';
 
 let containerFileParser: ContainerfileParser;
 
+const testDir = join(__dirname, '..', '..', 'tests');
+const fixturesDir = join(testDir, 'fixtures', 'containerfile-parser');
+
+interface TestCase {
+  filename: string;
+  path: string;
+}
+
 const ipcHandle = {} as unknown as IPCHandle;
 beforeEach(() => {
   vi.resetAllMocks();
   containerFileParser = new ContainerfileParser(ipcHandle);
 });
 
-const fixturesDir = join(__dirname, '__tests__', 'fixtures', 'containerfile-parser');
-
 describe('Should parse info from container files', async () => {
-  test.each(
-    readdirSync(fixturesDir).map(file => ({
-      name: file,
+  const filenames = await readdir(fixturesDir);
+  const fixtures: TestCase[] = filenames
+    .filter(filename => filename.endsWith('.Containerfile'))
+    .map(file => ({
+      filename: file,
       path: join(fixturesDir, file),
-    })),
-  )('should parse targets from $name', async ({ path }) => {
+    }));
+
+  test.each<TestCase>(fixtures)('should parse targets from $filename', async ({ filename, path }) => {
     const info = await containerFileParser.parse(path);
-    expect(info.targets).toMatchSnapshot();
+    await expect(JSON.stringify(info, null, 2)).toMatchFileSnapshot(join(fixturesDir, `${filename}.json`));
   });
 
   test('should throw error if file does not exist', async () => {
