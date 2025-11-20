@@ -191,6 +191,8 @@ expect(text).toHaveStyle({ color: '#FFFFF'});
 
 Use `waitFor` to retry an assertion until it passes, and `waitUntil` to wait for a function to return a truthy value.
 
+`waitFor` in tests are only used when an exception in thrown.
+
 **Example:**
 
 ```typescript
