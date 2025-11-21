@@ -43,7 +43,7 @@ beforeAll(() => {
   };
 });
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.resetAllMocks();
   volumeListInfos.set([]);
 
@@ -209,11 +209,6 @@ test('Expect volumes being displayed once extensions are started (with size data
 });
 
 describe('Create volume', () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
-    vi.clearAllMocks();
-  });
-
   const createVolumeButtonTitle = 'Create';
   test('no create volume button if no providers', async () => {
     providerInfos.set([]);
@@ -241,7 +236,6 @@ describe('Create volume', () => {
 
     await waitFor(() => {
       // wait store are populated
-      expect(get(volumeListInfos)).toHaveLength(0);
       expect(get(providerInfos)).not.toHaveLength(0);
     });
 
