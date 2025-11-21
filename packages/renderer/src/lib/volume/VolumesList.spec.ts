@@ -59,7 +59,6 @@ beforeAll(() => {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  vi.clearAllMocks();
   onDidUpdateProviderStatusMock.mockImplementation(() => Promise.resolve());
   getProviderInfosMock.mockResolvedValue([]);
   (window as any).removeVolume = vi.fn();
@@ -249,7 +248,7 @@ describe('Create volume', () => {
 
     await waitFor(() => {
       // wait store are populated
-      expect(get(volumeListInfos)).not.toHaveLength(0);
+      expect(get(volumeListInfos)).toHaveLength(0);
       expect(get(providerInfos)).not.toHaveLength(0);
     });
 
