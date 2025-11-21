@@ -30,26 +30,12 @@ import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { providerInfos } from '/@/stores/providers';
 import { volumeListInfos, volumesEventStore } from '/@/stores/volumes';
-import type { ProviderInfo } from '/@api/provider-info';
+import { type ProviderInfo } from '/@api/provider-info';
 
 import VolumesList from './VolumesList.svelte';
 
-const listVolumesMock = vi.fn();
-const getProviderInfosMock = vi.fn();
-const onDidUpdateProviderStatusMock = vi.fn();
-
 // fake the window.events object
 beforeAll(() => {
-  (window as any).getConfigurationValue = vi.fn();
-  (window as any).updateConfigurationValue = vi.fn();
-  (window as any).getContributedMenus = vi.fn();
-
-  (window as any).onDidUpdateProviderStatus = onDidUpdateProviderStatusMock;
-  (window as any).listVolumes = listVolumesMock;
-  (window as any).listImages = vi.fn();
-
-  (window as any).getProviderInfos = getProviderInfosMock;
-
   (window.events as unknown) = {
     receive: (_channel: string, func: any): void => {
       func();
@@ -59,12 +45,12 @@ beforeAll(() => {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  onDidUpdateProviderStatusMock.mockImplementation(() => Promise.resolve());
-  getProviderInfosMock.mockResolvedValue([]);
-  (window as any).removeVolume = vi.fn();
-  vi.mocked(window.removeVolume);
-  (window as any).getConfigurationValue = vi.fn();
+  volumeListInfos.set([]);
+
+  vi.mocked(window.onDidUpdateProviderStatus).mockImplementation(() => Promise.resolve());
+  vi.mocked(window.getProviderInfos).mockResolvedValue([]);
   vi.mocked(window.getConfigurationValue).mockResolvedValue(false);
+  vi.mocked(window.listVolumes).mockResolvedValue([]);
 });
 
 async function waitRender(customProperties: object): Promise<void> {
@@ -73,8 +59,7 @@ async function waitRender(customProperties: object): Promise<void> {
 }
 
 test('Expect No Container Engine being displayed', async () => {
-  listVolumesMock.mockResolvedValue([]);
-  getProviderInfosMock.mockResolvedValue([
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
     {
       name: 'podman',
       status: 'started',
@@ -85,7 +70,7 @@ test('Expect No Container Engine being displayed', async () => {
           status: 'started',
         },
       ],
-    },
+    } as ProviderInfo,
   ]);
   render(VolumesList);
   const noEngine = screen.getByRole('heading', { name: 'No Container Engine' });
@@ -93,7 +78,7 @@ test('Expect No Container Engine being displayed', async () => {
 });
 
 test('Expect volumes being displayed once extensions are started (without size data)', async () => {
-  getProviderInfosMock.mockResolvedValue([
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
     {
       name: 'podman',
       status: 'started',
@@ -104,10 +89,10 @@ test('Expect volumes being displayed once extensions are started (without size d
           status: 'started',
         },
       ],
-    },
+    } as ProviderInfo,
   ]);
 
-  listVolumesMock.mockResolvedValue([
+  vi.mocked(window.listVolumes).mockResolvedValue([
     {
       Volumes: [
         {
@@ -121,8 +106,12 @@ test('Expect volumes being displayed once extensions are started (without size d
           engineId: 'podman.Podman Machine',
           UsageData: { RefCount: 1, Size: -1 },
           containersUsage: [],
+          CreatedAt: '',
         },
       ],
+      Warnings: [],
+      engineId: '',
+      engineName: '',
     },
   ]);
 
@@ -135,7 +124,7 @@ test('Expect volumes being displayed once extensions are started (without size d
   await volumesEventStoreInfo.fetch();
 
   // first call is with listing without details
-  expect(listVolumesMock).toHaveBeenNthCalledWith(1, false);
+  expect(window.listVolumes).toHaveBeenNthCalledWith(1, false);
 
   await waitFor(() => {
     // wait store are populated
@@ -155,7 +144,7 @@ test('Expect volumes being displayed once extensions are started (without size d
 });
 
 test('Expect volumes being displayed once extensions are started (with size data)', async () => {
-  getProviderInfosMock.mockResolvedValue([
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
     {
       name: 'podman',
       status: 'started',
@@ -166,10 +155,10 @@ test('Expect volumes being displayed once extensions are started (with size data
           status: 'started',
         },
       ],
-    },
+    } as ProviderInfo,
   ]);
 
-  listVolumesMock.mockResolvedValue([
+  vi.mocked(window.listVolumes).mockResolvedValue([
     {
       Volumes: [
         {
@@ -183,8 +172,12 @@ test('Expect volumes being displayed once extensions are started (with size data
           engineId: 'podman.Podman Machine',
           UsageData: { RefCount: 1, Size: 89 },
           containersUsage: [],
+          CreatedAt: '',
         },
       ],
+      Warnings: [],
+      engineId: '',
+      engineName: '',
     },
   ]);
 
@@ -197,7 +190,7 @@ test('Expect volumes being displayed once extensions are started (with size data
   await volumesEventStoreInfo.fetch('fetchUsage');
 
   // first call is with listing with details
-  expect(listVolumesMock).toHaveBeenNthCalledWith(1, true);
+  expect(window.listVolumes).toHaveBeenNthCalledWith(1, true);
 
   await waitFor(() => {
     // wait store are populated
@@ -267,7 +260,7 @@ describe('Create volume', () => {
 });
 
 test('Expect filter empty screen', async () => {
-  getProviderInfosMock.mockResolvedValue([
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
     {
       name: 'podman',
       status: 'started',
@@ -278,10 +271,10 @@ test('Expect filter empty screen', async () => {
           status: 'started',
         },
       ],
-    },
+    } as ProviderInfo,
   ]);
 
-  listVolumesMock.mockResolvedValue([
+  vi.mocked(window.listVolumes).mockResolvedValue([
     {
       Volumes: [
         {
@@ -295,8 +288,12 @@ test('Expect filter empty screen', async () => {
           engineId: 'podman.Podman Machine',
           UsageData: { RefCount: 1, Size: -1 },
           containersUsage: [],
+          CreatedAt: '',
         },
       ],
+      Warnings: [],
+      engineId: '',
+      engineName: '',
     },
   ]);
 
@@ -309,7 +306,7 @@ test('Expect filter empty screen', async () => {
   await volumesEventStoreInfo.fetch();
 
   // first call is with listing without details
-  expect(listVolumesMock).toHaveBeenNthCalledWith(1, false);
+  expect(window.listVolumes).toHaveBeenNthCalledWith(1, false);
 
   await waitFor(() => {
     // wait store are populated
@@ -324,7 +321,7 @@ test('Expect filter empty screen', async () => {
 });
 
 test('Expect user confirmation to pop up when preferences require', async () => {
-  getProviderInfosMock.mockResolvedValue([
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
     {
       name: 'podman',
       status: 'started',
@@ -335,10 +332,10 @@ test('Expect user confirmation to pop up when preferences require', async () => 
           status: 'started',
         },
       ],
-    },
+    } as ProviderInfo,
   ]);
 
-  listVolumesMock.mockResolvedValue([
+  vi.mocked(window.listVolumes).mockResolvedValue([
     {
       Volumes: [
         {
@@ -352,8 +349,12 @@ test('Expect user confirmation to pop up when preferences require', async () => 
           engineId: 'podman.Podman Machine',
           UsageData: { RefCount: 0, Size: -1 },
           containersUsage: [],
+          CreatedAt: '',
         },
       ],
+      Warnings: [],
+      engineId: '',
+      engineName: '',
     },
   ]);
 
@@ -366,7 +367,7 @@ test('Expect user confirmation to pop up when preferences require', async () => 
   await volumesEventStoreInfo.fetch();
 
   // first call is with listing without details
-  expect(listVolumesMock).toHaveBeenNthCalledWith(1, false);
+  expect(window.listVolumes).toHaveBeenNthCalledWith(1, false);
 
   await waitFor(() => {
     // wait store are populated
@@ -395,7 +396,7 @@ test('Expect user confirmation to pop up when preferences require', async () => 
 });
 
 test('Expect to see empty page and no table when no container engine is running', async () => {
-  getProviderInfosMock.mockResolvedValue([
+  vi.mocked(window.getProviderInfos).mockResolvedValue([
     {
       name: 'podman',
       status: 'started',
@@ -406,10 +407,10 @@ test('Expect to see empty page and no table when no container engine is running'
           status: 'stopped',
         },
       ],
-    },
+    } as ProviderInfo,
   ]);
 
-  listVolumesMock.mockResolvedValue([
+  vi.mocked(window.listVolumes).mockResolvedValue([
     {
       Volumes: [
         {
@@ -423,8 +424,12 @@ test('Expect to see empty page and no table when no container engine is running'
           engineId: 'podman.Podman Machine',
           UsageData: { RefCount: 0, Size: -1 },
           containersUsage: [],
+          CreatedAt: '',
         },
       ],
+      Warnings: [],
+      engineId: '',
+      engineName: '',
     },
   ]);
 
