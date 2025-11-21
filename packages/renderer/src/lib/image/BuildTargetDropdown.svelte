@@ -26,7 +26,7 @@ const infoPromise = $derived(window.containerfileGetInfo(containerFilePath));
           onChange={onChange}
           name="target"
           id="target"
-          options={info.targets.map(target => ({ label: target, value: target })).concat({ label: 'none', value: DEFAULT })}
+          options={info.targets.map(target => ({ label: target, value: target })).concat({ label: 'default (no target)', value: DEFAULT })}
           class="w-full" />
       </div>
     {/if}

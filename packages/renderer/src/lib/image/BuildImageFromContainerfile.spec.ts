@@ -615,7 +615,7 @@ test('Expect error to be displayed if uppercase character in image name', async 
 describe('Build image that has an intermediate target', () => {
   test.each([
     { target: 'custom-target', expected: 'custom-target' },
-    { target: 'none', expected: undefined },
+    { target: 'default (no target)', expected: undefined },
   ])('should build with target $target', async ({ target, expected }) => {
     vi.mocked(window.containerfileGetInfo).mockResolvedValue({
       targets: ['custom-target'],

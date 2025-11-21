@@ -39,7 +39,7 @@ test('Expect Target dropdown to be visible with targets and select a target', as
 
   const targetDropdown = await findByRole('button', { name: 'Target' });
 
-  expect(getByText('none')).toBeInTheDocument();
+  expect(getByText('default (no target)')).toBeInTheDocument();
 
   await userEvent.click(targetDropdown);
 
@@ -73,9 +73,9 @@ test('Expect selecting "none" to set target to undefined', async () => {
 
   await userEvent.click(targetDropdown);
 
-  const noneOption = getByRole('button', { name: 'none' });
+  const noneOption = getByRole('button', { name: 'default (no target)' });
   expect(noneOption).toBeInTheDocument();
   await userEvent.click(noneOption);
 
-  expect(getByText('none')).toBeInTheDocument();
+  expect(getByText('default (no target)')).toBeInTheDocument();
 });
