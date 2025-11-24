@@ -1447,11 +1447,11 @@ export class PluginSystem {
         taskId?: number,
         target?: string,
       ): Promise<unknown> => {
-        const targetDisplay = target ? `(${target})` : '';
+        const targetDisplay = target ? ` (${target})` : '';
 
         // create task
         const task = taskManager.createTask({
-          title: `Building image ${imageName ?? ''} ${targetDisplay}`,
+          title: `Building image ${imageName ?? ''}${targetDisplay}`,
 
           action: {
             name: 'Go to task >',
