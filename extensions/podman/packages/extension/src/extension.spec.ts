@@ -2522,6 +2522,9 @@ describe('socketCompatibilityMode command', () => {
     const error = new Error('test error');
 
     vi.mocked(isDisguisedPodman).mockRejectedValue(error);
+
+    expect(isDisguisedPodman).not.toBeCalled();
+
     // call the function
     await func();
 
