@@ -1447,12 +1447,17 @@ export class PluginSystem {
         taskId?: number,
         target?: string,
       ): Promise<unknown> => {
-        const targetDisplay = target ? ` (${target})` : '';
+        const array = ['Building image'];
+        if (imageName) {
+          array.push(imageName);
+        }
+        if (target) {
+          array.push(`(${target})`);
+        }
 
         // create task
         const task = taskManager.createTask({
-          title: `Building image ${imageName ?? ''}${targetDisplay}`,
-
+          title: array.join(' '),
           action: {
             name: 'Go to task >',
             execute: () => {
