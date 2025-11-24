@@ -82,7 +82,6 @@ import {
   LoggerDelegator,
   VMTYPE,
 } from './utils/util';
-import { isDisguisedPodman } from './utils/warnings';
 
 let inversifyBinding: InversifyBinding | undefined;
 
@@ -1322,45 +1321,6 @@ export async function activate(extensionContext: extensionApi.ExtensionContext):
     // update the initial context value
     const compatibilityEnabled = socketCompatibilityMode.isEnabled();
     extensionApi.context.setValue(PODMAN_DOCKER_COMPAT_ENABLE_KEY, compatibilityEnabled);
-
-    // Create a modal dialog to ask the user if they want to enable or disable compatibility mode
-    const command = extensionApi.commands.registerCommand('podman.socketCompatibilityMode', async () => {
-      // Manually check to see if the socket is disguised (this will be called when pressing the status bar item)
-      let isDisguisedPodmanSocket: boolean;
-      try {
-        isDisguisedPodmanSocket = await isDisguisedPodman();
-      } catch (error: unknown) {
-        telemetryLogger.logError('checkIfSocketDisguisedFailed', { error });
-        console.debug('Error while check if the socket is disguised', error);
-        await extensionApi.window.showInformationMessage('Could not get if Podman is disguised');
-        return;
-      }
-      // We use isEnabled() as we do not want to "renable" again if the user has already enabled it.
-      if (!isDisguisedPodmanSocket && !socketCompatibilityMode.isEnabled()) {
-        const result = await extensionApi.window.showInformationMessage(
-          `Do you want to enable Docker socket compatibility mode for Podman?\n\n${socketCompatibilityMode.details}`,
-          'Enable',
-          'Cancel',
-        );
-
-        if (result === 'Enable') {
-          await switchCompatibilityMode(true);
-        }
-      } else {
-        const result = await extensionApi.window.showInformationMessage(
-          `Do you want to disable Docker socket compatibility mode for Podman?\n\n${socketCompatibilityMode.details}`,
-          'Disable',
-          'Cancel',
-        );
-
-        if (result === 'Disable') {
-          await switchCompatibilityMode(false);
-        }
-      }
-    });
-
-    // Push the results of the command so we can unload it later
-    extensionContext.subscriptions.push(command);
 
     // Do the check if the provider is actually ready.
     if (provider.status === 'ready') {
