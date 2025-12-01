@@ -19,6 +19,7 @@
 import humanizeDuration from 'humanize-duration';
 import moment from 'moment';
 
+import { podsInfoUiOverrides } from '/@/states/pods-info-ui-overrides.svelte';
 import type { PodInfo } from '/@api/pod-info';
 
 import type { PodInfoUI } from './PodInfoUI';
@@ -72,6 +73,7 @@ export class PodUtils {
       selected: false,
       node: podinfo.node,
       namespace: podinfo.Namespace,
+      ...podsInfoUiOverrides.value[podinfo.Id],
     };
   }
 
