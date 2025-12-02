@@ -16,6 +16,7 @@ The current Maintainers Group for the Podman Desktop Project consists of:
 | Philippe Martin | @feloy | Red Hat|
 | Rujuta Shinde | @rujutashinde | Red Hat|
 | Shipra Singh | @shipsing | Red Hat|
+| Simon Rey | @simonrey1 | Red Hat|
 | Sonia Sandler | @SoniaSandler | Red Hat|
 | Stévan Le Meur | @slemeur | Red Hat|
 | Tim deBoer | @deboer-tim | Red Hat|
