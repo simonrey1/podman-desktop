@@ -15,6 +15,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
+import 'reflect-metadata';
+
 import type { App as ElectronApp, BrowserWindow } from 'electron';
 
 import type { AppPlugin } from '/@/plugin/app-ready/app-plugin.js';

@@ -92,6 +92,9 @@ importers:
       os-locale:
         specifier: ^6.0.2
         version: 6.0.2
+      reflect-metadata:
+        specifier: ^0.2.2
+        version: 0.2.2
       semver:
         specifier: ^7.7.3
         version: 7.7.3
