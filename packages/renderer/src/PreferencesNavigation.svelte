@@ -1,10 +1,15 @@
 <script lang="ts">
 import { SettingsNavItem } from '@podman-desktop/ui-svelte';
-import { onMount } from 'svelte';
 import type { TinroRouteMeta } from 'tinro';
 
 import PreferencesIcon from '/@/lib/images/PreferencesIcon.svelte';
-import { type NavItem, settingsNavigationEntries, type SettingsNavItemConfig } from '/@/PreferencesNavigation';
+import {
+  dockerCompatibilitySettingsNavigationEntry,
+  experimentalSettingsNavigationEntry,
+  type NavItem,
+  settingsNavigationEntries,
+  type SettingsNavItemConfig,
+} from '/@/PreferencesNavigation';
 import { CONFIGURATION_DEFAULT_SCOPE } from '/@api/configuration/constants';
 import { DockerCompatibilitySettings } from '/@api/docker-compatibility-info';
 
@@ -16,68 +21,49 @@ interface Props {
 
 let { meta }: Props = $props();
 
-let configProperties: Map<string, NavItem[]> = $state(new Map<string, NavItem[]>());
 let sectionExpanded: { [key: string]: boolean } = $state({});
 
-let experimentalSection: boolean = $state(false);
-
-let settingsNavigationItems: SettingsNavItemConfig[] = $state(settingsNavigationEntries);
-
-function updateDockerCompatibility(): void {
-  window
+let dockerCompatibilityEnabled = $derived(
+  !!(await window
     .getConfigurationValue<boolean>(`${DockerCompatibilitySettings.SectionName}.${DockerCompatibilitySettings.Enabled}`)
-    .then(result => {
-      if (result !== undefined) {
-        settingsNavigationItems = settingsNavigationEntries.map(entry => ({
-          ...entry,
-          visible: entry.title === 'Docker Compatibility' ? result : true,
-        }));
-      }
-    })
     .catch((err: unknown) =>
       console.error(
         `Error getting configuration value ${DockerCompatibilitySettings.SectionName}.${DockerCompatibilitySettings.Enabled}`,
         err,
       ),
-    );
-}
+    )),
+);
 
 function sortItems(items: NavItem[]): NavItem[] {
   return items.toSorted((a, b) => a.title.localeCompare(b.title));
 }
 
-onMount(() => {
-  return configurationProperties.subscribe(value => {
-    // update compatibility
-    updateDockerCompatibility();
+const experimentalSection = $derived($configurationProperties.some(configuration => !!configuration.experimental));
 
-    // check for experimental configuration
-    experimentalSection = value.some(configuration => !!configuration.experimental);
+let settingsNavigationItems: SettingsNavItemConfig[] = $derived(
+  settingsNavigationEntries
+    .concat(experimentalSection ? [experimentalSettingsNavigationEntry] : [])
+    .concat(dockerCompatibilityEnabled ? [dockerCompatibilitySettingsNavigationEntry] : []),
+);
 
-    settingsNavigationItems = settingsNavigationEntries.map(entry => ({
-      ...entry,
-      visible: entry.title === 'Experimental' ? experimentalSection : true,
-    }));
+const configProperties = $derived(
+  $configurationProperties.reduce((map, current) => {
+    // filter on default scope
+    if (current.scope !== CONFIGURATION_DEFAULT_SCOPE) return map;
 
-    // update config properties
-    configProperties = value.reduce((map, current) => {
-      // filter on default scope
-      if (current.scope !== CONFIGURATION_DEFAULT_SCOPE) return map;
+    // do not include hidden property
+    if (current.hidden) return map;
 
-      // do not include hidden property
-      if (current.hidden) return map;
+    let [parentLeftId] = current.parentId.split('.');
+    const array: NavItem[] = map.get(parentLeftId) ?? [];
 
-      let [parentLeftId] = current.parentId.split('.');
-      const array: NavItem[] = map.get(parentLeftId) ?? [];
-
-      let children = array.find((item: NavItem) => item.id === current.parentId);
-      if (children === undefined) {
-        map.set(parentLeftId, [...array, { id: current.parentId, title: current.title }]);
-      }
-      return map;
-    }, new Map<string, NavItem[]>());
-  });
-});
+    let children = array.find((item: NavItem) => item.id === current.parentId);
+    if (children === undefined) {
+      map.set(parentLeftId, [...array, { id: current.parentId, title: current.title }]);
+    }
+    return map;
+  }, new Map<string, NavItem[]>()),
+);
 </script>
 
 <nav

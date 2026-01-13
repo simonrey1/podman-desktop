@@ -43,15 +43,22 @@ export interface SettingsNavItemConfig {
 export const settingsNavigationEntries: SettingsNavItemConfig[] = [
   { title: 'Resources', href: '/preferences/resources', visible: true, icon: ResourcesIcon },
   { title: 'Proxy', href: '/preferences/proxies', visible: true, icon: ProxyIcon },
-  {
-    title: 'Docker Compatibility',
-    href: '/preferences/docker-compatibility',
-    visible: true,
-    icon: DockerCompatibilityIcon,
-  },
   { title: 'Registries', href: '/preferences/registries', visible: true, icon: RegistriesIcon },
   { title: 'Authentication', href: '/preferences/authentication-providers', visible: true, icon: AuthenticationIcon },
   { title: 'CLI Tools', href: '/preferences/cli-tools', visible: true, icon: CLIToolsIcon },
   { title: 'Kubernetes', href: '/preferences/kubernetes-contexts', visible: true, icon: KubernetesIcon },
-  { title: 'Experimental', href: '/preferences/experimental', visible: true, icon: ExperimentalIcon },
 ];
+
+export const dockerCompatibilitySettingsNavigationEntry: SettingsNavItemConfig = {
+  title: 'Docker Compatibility',
+  href: '/preferences/docker-compatibility',
+  visible: true,
+  icon: DockerCompatibilityIcon,
+};
+
+export const experimentalSettingsNavigationEntry: SettingsNavItemConfig = {
+  title: 'Experimental',
+  href: '/preferences/experimental',
+  visible: true,
+  icon: ExperimentalIcon,
+};
