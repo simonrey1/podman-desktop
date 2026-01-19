@@ -108,9 +108,8 @@ test('check we received notifications ', async () => {
   });
 
   const fakeProvider = {} as unknown as podmanDesktopApi.Provider;
-  const fakeTelemetryLogger = { logUsage: vi.fn() } as unknown as extensionApi.TelemetryLogger;
 
-  extension.refreshKindClustersOnProviderConnectionUpdate(fakeProvider, fakeTelemetryLogger);
+  extension.refreshKindClustersOnProviderConnectionUpdate(fakeProvider);
   expect(callbackCalled).toBeTruthy();
   expect(listContainersMock).toBeCalledTimes(1);
 });
