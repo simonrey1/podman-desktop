@@ -26,8 +26,3 @@ export interface FontDefinition {
   readonly fontId: string;
   readonly src: FontSource[];
 }
-
-export interface FontInfo {
-  id: string;
-  definition: FontDefinition;
-}

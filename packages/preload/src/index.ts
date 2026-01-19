@@ -130,18 +130,11 @@ import type { ViewInfoUI } from '/@api/view-info';
 import type { VolumeInspectInfo, VolumeListInfo } from '/@api/volume-info';
 import type { WebviewInfo } from '/@api/webview-info';
 
-export type DialogResultCallback = (openDialogReturnValue: Electron.OpenDialogReturnValue) => void;
 export type OpenSaveDialogResultCallback = (result: string | string[] | undefined) => void;
 
 export type LogType = 'log' | 'warn' | 'trace' | 'debug' | 'error';
 const originalConsole = console;
 const memoryLogs: { logType: LogType; date: Date; message: string }[] = [];
-
-export interface KeyLogger {
-  log(key: symbol, ...data: unknown[]): void;
-  error(key: symbol, ...data: unknown[]): void;
-  warn(key: symbol, ...data: unknown[]): void;
-}
 
 export const buildApiSender = (): ApiSenderType => {
   const eventEmitter = new EventEmitter();

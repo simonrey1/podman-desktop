@@ -26,7 +26,7 @@ function getClientPlatform(): {
   return null;
 }
 
-export function MainDownloadButton(): JSX.Element {
+function MainDownloadButton(): JSX.Element {
   const platform = getClientPlatform();
 
   if (!platform) {
@@ -59,39 +59,7 @@ export function MainDownloadButton(): JSX.Element {
   );
 }
 
-// Same as MainDownloadButton but instead it's "Download" and has no fontawesome icon
-export function HeaderDownloadButton(): JSX.Element {
-  const platform = getClientPlatform();
-
-  // If we cannot get the platform, make the link just go to downloads.
-  if (!platform) {
-    return (
-      <div>
-        <Link
-          className="hidden xl:flex font-semibold no-underline hover:no-underline items-center text-white hover:text-white bg-gradient-to-b from-violet-500 to-violet-600 border-0 py-3 px-6 focus:outline-hidden hover:from-violet-600 hover:to-violet-700 rounded-lg text-base mt-0 mb-0 ml-4 mr-2"
-          to="/downloads">
-          Download
-        </Link>
-      </div>
-    );
-  }
-
-  const { url } = platform;
-
-  return (
-    <div>
-      <TelemetryLink
-        className="hidden xl:flex font-semibold no-underline hover:no-underline items-center text-white hover:text-white bg-gradient-to-b from-violet-500 to-violet-600 border-0 py-3 px-6 focus:outline-hidden hover:from-violet-600 hover:to-violet-700 rounded-lg text-base mt-0 mb-0 ml-4 mr-2"
-        eventPath="landing"
-        eventTitle="hero-download"
-        to={`/downloads/${url}`}>
-        Download
-      </TelemetryLink>
-    </div>
-  );
-}
-
-export function OtherDownloadLink(): JSX.Element {
+function OtherDownloadLink(): JSX.Element {
   const platforms = [
     { name: 'macOS', icon: faApple, url: '/downloads/macos' },
     { name: 'Linux', icon: faLinux, url: '/downloads/linux' },

@@ -21,45 +21,4 @@ import { writable } from 'svelte/store';
 
 import type { WebviewInfo } from '/@api/webview-info';
 
-import { EventStore } from './event-store';
-
-const windowEvents = [
-  'extension-stopped',
-  'extensions-started',
-  'extension-started',
-  'webview-create',
-  'webview-update',
-  'webview-delete',
-];
-const windowListeners = ['extensions-already-started'];
-
-let readyToUpdate = false;
-
-export async function checkForUpdate(eventName: string): Promise<boolean> {
-  if ('extensions-already-started' === eventName) {
-    readyToUpdate = true;
-  }
-
-  // do not fetch until extensions are all started
-  return readyToUpdate;
-}
 export const webviews: Writable<WebviewInfo[]> = writable([]);
-
-// use helper here as window methods are initialized after the store in tests
-const listWebviews = async (): Promise<WebviewInfo[]> => {
-  return window.listWebviews();
-};
-
-export const webviewsEventStore = new EventStore<WebviewInfo[]>(
-  'views',
-  webviews,
-  checkForUpdate,
-  windowEvents,
-  windowListeners,
-  listWebviews,
-);
-const webviewsEventStoreInfo = webviewsEventStore.setup();
-
-export const fetchWebviews = async (): Promise<void> => {
-  await webviewsEventStoreInfo.fetch();
-};

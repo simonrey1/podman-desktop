@@ -49,18 +49,16 @@ import { TelemetryTrustedValue as TypeTelemetryTrustedValue } from '../types/tel
 import { Identity } from './identity.js';
 import type { TelemetryRule } from './telemetry-api.js';
 
-export const TRACK_EVENT_TYPE = 'track';
 export const PAGE_EVENT_TYPE = 'page';
-export const STARTUP_EVENT_TYPE = 'startup';
-export const SHUTDOWN_EVENT_TYPE = 'shutdown';
-export const FEEDBACK_EVENT_TYPE = 'feedback';
+const STARTUP_EVENT_TYPE = 'startup';
+const SHUTDOWN_EVENT_TYPE = 'shutdown';
 
 export type EventType =
-  | typeof TRACK_EVENT_TYPE
+  | 'track'
   | typeof PAGE_EVENT_TYPE
   | typeof STARTUP_EVENT_TYPE
   | typeof SHUTDOWN_EVENT_TYPE
-  | typeof FEEDBACK_EVENT_TYPE
+  | 'feedback'
   | string;
 
 /**
