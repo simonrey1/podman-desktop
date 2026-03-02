@@ -20,6 +20,15 @@ export const registeredFeatures = $state<{ features: string[] }>({
   features: [],
 });
 
+window
+  .getRegisteredFeatures()
+  .then(features => {
+    registeredFeatures.features = features;
+  })
+  .catch(error => {
+    console.error('Error getting registered features', error);
+  });
+
 window.events?.receive('feature-registry:features-updated', (value: unknown) => {
   registeredFeatures.features = value as string[];
 });
