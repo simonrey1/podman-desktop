@@ -8,6 +8,7 @@ import type { TinroRouteMeta } from 'tinro';
 import PreferencesIcon from '/@/lib/images/PreferencesIcon.svelte';
 import ShortcutArrowIcon from '/@/lib/images/ShortcutArrowIcon.svelte';
 import { type NavItem, settingsNavigationEntries, type SettingsNavItemConfig } from '/@/PreferencesNavigation';
+import { registeredFeatures } from '/@/states/registered-features.svelte';
 
 import { configurationProperties } from './stores/configurationProperties';
 
@@ -46,6 +47,15 @@ function updateDockerCompatibility(): void {
 function sortItems(items: NavItem[]): NavItem[] {
   return items.toSorted((a, b) => a.title.localeCompare(b.title));
 }
+
+$effect(() => {
+  console.log('registeredFeatures', registeredFeatures);
+
+  const kubeIndex = settingsNavigationEntries.findIndex(entry => entry.title === 'Kubernetes');
+  if (kubeIndex !== -1) {
+    settingsNavigationItems[kubeIndex].visible = !registeredFeatures.features.includes('kubernetes-contexts-manager');
+  }
+});
 
 onMount(() => {
   return configurationProperties.subscribe(value => {
