@@ -16,6 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import type { ApiSenderType } from '@podman-desktop/core-api/api-sender';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { FeatureRegistry } from '/@/plugin/feature-registry.js';
@@ -26,15 +27,22 @@ class TestFeatureRegistry extends FeatureRegistry {
   }
 }
 
+const apiSenderMock: ApiSenderType = {
+  send: vi.fn(),
+  receive: vi.fn(),
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
 });
+
+const ipcHandleMock = vi.fn();
 
 describe('FeatureRegistry', () => {
   let featureRegistry: TestFeatureRegistry;
 
   beforeEach(() => {
-    featureRegistry = new TestFeatureRegistry();
+    featureRegistry = new TestFeatureRegistry(ipcHandleMock, apiSenderMock);
   });
 
   test('should list registered features', () => {
@@ -46,6 +54,15 @@ describe('FeatureRegistry', () => {
     expect(featureRegistry.listFeatures()).toEqual(['feature3', 'feature4']);
     dispose2.dispose();
     expect(featureRegistry.listFeatures()).toEqual([]);
+  });
+
+  test('init registers ipc handler and sends apiSender events on feature changes', () => {
+    featureRegistry.init();
+
+    expect(ipcHandleMock).toHaveBeenCalledWith('feature-registry:getRegisteredFeatures', expect.any(Function));
+
+    featureRegistry.registerFeatures('ext1', ['feat1']);
+    expect(apiSenderMock.send).toHaveBeenCalledWith('feature-registry:features-updated', ['feat1']);
   });
 
   test('handler passed to onFeaturesUpdated is called when features are registered and unregistered', () => {
