@@ -129,7 +129,7 @@ $effect(() => {
   {#snippet buttons()}
   
       {#if !pushInProgress && !pushFinished}
-        <Button class="w-auto" type="link" on:click={closeCallback}>Cancel</Button>
+        <Button type="link" on:click={closeCallback}>Cancel</Button>
       {/if}
       {#if !pushFinished}
         <Button
