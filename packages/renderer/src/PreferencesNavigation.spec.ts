@@ -22,10 +22,11 @@ import type { IConfigurationPropertyRecordedSchema } from '@podman-desktop/core-
 import { render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import type { TinroRouteMeta } from 'tinro';
-import { beforeEach, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import PreferencesNavigation from './PreferencesNavigation.svelte';
 import { configurationProperties } from './stores/configurationProperties';
+import { registeredFeatures } from './stores/registered-features';
 
 // fake the window.events object
 beforeEach(() => {
@@ -217,5 +218,81 @@ test('experimental configuration should be visible if one property has experimen
   await vi.waitFor(() => {
     const experimental = getByRole('link', { name: 'Experimental' });
     expect(experimental).toBeDefined();
+  });
+});
+
+describe('Kubernetes entry visibility', () => {
+  test('Kubernetes entry should be visible when kubernetes-contexts-manager feature is not registered', async () => {
+    registeredFeatures.set([]);
+
+    render(PreferencesNavigation, {
+      meta: {
+        url: '/',
+      } as unknown as TinroRouteMeta,
+    });
+
+    await vi.waitFor(() => {
+      const kubernetesLink = screen.getByRole('link', { name: 'Kubernetes' });
+      expect(kubernetesLink).toBeVisible();
+    });
+  });
+
+  test('Kubernetes entry should be hidden when kubernetes-contexts-manager feature is registered', async () => {
+    registeredFeatures.set(['kubernetes-contexts-manager']);
+
+    render(PreferencesNavigation, {
+      meta: {
+        url: '/',
+      } as unknown as TinroRouteMeta,
+    });
+
+    await vi.waitFor(() => {
+      const kubernetesLink = screen.queryByRole('link', { name: 'Kubernetes' });
+      expect(kubernetesLink).toBeNull();
+    });
+  });
+
+  test('Kubernetes entry should hide dynamically when kubernetes-contexts-manager feature becomes registered', async () => {
+    registeredFeatures.set([]);
+
+    render(PreferencesNavigation, {
+      meta: {
+        url: '/',
+      } as unknown as TinroRouteMeta,
+    });
+
+    await vi.waitFor(() => {
+      const kubernetesLink = screen.getByRole('link', { name: 'Kubernetes' });
+      expect(kubernetesLink).toBeVisible();
+    });
+
+    registeredFeatures.set(['kubernetes-contexts-manager']);
+
+    await vi.waitFor(() => {
+      const kubernetesLink = screen.queryByRole('link', { name: 'Kubernetes' });
+      expect(kubernetesLink).toBeNull();
+    });
+  });
+
+  test('Kubernetes entry should reappear when kubernetes-contexts-manager feature is unregistered', async () => {
+    registeredFeatures.set(['kubernetes-contexts-manager']);
+
+    render(PreferencesNavigation, {
+      meta: {
+        url: '/',
+      } as unknown as TinroRouteMeta,
+    });
+
+    await vi.waitFor(() => {
+      const kubernetesLink = screen.queryByRole('link', { name: 'Kubernetes' });
+      expect(kubernetesLink).toBeNull();
+    });
+
+    registeredFeatures.set([]);
+
+    await vi.waitFor(() => {
+      const kubernetesLink = screen.getByRole('link', { name: 'Kubernetes' });
+      expect(kubernetesLink).toBeVisible();
+    });
   });
 });

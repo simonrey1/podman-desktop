@@ -10,6 +10,7 @@ import ShortcutArrowIcon from '/@/lib/images/ShortcutArrowIcon.svelte';
 import { type NavItem, settingsNavigationEntries, type SettingsNavItemConfig } from '/@/PreferencesNavigation';
 
 import { configurationProperties } from './stores/configurationProperties';
+import { registeredFeatures } from './stores/registered-features';
 
 interface Props {
   meta: TinroRouteMeta;
@@ -48,7 +49,7 @@ function sortItems(items: NavItem[]): NavItem[] {
 }
 
 onMount(() => {
-  return configurationProperties.subscribe(value => {
+  const unsubConfig = configurationProperties.subscribe(value => {
     // update compatibility
     updateDockerCompatibility();
 
@@ -78,6 +79,18 @@ onMount(() => {
       return map;
     }, new Map<string, NavItem[]>());
   });
+
+  const unsubFeatures = registeredFeatures.subscribe(features => {
+    const kubernetesIndex = settingsNavigationEntries.findIndex(entry => entry.title === 'Kubernetes');
+    if (kubernetesIndex !== -1) {
+      settingsNavigationItems[kubernetesIndex].visible = !features.includes('kubernetes-contexts-manager');
+    }
+  });
+
+  return (): void => {
+    unsubConfig();
+    unsubFeatures();
+  };
 });
 </script>
 
