@@ -23,6 +23,7 @@
 import '@testing-library/jest-dom/vitest';
 
 import type { IConfigurationPropertyRecordedSchema } from '@podman-desktop/core-api/configuration';
+import { CONFIGURATION_DEFAULT_SCOPE } from '@podman-desktop/core-api/configuration';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { tick } from 'svelte';
@@ -35,6 +36,7 @@ import PreferencesRenderingItemFormat from './PreferencesRenderingItemFormat.sve
 
 beforeAll(() => {
   (window as any).getConfigurationValue = vi.fn().mockResolvedValue(undefined);
+  (window as any).telemetryTrack = vi.fn().mockResolvedValue(undefined);
 });
 
 async function awaitRender(record: IConfigurationPropertyRecordedSchema, customProperties: any): Promise<void> {
@@ -485,6 +487,95 @@ test('Expect boolean record to be updated from checked to not checked', async ()
 
   // checkbox should not be checked anymore
   await vi.waitFor(() => expect(checkbox).not.toBeChecked());
+});
+
+test('Expect telemetry to be tracked when an experimental feature is toggled on', async () => {
+  vi.mocked(window.telemetryTrack).mockResolvedValue(undefined);
+  vi.mocked(window.getConfigurationValue).mockResolvedValue(false);
+
+  const record: IConfigurationPropertyRecordedSchema = {
+    id: 'experimental.feature',
+    title: 'Experimental Feature',
+    parentId: 'parent.experimental',
+    description: 'experimental-feature-description',
+    type: 'object',
+    scope: CONFIGURATION_DEFAULT_SCOPE,
+    experimental: {
+      githubDiscussionLink: '',
+    },
+  };
+
+  await awaitRender(record, {});
+  const checkbox = screen.getByRole('checkbox');
+  expect(checkbox).toBeInTheDocument();
+  expect(checkbox).not.toBeChecked();
+
+  await userEvent.click(checkbox);
+
+  await vi.waitFor(() => {
+    expect(window.telemetryTrack).toHaveBeenCalledWith('experimentalFeatureToggle', {
+      featureId: 'experimental.feature',
+      enabled: true,
+    });
+  });
+});
+
+test('Expect telemetry to be tracked when an experimental feature is toggled off', async () => {
+  vi.mocked(window.telemetryTrack).mockClear();
+  vi.mocked(window.telemetryTrack).mockResolvedValue(undefined);
+  vi.mocked(window.getConfigurationValue).mockResolvedValue({});
+
+  const record: IConfigurationPropertyRecordedSchema = {
+    id: 'experimental.feature.off',
+    title: 'Experimental Feature Off',
+    parentId: 'parent.experimental',
+    description: 'experimental-feature-off-description',
+    type: 'object',
+    scope: CONFIGURATION_DEFAULT_SCOPE,
+    experimental: {
+      githubDiscussionLink: '',
+    },
+  };
+
+  await awaitRender(record, {});
+  const checkbox = screen.getByRole('checkbox');
+  expect(checkbox).toBeInTheDocument();
+
+  await vi.waitFor(() => {
+    expect(checkbox).toBeChecked();
+  });
+
+  await userEvent.click(checkbox);
+
+  await vi.waitFor(() => {
+    expect(window.telemetryTrack).toHaveBeenCalledWith('experimentalFeatureToggle', {
+      featureId: 'experimental.feature.off',
+      enabled: false,
+    });
+  });
+});
+
+test('Expect no telemetry when a non-experimental object type is toggled', async () => {
+  vi.mocked(window.telemetryTrack).mockClear();
+  vi.mocked(window.telemetryTrack).mockResolvedValue(undefined);
+  vi.mocked(window.getConfigurationValue).mockResolvedValue(false);
+
+  const record: IConfigurationPropertyRecordedSchema = {
+    id: 'non-experimental.feature',
+    title: 'Non Experimental Feature',
+    parentId: 'parent.nonexperimental',
+    description: 'non-experimental-description',
+    type: 'object',
+    scope: CONFIGURATION_DEFAULT_SCOPE,
+  };
+
+  await awaitRender(record, {});
+  const checkbox = screen.getByRole('checkbox');
+  expect(checkbox).toBeInTheDocument();
+
+  await userEvent.click(checkbox);
+
+  expect(window.telemetryTrack).not.toHaveBeenCalled();
 });
 
 test('Expect a password input when record is type string and format is password', async () => {

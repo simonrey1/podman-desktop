@@ -29,6 +29,7 @@ beforeEach(() => {
   vi.resetAllMocks();
   // mock false by default (not enabled)
   vi.mocked(window.isExperimentalConfigurationEnabled).mockResolvedValue(false);
+  vi.mocked(window.telemetryTrack).mockResolvedValue(undefined);
 });
 
 const DUMMY_CONFIG: IConfigurationPropertyRecordedSchema = {
@@ -96,6 +97,64 @@ test('Enable all should update all configuration', async () => {
         configuration.scope,
       );
     }
+  });
+});
+
+test('Enable all should track telemetry', async () => {
+  const generated: IConfigurationPropertyRecordedSchema[] = Array.from({ length: 3 }, (_, index) => ({
+    ...EXPERIMENTAL_CONFIG,
+    title: `Config ${index}`,
+    id: `dummy-${index}`,
+  }));
+
+  const { container } = render(ExperimentalPage, {
+    properties: generated,
+  });
+
+  const enableAll: HTMLInputElement = await vi.waitFor(() => {
+    const enableAll = container.querySelector('#input-experimental-enable-all');
+    expect(enableAll).toBeInstanceOf(HTMLInputElement);
+    expect(enableAll).not.toBeChecked();
+    return enableAll as HTMLInputElement;
+  });
+
+  await fireEvent.click(enableAll);
+
+  await vi.waitFor(() => {
+    expect(window.telemetryTrack).toHaveBeenCalledWith('experimentalFeatureToggle', {
+      featureId: 'all',
+      enabled: true,
+    });
+  });
+});
+
+test('Disable all should track telemetry with enabled false', async () => {
+  vi.mocked(window.isExperimentalConfigurationEnabled).mockResolvedValue(true);
+
+  const generated: IConfigurationPropertyRecordedSchema[] = Array.from({ length: 3 }, (_, index) => ({
+    ...EXPERIMENTAL_CONFIG,
+    title: `Config ${index}`,
+    id: `dummy-${index}`,
+  }));
+
+  const { container } = render(ExperimentalPage, {
+    properties: generated,
+  });
+
+  const enableAll: HTMLInputElement = await vi.waitFor(() => {
+    const enableAll = container.querySelector('#input-experimental-enable-all');
+    expect(enableAll).toBeInstanceOf(HTMLInputElement);
+    expect(enableAll).toBeChecked();
+    return enableAll as HTMLInputElement;
+  });
+
+  await fireEvent.click(enableAll);
+
+  await vi.waitFor(() => {
+    expect(window.telemetryTrack).toHaveBeenCalledWith('experimentalFeatureToggle', {
+      featureId: 'all',
+      enabled: false,
+    });
   });
 });
 

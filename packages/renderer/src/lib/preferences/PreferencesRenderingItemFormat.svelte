@@ -167,6 +167,12 @@ async function onChange(recordId: string, value: boolean | string | number): Pro
     } else {
       recordValue = false;
     }
+
+    if (record.experimental) {
+      window
+        .telemetryTrack('experimentalFeatureToggle', { featureId: record.id, enabled: value })
+        .catch((e: unknown) => console.error('Failed to track experimental feature toggle telemetry', e));
+    }
   } else {
     // update the value
     recordValue = value;

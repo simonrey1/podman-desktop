@@ -56,6 +56,10 @@ async function onCheckedAll(event: { detail: boolean }): Promise<void> {
       const settings = event.detail ? {} : false;
       await window.updateExperimentalConfigurationValue(property.id, settings, property.scope);
     }
+
+    window
+      .telemetryTrack('experimentalFeatureToggle', { featureId: 'all', enabled: event.detail })
+      .catch((e: unknown) => console.error('Failed to track experimental feature toggle telemetry', e));
   } finally {
     loading = false;
   }
