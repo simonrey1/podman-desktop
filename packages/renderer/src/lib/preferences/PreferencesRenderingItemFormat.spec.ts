@@ -23,6 +23,7 @@
 import '@testing-library/jest-dom/vitest';
 
 import type { IConfigurationPropertyRecordedSchema } from '@podman-desktop/core-api/configuration';
+import { CONFIGURATION_DEFAULT_SCOPE } from '@podman-desktop/core-api/configuration';
 import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { tick } from 'svelte';
@@ -485,6 +486,39 @@ test('Expect boolean record to be updated from checked to not checked', async ()
 
   // checkbox should not be checked anymore
   await vi.waitFor(() => expect(checkbox).not.toBeChecked());
+});
+
+test('Expect experimental feature toggle to use updateExperimentalConfigurationValue', async () => {
+  vi.mocked(window.getConfigurationValue).mockResolvedValue(false);
+  vi.mocked(window.updateExperimentalConfigurationValue).mockResolvedValue(undefined);
+
+  const record: IConfigurationPropertyRecordedSchema = {
+    id: 'experimental.feature',
+    title: 'Experimental Feature',
+    parentId: 'parent.experimental',
+    description: 'experimental-feature-description',
+    type: 'object',
+    scope: CONFIGURATION_DEFAULT_SCOPE,
+    experimental: {
+      githubDiscussionLink: '',
+    },
+  };
+
+  await awaitRender(record, { enableAutoSave: true });
+  const checkbox = screen.getByRole('checkbox');
+  expect(checkbox).toBeInTheDocument();
+  expect(checkbox).not.toBeChecked();
+
+  await userEvent.click(checkbox);
+
+  await vi.waitFor(() => {
+    expect(window.updateExperimentalConfigurationValue).toHaveBeenCalledWith(
+      'experimental.feature',
+      {},
+      CONFIGURATION_DEFAULT_SCOPE,
+    );
+    expect(window.updateConfigurationValue).not.toHaveBeenCalled();
+  });
 });
 
 test('Expect a password input when record is type string and format is password', async () => {
