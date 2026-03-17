@@ -99,6 +99,39 @@ let stopLoop = false;
 let autoMachineStarted = false;
 let autoMachineName: string | undefined;
 
+// Tracks active machine start operations so they can be gracefully cancelled on shutdown,
+// preventing the machine from getting stuck in STARTING state due to SIGPIPE.
+interface MachineStartCancellation {
+  token: extensionApi.CancellationToken;
+  cancel(): void;
+  dispose(): void;
+}
+
+function createMachineStartCancellation(): MachineStartCancellation {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const listeners: Array<(e: any) => any> = [];
+  const token: extensionApi.CancellationToken = {
+    isCancellationRequested: false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onCancellationRequested: (cb: (e: any) => any): extensionApi.Disposable => {
+      listeners.push(cb);
+      return { dispose: (): void => {} };
+    },
+  };
+  return {
+    token,
+    cancel(): void {
+      (token as { isCancellationRequested: boolean }).isCancellationRequested = true;
+      for (const cb of listeners) cb(undefined);
+    },
+    dispose(): void {
+      listeners.length = 0;
+    },
+  };
+}
+
+let machineStartTokenSource: MachineStartCancellation | undefined;
+
 // System default notifier
 let defaultMachineNotify = !extensionApi.env.isLinux;
 let defaultConnectionNotify = !extensionApi.env.isLinux;
@@ -864,22 +897,32 @@ export async function startMachine(
 
   await checkRosettaMacArm(podmanConfiguration);
 
+  // Create a cancellation token so we can send SIGTERM to the child process
+  // during shutdown instead of letting it die from SIGPIPE.
+  machineStartTokenSource?.dispose();
+  machineStartTokenSource = createMachineStartCancellation();
+  const token = machineStartTokenSource.token;
+
   try {
-    // start the machine
     await execPodman(['machine', 'start', machineInfo.name], machineInfo.vmType, {
       logger: new LoggerDelegator(context, logger),
+      token,
     });
     provider.updateStatus('started');
   } catch (err) {
+    if ((err as { cancelled?: boolean })?.cancelled) {
+      console.log('podman machine start was cancelled during shutdown');
+      return;
+    }
     telemetryRecords.error = err;
     if (skipHandleError) {
       console.error(err);
-      // propagate the error
       throw err;
     }
     await doHandleError(provider, machineInfo, podmanConfiguration, typeof err === 'string' ? err : (err as RunError));
   } finally {
-    // send telemetry event
+    machineStartTokenSource?.dispose();
+    machineStartTokenSource = undefined;
     const endTime = performance.now();
     telemetryRecords.duration = endTime - startTime;
     telemetryRecords.autoStart = autoStart === true;
@@ -1375,6 +1418,10 @@ export async function activate(extensionContext: extensionApi.ExtensionContext):
       // ignore the update of machines
     }
 
+    // Recover any machines stuck in STARTING state from a previous session crash.
+    // At this point we haven't initiated any start, so any STARTING machine is stale.
+    await recoverStuckStartingMachines();
+
     // do we have a running machine ?
     const isRunningMachine = Array.from(podmanMachinesStatuses.values()).find(
       connectionStatus => connectionStatus === 'started' || connectionStatus === 'starting',
@@ -1740,6 +1787,27 @@ export async function findRunningMachine(): Promise<string | undefined> {
   return runningMachine;
 }
 
+// Recovers machines stuck in STARTING state from a previous PD session that
+// exited while a machine was starting (e.g. SIGPIPE killed the start process
+// before it could reset the Starting flag). This should only be called once
+// during startup before any new machine start is initiated.
+export async function recoverStuckStartingMachines(): Promise<void> {
+  const stuckMachines = Array.from(podmanMachinesStatuses.entries()).filter(
+    ([, status]) => status === 'starting',
+  );
+  for (const [machineName] of stuckMachines) {
+    const machineInfo = podmanMachinesInfo.get(machineName);
+    console.warn(`Machine "${machineName}" is stuck in STARTING state — attempting recovery via 'podman machine stop'`);
+    try {
+      await execPodman(['machine', 'stop', machineName], machineInfo?.vmType);
+      podmanMachinesStatuses.set(machineName, 'stopped');
+      console.log(`Successfully recovered machine "${machineName}" from stuck STARTING state`);
+    } catch (err) {
+      console.error(`Failed to recover machine "${machineName}" from stuck STARTING state:`, err);
+    }
+  }
+}
+
 async function stopAutoStartedMachine(): Promise<void> {
   if (!autoMachineStarted || !autoMachineName) {
     console.log('No machine to stop');
@@ -1807,6 +1875,18 @@ export async function getJSONMachineListByProvider(containerMachineProvider?: st
 export async function deactivate(): Promise<void> {
   stopLoop = true;
   console.log('stopping podman extension');
+
+  // Cancel any in-flight machine start operation by sending SIGTERM to the child
+  // process. This prevents the machine from getting stuck in STARTING state when
+  // the process would otherwise die from SIGPIPE as pipes break on app exit.
+  if (machineStartTokenSource) {
+    machineStartTokenSource.cancel();
+    machineStartTokenSource.dispose();
+    machineStartTokenSource = undefined;
+    // Give the child process time to handle SIGTERM and reset the Starting flag
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+
   await stopAutoStartedMachine().then(() => {
     if (autoMachineStarted) {
       console.log('stopped autostarted machine', autoMachineName);

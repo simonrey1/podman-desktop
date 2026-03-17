@@ -176,19 +176,20 @@ export class Exec {
             childProcess.killed,
           );
           reject(errResult);
+        } else {
+          options?.logger?.error('Failed to execute cancel: Process has been already killed');
+          const errResult: RunError = new RunErrorImpl(
+            'Failed to execute cancel: Process has been already killed',
+            'Failed to execute cancel: Process has been already killed',
+            1,
+            command,
+            stdout.trim(),
+            stderr.trim(),
+            false,
+            childProcess.killed,
+          );
+          reject(errResult);
         }
-        options?.logger?.error('Failed to execute cancel: Process has been already killed');
-        const errResult: RunError = new RunErrorImpl(
-          'Failed to execute cancel: Process has been already killed',
-          'Failed to execute cancel: Process has been already killed',
-          1,
-          command,
-          stdout.trim(),
-          stderr.trim(),
-          false,
-          childProcess.killed,
-        );
-        reject(errResult);
       });
 
       childProcess.stdout.setEncoding(options?.encoding ?? 'utf8');

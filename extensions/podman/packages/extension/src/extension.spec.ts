@@ -881,6 +881,7 @@ test('if a machine is successfully started it changes its state to started', asy
       CONTAINERS_MACHINE_PROVIDER: VMTYPE.LIBKRUN,
     },
     logger: new LoggerDelegator(),
+    token: expect.anything(),
   });
 
   expect(spyUpdateStatus).toBeCalledWith('started');
@@ -955,6 +956,62 @@ test('if a machine failed to start with a wsl distro not found error but the ski
   ).rejects.toThrow('wsl bootstrap script failed: exit status 0xffffffff');
   expect(extensionApi.window.showInformationMessage).not.toHaveBeenCalled();
   expect(console.error).toBeCalled();
+});
+
+test('startMachine cancellation during shutdown should not propagate error', async () => {
+  const cancelledError = { cancelled: true, message: 'Execution cancelled' };
+  vi.spyOn(extensionApi.process, 'exec').mockImplementation(() => {
+    return Promise.reject(cancelledError);
+  });
+
+  await extension.startMachine(provider, podmanConfiguration, machineInfo);
+});
+
+test('deactivate cancels in-flight machine start before stopping autostarted machine', async () => {
+  let resolveMachineStart: (() => void) | undefined;
+  const machineStartPromise = new Promise<extensionApi.RunResult>(resolve => {
+    resolveMachineStart = () => resolve({} as extensionApi.RunResult);
+  });
+  const execSpy = vi.spyOn(extensionApi.process, 'exec').mockImplementation(() => machineStartPromise);
+
+  const startPromise = extension.startMachine(provider, podmanConfiguration, machineInfo);
+  await extension.deactivate();
+  resolveMachineStart?.();
+  await startPromise.catch(() => {});
+
+  expect(execSpy).toHaveBeenCalled();
+});
+
+test('recoverStuckStartingMachines stops machines stuck in STARTING state', async () => {
+  extension.podmanMachinesStatuses.set('stuck-machine', 'starting');
+  const execSpy = vi
+    .spyOn(extensionApi.process, 'exec')
+    .mockImplementation(() => Promise.resolve({} as extensionApi.RunResult));
+
+  await extension.recoverStuckStartingMachines();
+
+  expect(execSpy).toHaveBeenCalledWith(
+    expect.anything(),
+    ['machine', 'stop', 'stuck-machine'],
+    expect.anything(),
+  );
+  expect(extension.podmanMachinesStatuses.get('stuck-machine')).toBe('stopped');
+});
+
+test('recoverStuckStartingMachines ignores non-starting machines', async () => {
+  extension.podmanMachinesStatuses.set('running-machine', 'started');
+  extension.podmanMachinesStatuses.set('stopped-machine', 'stopped');
+  const execSpy = vi
+    .spyOn(extensionApi.process, 'exec')
+    .mockImplementation(() => Promise.resolve({} as extensionApi.RunResult));
+
+  await extension.recoverStuckStartingMachines();
+
+  expect(execSpy).not.toHaveBeenCalledWith(
+    expect.anything(),
+    expect.arrayContaining(['machine', 'stop']),
+    expect.anything(),
+  );
 });
 
 test('test checkDefaultMachine - if there is no machine marked as default, take the default system connection to retrieve it. Prompt as it is not running', async () => {
