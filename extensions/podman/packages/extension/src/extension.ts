@@ -670,6 +670,8 @@ async function timeout(time: number): Promise<void> {
   });
 }
 
+let hasRunInitialRecovery = false;
+
 export async function monitorMachines(
   provider: extensionApi.Provider,
   podmanConfiguration: PodmanConfiguration,
@@ -680,6 +682,13 @@ export async function monitorMachines(
       await updateMachines(provider, podmanConfiguration);
     } catch (error) {
       // ignore the update of machines
+    }
+
+    // On the first monitoring cycle, recover any machines stuck in STARTING
+    // from a previous session. This covers the case where autostart is disabled.
+    if (!hasRunInitialRecovery) {
+      hasRunInitialRecovery = true;
+      await recoverStuckStartingMachines();
     }
 
     await timeout(5000);
@@ -1885,6 +1894,21 @@ export async function deactivate(): Promise<void> {
     machineStartTokenSource = undefined;
     // Give the child process time to handle SIGTERM and reset the Starting flag
     await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Verify the machine actually recovered. If SIGTERM wasn't enough (e.g. the
+    // process was in a state where the signal handler couldn't run), fall back to
+    // an explicit `podman machine stop`.
+    try {
+      const { list } = await getJSONMachineList();
+      for (const machine of list) {
+        if (machine.Starting) {
+          console.warn(`Machine "${machine.Name}" still stuck after SIGTERM — forcing stop`);
+          await execPodman(['machine', 'stop', machine.Name], machine.VMType);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to verify/recover machine state during shutdown:', err);
+    }
   }
 
   await stopAutoStartedMachine().then(() => {
@@ -1894,6 +1918,7 @@ export async function deactivate(): Promise<void> {
   });
 
   // cleanup
+  hasRunInitialRecovery = false;
   listeners.clear();
   podmanMachinesInfo.clear();
   currentConnections.clear();
