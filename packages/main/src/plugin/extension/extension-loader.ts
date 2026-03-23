@@ -234,6 +234,10 @@ export class ExtensionLoader implements IAsyncDisposable {
 
   @preDestroy()
   async asyncDispose(): Promise<void> {
+    // Uses process.stdout.write because console.log is silenced during shutdown
+    process.stdout.write('Waiting for pending lifecycle operations before stopping extensions...\n');
+    await this.providerRegistry.waitForPendingLifecycleOperations();
+    process.stdout.write('Stopping all extensions\n');
     await this.stopAllExtensions();
 
     // stop the webview HTTP server

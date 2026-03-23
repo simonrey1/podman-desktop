@@ -110,6 +110,7 @@ export class ProviderRegistry {
   private autostartEngine: AutostartEngine | undefined = undefined;
 
   private connectionLifecycleContexts: Map<ProviderConnection, LifecycleContextImpl> = new Map();
+  private pendingLifecycleOperations: Set<Promise<void>> = new Set();
   private listeners: ProviderEventListener[];
   private lifecycleListeners: ProviderLifecycleListener[];
   private containerConnectionLifecycleListeners: ContainerConnectionProviderLifecycleListener[];
@@ -445,7 +446,9 @@ export class ProviderRegistry {
         }
       },
     });
-    await autoStart.start(new LoggerImpl(), context);
+    const autostartPromise = autoStart.start(new LoggerImpl(), context);
+    this.trackLifecycleOperation(autostartPromise);
+    await autostartPromise;
     // send the event
     this._onDidUpdateProvider.fire({
       id: provider.id,
@@ -1126,8 +1129,11 @@ export class ProviderRegistry {
       throw new Error('Cannot find provider');
     }
 
+    const operationPromise = lifecycle.start(context, logHandler);
+    this.trackLifecycleOperation(operationPromise);
+
     try {
-      await lifecycle.start(context, logHandler);
+      await operationPromise;
     } finally {
       if (this.isProviderContainerConnection(providerConnectionInfo)) {
         this.fireUpdateContainerConnectionEvents(provider.id, providerConnectionInfo);
@@ -1270,7 +1276,9 @@ export class ProviderRegistry {
           status: 'stopped',
         });
       }
-      await lifecycle.stop(context, logHandler);
+      const operationPromise = lifecycle.stop(context, logHandler);
+      this.trackLifecycleOperation(operationPromise);
+      await operationPromise;
     } catch (err) {
       console.warn(`Can't stop connection ${provider.id}.${providerConnectionInfo.name}`, err);
     }
@@ -1580,6 +1588,47 @@ export class ProviderRegistry {
       return this.toProviderInfo(provider);
     }
     return undefined;
+  }
+
+  protected trackLifecycleOperation(operation: Promise<void> | void): void {
+    if (!operation) {
+      return;
+    }
+    // Uses process.stdout.write because console.log is silenced during shutdown
+    const count = this.pendingLifecycleOperations.size + 1;
+    process.stdout.write(`Lifecycle operation started, ${count} operation(s) in progress\n`);
+    const tracked = operation
+      .catch(() => {})
+      .finally(() => {
+        this.pendingLifecycleOperations.delete(tracked);
+        process.stdout.write(
+          `Lifecycle operation finished, ${this.pendingLifecycleOperations.size} operation(s) remaining\n`,
+        );
+      });
+    this.pendingLifecycleOperations.add(tracked);
+  }
+
+  async waitForPendingLifecycleOperations(timeoutMs: number = 20_000): Promise<void> {
+    if (this.pendingLifecycleOperations.size === 0) {
+      return;
+    }
+    const count = this.pendingLifecycleOperations.size;
+    // Uses process.stdout.write because console.log is silenced during shutdown
+    process.stdout.write(`Waiting for ${count} pending lifecycle operation(s) to complete before shutdown...\n`);
+    const startTime = Date.now();
+    const timeout = new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), timeoutMs));
+    const result = await Promise.race([
+      Promise.allSettled(this.pendingLifecycleOperations).then(() => 'completed' as const),
+      timeout,
+    ]);
+    const elapsed = Date.now() - startTime;
+    if (result === 'timeout') {
+      process.stdout.write(
+        `Timed out after ${elapsed}ms, ${this.pendingLifecycleOperations.size} operation(s) still pending, proceeding with shutdown\n`,
+      );
+    } else {
+      process.stdout.write(`All lifecycle operations completed in ${elapsed}ms, proceeding with shutdown\n`);
+    }
   }
 
   protected fireUpdateContainerConnectionEvents(

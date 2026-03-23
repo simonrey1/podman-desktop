@@ -76,6 +76,10 @@ class TestProviderRegistry extends ProviderRegistry {
   override getMatchingProvider(internalId: string): ProviderImpl {
     return super.getMatchingProvider(internalId);
   }
+
+  getPendingLifecycleOperationsCount(): number {
+    return this['pendingLifecycleOperations'].size;
+  }
 }
 
 const telemetry: Telemetry = {
@@ -2639,5 +2643,119 @@ test('getConnectionFactories should return the connection factories', async () =
     creationButtonTitle: 'a creation Button Title',
     emptyConnectionMarkdownDescription: 'an empty connection markdown description for provider 2',
     images: provider2Images,
+  });
+});
+
+describe('pending lifecycle operations', () => {
+  const startMock = vi.fn<() => Promise<void>>();
+  const stopMock = vi.fn<() => Promise<void>>();
+  let connection: ProviderContainerConnectionInfo;
+
+  beforeEach(() => {
+    vi.mocked(containerRegistry.isApiAttached).mockReturnValue(true);
+
+    const provider = providerRegistry.createProvider('id', 'name', {
+      id: 'internal',
+      name: 'internal',
+      status: 'installed',
+    });
+
+    connection = {
+      connectionType: 'container',
+      name: 'connection',
+      displayName: 'connection',
+      type: 'docker',
+      endpoint: { socketPath: '/endpoint1.sock' },
+      status: 'stopped',
+    };
+
+    provider.registerContainerProviderConnection({
+      name: 'connection',
+      displayName: 'connection',
+      type: 'docker',
+      lifecycle: { start: startMock, stop: stopMock },
+      endpoint: { socketPath: '/endpoint1.sock' },
+      status() {
+        return 'stopped';
+      },
+    });
+  });
+
+  test('waitForPendingLifecycleOperations resolves immediately when no operations pending', async () => {
+    expect(providerRegistry.getPendingLifecycleOperationsCount()).toBe(0);
+    await providerRegistry.waitForPendingLifecycleOperations();
+  });
+
+  test('tracks a start operation and cleans up after completion', async () => {
+    startMock.mockResolvedValue(undefined);
+
+    await providerRegistry.startProviderConnection('0', connection);
+
+    await vi.waitFor(() => {
+      expect(providerRegistry.getPendingLifecycleOperationsCount()).toBe(0);
+    });
+  });
+
+  test('tracks a stop operation and cleans up after completion', async () => {
+    stopMock.mockResolvedValue(undefined);
+    connection = { ...connection, status: 'started' };
+
+    await providerRegistry.stopProviderConnection('0', connection);
+
+    await vi.waitFor(() => {
+      expect(providerRegistry.getPendingLifecycleOperationsCount()).toBe(0);
+    });
+  });
+
+  test('tracks a start operation and cleans up after failure', async () => {
+    startMock.mockRejectedValue(new Error('start failed'));
+
+    await expect(providerRegistry.startProviderConnection('0', connection)).rejects.toThrow('start failed');
+
+    await vi.waitFor(() => {
+      expect(providerRegistry.getPendingLifecycleOperationsCount()).toBe(0);
+    });
+  });
+
+  test('waitForPendingLifecycleOperations waits for in-flight start to complete', async () => {
+    let resolveStart: () => void;
+    startMock.mockReturnValue(
+      new Promise<void>(resolve => {
+        resolveStart = resolve;
+      }),
+    );
+
+    const startPromise = providerRegistry.startProviderConnection('0', connection);
+    expect(providerRegistry.getPendingLifecycleOperationsCount()).toBe(1);
+
+    const waitPromise = providerRegistry.waitForPendingLifecycleOperations();
+    let waitResolved = false;
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    waitPromise.then(() => {
+      waitResolved = true;
+    });
+
+    await new Promise(r => setTimeout(r, 50));
+    expect(waitResolved).toBe(false);
+
+    resolveStart!();
+    await startPromise;
+    await waitPromise;
+    expect(waitResolved).toBe(true);
+  });
+
+  test('waitForPendingLifecycleOperations respects timeout', async () => {
+    startMock.mockReturnValue(new Promise<void>(() => {}));
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    providerRegistry.startProviderConnection('0', connection);
+    expect(providerRegistry.getPendingLifecycleOperationsCount()).toBe(1);
+
+    const before = Date.now();
+    await providerRegistry.waitForPendingLifecycleOperations(100);
+    const elapsed = Date.now() - before;
+
+    expect(elapsed).toBeGreaterThanOrEqual(90);
+    expect(elapsed).toBeLessThan(500);
   });
 });

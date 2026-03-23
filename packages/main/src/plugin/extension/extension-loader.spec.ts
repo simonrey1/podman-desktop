@@ -145,7 +145,10 @@ const menuRegistry: MenuRegistry = {} as unknown as MenuRegistry;
 
 const kubernetesGeneratorRegistry: KubeGeneratorRegistry = {} as unknown as KubeGeneratorRegistry;
 
-const providerRegistry: ProviderRegistry = {} as unknown as ProviderRegistry;
+const waitForPendingLifecycleOperationsMock = vi.fn().mockResolvedValue(undefined);
+const providerRegistry: ProviderRegistry = {
+  waitForPendingLifecycleOperations: waitForPendingLifecycleOperationsMock,
+} as unknown as ProviderRegistry;
 
 const configurationRegistryGetConfigurationMock = vi.fn();
 const configurationRegistryUpdateConfigurationMock = vi.fn();
@@ -2907,6 +2910,46 @@ test('ExtensionLoader async dispose should stop all extensions', async () => {
   await extensionLoader.asyncDispose();
 
   expect(deactivateMock).toHaveBeenCalledOnce();
+});
+
+test('ExtensionLoader async dispose should wait for pending lifecycle operations before stopping extensions', async () => {
+  const deactivateMock = vi.fn().mockResolvedValue(undefined);
+
+  configurationRegistryGetConfigurationMock.mockReturnValue({ get: vi.fn().mockReturnValue(1) });
+
+  const callOrder: string[] = [];
+  waitForPendingLifecycleOperationsMock.mockImplementation(async () => {
+    callOrder.push('waitForPendingLifecycleOperations');
+  });
+  deactivateMock.mockImplementation(async () => {
+    callOrder.push('deactivate');
+  });
+
+  await extensionLoader.activateExtension(
+    {
+      id: 'ext.id',
+      name: 'id',
+      path: 'dummy',
+      api: {} as typeof containerDesktopAPI,
+      mainPath: '',
+      removable: false,
+      devMode: false,
+      manifest: {} as unknown as ExtensionManifest,
+      subscriptions: [],
+      readme: '',
+      dispose: vi.fn(),
+    },
+    {
+      activate: vi.fn().mockResolvedValue(undefined),
+      deactivate: deactivateMock,
+    },
+  );
+
+  await extensionLoader.asyncDispose();
+
+  expect(waitForPendingLifecycleOperationsMock).toHaveBeenCalledOnce();
+  expect(deactivateMock).toHaveBeenCalledOnce();
+  expect(callOrder).toEqual(['waitForPendingLifecycleOperations', 'deactivate']);
 });
 
 describe('env API', () => {
