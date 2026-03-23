@@ -98,6 +98,7 @@ let storedExtensionContext: extensionApi.ExtensionContext | undefined;
 let stopLoop = false;
 let autoMachineStarted = false;
 let autoMachineName: string | undefined;
+let pendingMachineOperation: Promise<void> | undefined;
 
 // System default notifier
 let defaultMachineNotify = !extensionApi.env.isLinux;
@@ -865,10 +866,11 @@ export async function startMachine(
   await checkRosettaMacArm(podmanConfiguration);
 
   try {
-    // start the machine
-    await execPodman(['machine', 'start', machineInfo.name], machineInfo.vmType, {
+    const operation = execPodman(['machine', 'start', machineInfo.name], machineInfo.vmType, {
       logger: new LoggerDelegator(context, logger),
     });
+    pendingMachineOperation = operation.catch(() => {});
+    await operation;
     provider.updateStatus('started');
   } catch (err) {
     telemetryRecords.error = err;
@@ -879,6 +881,7 @@ export async function startMachine(
     }
     await doHandleError(provider, machineInfo, podmanConfiguration, typeof err === 'string' ? err : (err as RunError));
   } finally {
+    pendingMachineOperation = undefined;
     // send telemetry event
     const endTime = performance.now();
     telemetryRecords.duration = endTime - startTime;
@@ -896,15 +899,19 @@ export async function stopMachine(
   const startTime = performance.now();
   const telemetryRecords: Record<string, unknown> = {};
   telemetryRecords.provider = machineInfo.vmType;
+
   try {
-    await execPodman(['machine', 'stop', machineInfo.name], machineInfo.vmType, {
+    const operation = execPodman(['machine', 'stop', machineInfo.name], machineInfo.vmType, {
       logger: new LoggerDelegator(context, logger),
     });
+    pendingMachineOperation = operation.catch(() => {});
+    await operation;
     provider.updateStatus('stopped');
   } catch (err: unknown) {
     telemetryRecords.error = err;
     throw err;
   } finally {
+    pendingMachineOperation = undefined;
     // send telemetry event
     const endTime = performance.now();
     telemetryRecords.duration = endTime - startTime;
@@ -1807,6 +1814,12 @@ export async function getJSONMachineListByProvider(containerMachineProvider?: st
 export async function deactivate(): Promise<void> {
   stopLoop = true;
   console.log('stopping podman extension');
+
+  if (pendingMachineOperation) {
+    console.log('waiting for pending machine operation to complete before shutdown...');
+    await Promise.race([pendingMachineOperation, new Promise<void>(resolve => setTimeout(resolve, 20_000))]);
+  }
+
   await stopAutoStartedMachine().then(() => {
     if (autoMachineStarted) {
       console.log('stopped autostarted machine', autoMachineName);
