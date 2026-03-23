@@ -1330,6 +1330,7 @@ export class ProviderRegistry {
       emptyConnectionMarkdownDescription: provider.emptyConnectionMarkdownDescription,
       images: provider.images,
     });
+    this.apiSender.send('provider-change', {});
   }
 
   onDidUnsetConnectionFactoryCallback(provider: ProviderImpl, factoryType: 'container' | 'kubernetes' | 'vm'): void {
@@ -1337,6 +1338,7 @@ export class ProviderRegistry {
       providerId: provider.id,
       type: factoryType,
     });
+    this.apiSender.send('provider-change', {});
   }
 
   getConnectionFactories(): ConnectionFactoryDetails[] {

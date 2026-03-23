@@ -105,8 +105,9 @@ test('should initialize provider if there is kubernetes connection provider', as
   let providerInternalId: string | undefined;
 
   apiSenderSendMock.mockImplementation((message, data) => {
-    expect(message).toBe('provider-create');
-    providerInternalId = String(data);
+    if (message === 'provider-create') {
+      providerInternalId = String(data);
+    }
   });
 
   const provider = providerRegistry.createProvider('id', 'name', {
@@ -179,12 +180,15 @@ test('onDidSetConnectionFactory is called when a container connection factory is
     emptyConnectionMarkdownDescription: 'an empty connection markdown description',
     images,
   });
+  expect(apiSenderSendMock).toHaveBeenCalledWith('provider-change', {});
 
+  apiSenderSendMock.mockClear();
   disposable.dispose();
   expect(onDidUnsetConnectionFactoryMock).toHaveBeenCalledWith({
     type: 'container',
     providerId: 'aProviderId',
   });
+  expect(apiSenderSendMock).toHaveBeenCalledWith('provider-change', {});
 });
 
 test('should initialize provider if there is VM connection provider', async () => {
@@ -275,8 +279,9 @@ test('should initialize provider if there is container connection provider', asy
   let providerInternalId: string | undefined;
 
   apiSenderSendMock.mockImplementation((message, data) => {
-    expect(message).toBe('provider-create');
-    providerInternalId = String(data);
+    if (message === 'provider-create') {
+      providerInternalId = String(data);
+    }
   });
 
   const provider = providerRegistry.createProvider('id', 'name', {
@@ -349,12 +354,15 @@ test('onDidSetConnectionFactory is called when a kubernetes connection factory i
     emptyConnectionMarkdownDescription: 'an empty connection markdown description',
     images,
   });
+  expect(apiSenderSendMock).toHaveBeenCalledWith('provider-change', {});
 
+  apiSenderSendMock.mockClear();
   disposable.dispose();
   expect(onDidUnsetConnectionFactoryMock).toHaveBeenCalledWith({
     type: 'kubernetes',
     providerId: 'aProviderId',
   });
+  expect(apiSenderSendMock).toHaveBeenCalledWith('provider-change', {});
 });
 
 test('connections should contain the display name provided when registering', async () => {
@@ -387,8 +395,9 @@ test('should reset state if initialization fails', async () => {
   let providerInternalId: string | undefined;
 
   apiSenderSendMock.mockImplementation((message, data) => {
-    expect(message).toBe('provider-create');
-    providerInternalId = data;
+    if (message === 'provider-create') {
+      providerInternalId = data;
+    }
   });
 
   const provider = providerRegistry.createProvider('id', 'name', {
@@ -818,12 +827,15 @@ describe('a vm provider is registered', async () => {
         emptyConnectionMarkdownDescription: 'an empty connection markdown description',
         images,
       });
+      expect(apiSenderSendMock).toHaveBeenCalledWith('provider-change', {});
 
+      apiSenderSendMock.mockClear();
       disposable.dispose();
       expect(onDidUnsetConnectionFactoryMock).toHaveBeenCalledWith({
         type: 'vm',
         providerId: 'aProviderId',
       });
+      expect(apiSenderSendMock).toHaveBeenCalledWith('provider-change', {});
     });
   });
 });
@@ -1590,8 +1602,10 @@ test('should retrieve context of container provider', async () => {
 test('should retrieve context of kubernetes provider', async () => {
   let providerInternalId: string | undefined;
 
-  apiSenderSendMock.mockImplementation((_message, data) => {
-    providerInternalId = data;
+  apiSenderSendMock.mockImplementation((message, data) => {
+    if (message === 'provider-create') {
+      providerInternalId = data;
+    }
   });
 
   const provider = providerRegistry.createProvider('id', 'name', {
@@ -1649,8 +1663,10 @@ test('should retrieve context of kubernetes provider', async () => {
 test('should retrieve context of VM provider', async () => {
   let providerInternalId: string | undefined;
 
-  apiSenderSendMock.mockImplementation((_message, data) => {
-    providerInternalId = data;
+  apiSenderSendMock.mockImplementation((message, data) => {
+    if (message === 'provider-create') {
+      providerInternalId = data;
+    }
   });
 
   const provider = providerRegistry.createProvider('id', 'name', {
