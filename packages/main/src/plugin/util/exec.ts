@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import type { ChildProcess, ChildProcessWithoutNullStreams } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import { spawn } from 'node:child_process';
 import { homedir } from 'node:os';
 import { delimiter, join } from 'node:path';
@@ -155,88 +155,40 @@ export class Exec {
       cwd = options.cwd;
     }
 
-    if (options?.detached) {
-      return this.execDetached(command, args ?? [], env, cwd);
-    }
+    const detached = !!options?.detached;
 
     return new Promise((resolve, reject) => {
       let stdout = '';
       let stderr = '';
 
-      const childProcess: ChildProcessWithoutNullStreams = spawn(command, args, { env, cwd });
+      const childProcess: ChildProcess = detached
+        ? spawn(command, args ?? [], { env, cwd, detached: true, stdio: 'ignore' })
+        : spawn(command, args, { env, cwd });
 
-      options?.token?.onCancellationRequested(() => {
-        if (!childProcess.killed) {
-          childProcess.kill();
-          options?.logger?.error('Execution cancelled');
+      if (detached) {
+        childProcess.unref();
+      } else {
+        options?.token?.onCancellationRequested(() => {
+          if (!childProcess.killed) {
+            childProcess.kill();
+            options?.logger?.error('Execution cancelled');
+            const errResult: RunError = new RunErrorImpl(
+              'Execution cancelled',
+              'Failed to execute command: Execution cancelled',
+              1,
+              command,
+              stdout.trim(),
+              stderr.trim(),
+              true,
+              childProcess.killed,
+            );
+            reject(errResult);
+          }
+          options?.logger?.error('Failed to execute cancel: Process has been already killed');
           const errResult: RunError = new RunErrorImpl(
-            'Execution cancelled',
-            'Failed to execute command: Execution cancelled',
+            'Failed to execute cancel: Process has been already killed',
+            'Failed to execute cancel: Process has been already killed',
             1,
-            command,
-            stdout.trim(),
-            stderr.trim(),
-            true,
-            childProcess.killed,
-          );
-          reject(errResult);
-        }
-        options?.logger?.error('Failed to execute cancel: Process has been already killed');
-        const errResult: RunError = new RunErrorImpl(
-          'Failed to execute cancel: Process has been already killed',
-          'Failed to execute cancel: Process has been already killed',
-          1,
-          command,
-          stdout.trim(),
-          stderr.trim(),
-          false,
-          childProcess.killed,
-        );
-        reject(errResult);
-      });
-
-      childProcess.stdout.setEncoding(options?.encoding ?? 'utf8');
-      childProcess.stderr.setEncoding(options?.encoding ?? 'utf8');
-
-      childProcess.stdout.on('data', data => {
-        stdout += data.toString();
-        options?.logger?.log(data);
-      });
-
-      childProcess.stderr.on('data', data => {
-        stderr += data.toString();
-        options?.logger?.warn(data);
-      });
-
-      childProcess.on('error', error => {
-        options?.logger?.error(`Failed to execute command: ${error.message}`);
-        const errResult: RunError = new RunErrorImpl(
-          error.name,
-          `Failed to execute command: ${error.message}`,
-          1,
-          command,
-          stdout.trim(),
-          stderr.trim(),
-          false,
-          childProcess.killed,
-        );
-        reject(errResult);
-      });
-
-      childProcess.on('close', exitCode => {
-        if (exitCode === 0) {
-          const result: RunResult = {
-            command,
-            stdout: stdout.trim(),
-            stderr: stderr.trim(),
-          };
-          resolve(result);
-        } else {
-          options?.logger?.error(`Command execution failed with exit code ${exitCode}`);
-          const errResult: RunError = new RunErrorImpl(
-            `Command execution failed with exit code ${exitCode}`,
-            `Command execution failed with exit code ${exitCode}`,
-            exitCode ?? 1,
             command,
             stdout.trim(),
             stderr.trim(),
@@ -244,31 +196,35 @@ export class Exec {
             childProcess.killed,
           );
           reject(errResult);
+        });
+
+        if (childProcess.stdout) {
+          childProcess.stdout.setEncoding(options?.encoding ?? 'utf8');
+          childProcess.stdout.on('data', data => {
+            stdout += data.toString();
+            options?.logger?.log(data);
+          });
         }
-      });
-    });
-  }
 
-  private execDetached(
-    command: string,
-    args: string[],
-    env: NodeJS.ProcessEnv,
-    cwd: string | undefined,
-  ): Promise<RunResult> {
-    return new Promise((resolve, reject) => {
-      const childProcess: ChildProcess = spawn(command, args, { env, cwd, detached: true, stdio: 'ignore' });
-
-      childProcess.unref();
+        if (childProcess.stderr) {
+          childProcess.stderr.setEncoding(options?.encoding ?? 'utf8');
+          childProcess.stderr.on('data', data => {
+            stderr += data.toString();
+            options?.logger?.warn(data);
+          });
+        }
+      }
 
       childProcess.on('error', error => {
+        options?.logger?.error(`Failed to execute command: ${error.message}`);
         reject(
           new RunErrorImpl(
             error.name,
             `Failed to execute command: ${error.message}`,
             1,
             command,
-            '',
-            '',
+            stdout.trim(),
+            stderr.trim(),
             false,
             childProcess.killed,
           ),
@@ -277,16 +233,17 @@ export class Exec {
 
       childProcess.on('close', exitCode => {
         if (exitCode === 0) {
-          resolve({ command, stdout: '', stderr: '' });
+          resolve({ command, stdout: stdout.trim(), stderr: stderr.trim() });
         } else {
+          options?.logger?.error(`Command execution failed with exit code ${exitCode}`);
           reject(
             new RunErrorImpl(
               `Command execution failed with exit code ${exitCode}`,
               `Command execution failed with exit code ${exitCode}`,
               exitCode ?? 1,
               command,
-              '',
-              '',
+              stdout.trim(),
+              stderr.trim(),
               false,
               childProcess.killed,
             ),
