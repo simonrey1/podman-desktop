@@ -1,22 +1,24 @@
 <style>
-.pure-material-progress-linear::-webkit-progress-bar {
-  background-color: transparent;
+.pd-linear-progress::-webkit-progress-bar {
+  background-color: var(--pd-linear-progress-track, transparent);
+  border-radius: 9999px;
 }
 
 /* Determinate */
-.pure-material-progress-linear::-webkit-progress-value {
+.pd-linear-progress::-webkit-progress-value {
   background-color: currentColor;
-  transition: all 0.2s;
+  transition: width 0.2s;
+  border-radius: 9999px;
 }
 
-.pure-material-progress-linear::-ms-fill {
+.pd-linear-progress::-ms-fill {
   border: none;
   background-color: currentColor;
-  transition: all 0.2s;
+  transition: width 0.2s;
 }
 
 /* Indeterminate */
-.pure-material-progress-linear:indeterminate {
+.pd-linear-progress:indeterminate {
   background-size: 200% 100%;
   background-image: linear-gradient(
     to right,
@@ -29,14 +31,14 @@
     currentColor 84%,
     transparent 84%
   );
-  animation: pure-material-progress-linear 2s infinite linear;
+  animation: pd-linear-progress-indeterminate 2s infinite linear;
 }
 
-.pure-material-progress-linear:indeterminate::-ms-fill {
+.pd-linear-progress:indeterminate::-ms-fill {
   animation-name: none;
 }
 
-@keyframes pure-material-progress-linear {
+@keyframes pd-linear-progress-indeterminate {
   0% {
     background-size: 200% 100%;
     background-position: left -31.25% top 0%;
@@ -52,5 +54,19 @@
 }
 </style>
 
-<progress class="w-full appearance-none border-none h-0.5 text-purple-500 text-base pure-material-progress-linear"
+<script lang="ts">
+interface Props {
+  value?: number;
+  class?: string;
+  style?: string;
+}
+
+let { value, class: className = 'w-full h-0.5 text-purple-500', style }: Props = $props();
+</script>
+
+<progress
+  class="appearance-none border-none rounded-full pd-linear-progress {className}"
+  {style}
+  value={value}
+  max={value !== undefined ? 100 : undefined}
 ></progress>

@@ -151,7 +151,7 @@ test('task with undefined progress value should show indeterminate progress', as
 
   // expect the progress bar to have the indeterminate class
   const progressBar = getByRole('progressbar');
-  expect(progressBar).toHaveClass('progress-bar-indeterminate');
+  expect(progressBar).not.toHaveAttribute('value');
 });
 
 test('cancellable task should display cancel button', async () => {

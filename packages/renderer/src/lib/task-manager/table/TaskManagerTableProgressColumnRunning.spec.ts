@@ -39,10 +39,8 @@ test('Expect progress bar widget is used if task is still in progress', async ()
   const progressBar = screen.getByRole('progressbar');
   expect(progressBar).toBeInTheDocument();
 
-  // expect to see the progress
+  expect(progressBar).toHaveAttribute('value', '50');
+
   const progressStatus = screen.getByText('50%');
   expect(progressStatus).toBeInTheDocument();
-
-  // check width
-  expect(progressBar).toHaveStyle({ width: '50%' });
 });

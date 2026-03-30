@@ -1,9 +1,8 @@
 <script lang="ts">
 import { faTimesCircle } from '@fortawesome/free-solid-svg-icons';
-import { Tooltip } from '@podman-desktop/ui-svelte';
+import { LinearProgress, Tooltip } from '@podman-desktop/ui-svelte';
 import { Icon } from '@podman-desktop/ui-svelte/icons';
 
-import ProgressBar from '/@/lib/task-manager/ProgressBar.svelte';
 import { tasksInfo } from '/@/stores/tasks';
 
 let runningTasks = $derived($tasksInfo.filter(task => task.state === 'running'));
@@ -47,7 +46,13 @@ async function cancelTask(): Promise<void> {
       <button aria-label="Toggle Task Manager" onclick={toggleTaskManager}>
         <div class="flex items-center gap-x-2">
           <span role="status" class="max-w-32 text-ellipsis overflow-hidden whitespace-nowrap">{title}</span>
-          <ProgressBar class="items-center" height="h-1" width="w-20" progress={progress} />
+          <LinearProgress
+            value={progress}
+            class="w-20 h-1 text-(--pd-progressBar-in-progress-bg)"
+            style="--pd-linear-progress-track: var(--pd-progressBar-bg)" />
+          {#if progress !== undefined}
+            <span class="text-xs min-w-5">{Math.round(progress)}%</span>
+          {/if}
         </div>
       </button>
     </Tooltip>
