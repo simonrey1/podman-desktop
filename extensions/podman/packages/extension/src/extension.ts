@@ -878,11 +878,20 @@ export async function startMachine(
       logger: new LoggerDelegator(context, logger),
     };
 
-    if (autoStart) {
-      runOptions.detached = true;
+    // On macOS, wrap with `sh -c` so that SIGTERM propagates to all child
+    // processes (krunkit, gvproxy, …) instead of only hitting the podman process.
+    // See https://github.com/containers/podman/issues/28318
+    if (extensionApi.env.isMac) {
+      const podmanBin = getPodmanCli();
+      const cmd = [podmanBin, 'machine', 'start', machineInfo.name].join(' ');
+      const env: Record<string, string> = { ...(runOptions.env ?? {}) };
+      if (machineInfo.vmType) {
+        env.CONTAINERS_MACHINE_PROVIDER = getProviderByLabel(machineInfo.vmType);
+      }
+      await extensionApi.process.exec('sh', ['-c', cmd], { ...runOptions, env });
+    } else {
+      await execPodman(['machine', 'start', machineInfo.name], machineInfo.vmType, runOptions);
     }
-
-    await execPodman(['machine', 'start', machineInfo.name], machineInfo.vmType, runOptions);
     provider.updateStatus('started');
   } catch (err) {
     telemetryRecords.error = err;
