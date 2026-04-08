@@ -45,7 +45,7 @@ const config = {
       formats: ['cjs'],
     },
     rollupOptions: {
-      external: ['@podman-desktop/api', ...builtinModules.flatMap(p => [p, `node:${p}`])],
+      external: ['@podman-desktop/api', 'undici', ...builtinModules.flatMap(p => [p, `node:${p}`])],
       output: {
         entryFileNames: '[name].js',
       },

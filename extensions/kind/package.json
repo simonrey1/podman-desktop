@@ -113,6 +113,7 @@
     "@kubernetes/client-node": "^1.4.0",
     "@podman-desktop/api": "workspace:*",
     "mustache": "^4.2.0",
+    "undici": "^7.24.7",
     "yaml": "^2.8.3"
   },
   "devDependencies": {

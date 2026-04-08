@@ -16,11 +16,11 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import * as http from 'node:http';
 import * as os from 'node:os';
 import { isAbsolute, join } from 'node:path';
 
 import * as extensionApi from '@podman-desktop/api';
+import { Agent, fetch } from 'undici';
 
 const macosExtraPath = '/opt/podman/bin:/usr/local/bin:/opt/homebrew/bin:/opt/local/bin';
 const localBinDir = '/usr/local/bin';
@@ -157,41 +157,16 @@ export async function installBinaryToSystem(binaryPath: string, binaryName: stri
 }
 
 export async function getMemTotalInfo(socketPath: string): Promise<number> {
-  const versionUrl = {
-    path: '/info',
-    socketPath: socketPath,
-  };
+  const response = await fetch('http://localhost/info', {
+    dispatcher: new Agent({ connect: { socketPath } }),
+  });
 
-  interface Info {
-    MemTotal: number;
+  if (!response.ok) {
+    throw new Error(`Failed to get info: ${response.status} ${response.statusText}`);
   }
 
-  return new Promise<number>((resolve, reject) => {
-    const req = http.get(versionUrl, res => {
-      const body: Buffer[] = [];
-      res.on('data', chunk => {
-        body.push(chunk);
-      });
-
-      res.on('end', (err: unknown) => {
-        if (res.statusCode === 200) {
-          try {
-            resolve((JSON.parse(Buffer.concat(body).toString()) as Info).MemTotal);
-          } catch (e) {
-            reject(e);
-          }
-        } else if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
-          reject(new Error(err.message));
-        } else {
-          reject(new Error(String(err)));
-        }
-      });
-    });
-
-    req.once('error', err => {
-      reject(new Error(err.message));
-    });
-  });
+  const info = (await response.json()) as { MemTotal: number };
+  return info.MemTotal;
 }
 
 export function removeVersionPrefix(version: string): string {
