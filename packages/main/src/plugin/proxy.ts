@@ -20,7 +20,7 @@ import type { Event, ProxySettings } from '@podman-desktop/api';
 import { PROXY_CONFIG_KEYS, ProxyState } from '@podman-desktop/core-api';
 import { type IConfigurationNode, IConfigurationRegistry } from '@podman-desktop/core-api/configuration';
 import { inject, injectable } from 'inversify';
-import { Agent, ProxyAgent } from 'undici';
+import { Agent, fetch, ProxyAgent } from 'undici';
 
 import { Certificates } from '/@/plugin/certificates.js';
 
@@ -205,10 +205,9 @@ export class Proxy {
   }
 
   private overrideFetch(): void {
-    const original = globalThis.fetch;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _me = this;
-    globalThis.fetch = function (url: URL | RequestInfo, opts?: object): Promise<Response> {
+    const patchedFetch: typeof fetch = (url, opts) => {
       const urlObj = asURL(url);
       const isHttps = urlObj.protocol === 'https:';
       const proxyurl = getProxyUrl(_me, isHttps);
@@ -232,7 +231,9 @@ export class Proxy {
         };
       }
 
-      return original(url, opts);
+      return fetch(url, opts);
     };
+    // undici Response is the same class at runtime; TS types differ only in Headers iterator shape
+    globalThis.fetch = patchedFetch as unknown as typeof globalThis.fetch;
   }
 }
