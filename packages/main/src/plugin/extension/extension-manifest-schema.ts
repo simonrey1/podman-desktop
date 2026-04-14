@@ -39,6 +39,7 @@ export const ExtensionManifestSchema = z
     icon: z.union([z.string(), z.object({ light: z.string(), dark: z.string() })]).optional(),
     extensionDependencies: z.array(z.string()).optional(),
     extensionPack: z.array(z.string()).optional(),
+    license: z.string().optional(),
     engines: z
       .object({
         'podman-desktop': z.string().optional(),
