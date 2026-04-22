@@ -1942,6 +1942,9 @@ export function initExposure(): void {
       return ipcInvoke('showMessageBox:onSelect', messageBoxId, selectedIndex, dropdownIndex);
     },
   );
+  contextBridge.exposeInMainWorld('getPendingMessageBox', async (): Promise<Record<string, unknown> | undefined> => {
+    return ipcInvoke('showMessageBox:getPending');
+  });
 
   contextBridge.exposeInMainWorld(
     'sendCustomPickItemsOnConfirmation',

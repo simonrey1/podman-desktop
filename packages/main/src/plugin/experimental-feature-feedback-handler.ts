@@ -123,7 +123,6 @@ export class ExperimentalFeatureFeedbackHandler {
         this.setReminder(configurationKey);
       }
     }
-    // When are all features set, show dialog
     await this.showFeedbackDialog();
   }
 

@@ -185,6 +185,29 @@ describe('init', () => {
     expect(showFeedbackDialogSpy).toBeCalled();
   });
 
+  test('should show dialog when remindAt is in the past (issue #17221)', async () => {
+    vi.useFakeTimers();
+    const MOCK_NOW = new Date('2026-04-22T12:00:00.000Z');
+    vi.setSystemTime(MOCK_NOW);
+
+    const pastTimestamp = new Date('2025-12-28T11:44:44.260Z').getTime();
+    const conf = { remindAt: pastTimestamp, disabled: false };
+
+    configurationGetMock.mockImplementation((key: string, defaultValue?: unknown) => {
+      if (key === 'dialog') return defaultValue ?? true;
+      return conf;
+    });
+    vi.mocked(configurationRegistry.getConfiguration).mockReturnValue(configuration);
+    vi.mocked(configurationRegistry.getConfigurationProperties).mockReturnValue(features);
+    vi.mocked(messageBox.showMessageBox).mockResolvedValue({ response: 1 });
+
+    await feedbackForm.init();
+
+    expect(messageBox.showMessageBox).toHaveBeenCalledTimes(3);
+
+    vi.useRealTimers();
+  });
+
   test(`should skip disabled features with 'false' value`, async () => {
     const conf = false;
     configurationGetMock.mockReturnValue(conf);

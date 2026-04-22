@@ -31,6 +31,8 @@ export class MessageBox {
 
   private callbacksMessageBox = new Map<number, PromiseWithResolvers<MessageBoxReturnValue>>();
 
+  #pendingMessageBox: Record<string, unknown> | undefined;
+
   constructor(@inject(ApiSenderType) private apiSender: ApiSenderType) {}
 
   async showMessageBox(options: MessageBoxOptions): Promise<MessageBoxReturnValue> {
@@ -55,11 +57,14 @@ export class MessageBox {
       footerMarkdownDescription: options.footerMarkdownDescription,
     };
 
-    // need to send the options to the frontend
+    this.#pendingMessageBox = data;
     this.apiSender.send('showMessageBox:open', data);
 
-    // return the promise
     return deferred.promise;
+  }
+
+  getPendingMessageBox(): Record<string, unknown> | undefined {
+    return this.#pendingMessageBox;
   }
 
   isDropdownType(response?: ButtonsType): response is DropdownType {
@@ -114,5 +119,6 @@ export class MessageBox {
 
     // remove the callback
     this.callbacksMessageBox.delete(id);
+    this.#pendingMessageBox = undefined;
   }
 }

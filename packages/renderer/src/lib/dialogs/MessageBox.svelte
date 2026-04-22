@@ -80,9 +80,15 @@ const showMessageBoxCallback = (messageBoxParameter: unknown): void => {
   display = true;
 };
 
-onMount(() => {
-  // handle the showMessageBox event
+onMount(async () => {
   window.events?.receive('showMessageBox:open', showMessageBoxCallback);
+
+  // Recover any dialog sent before this component mounted (e.g. during startup
+  // queue flush, before Svelte rendered this component).
+  const pending = await window.getPendingMessageBox?.();
+  if (pending && !display) {
+    showMessageBoxCallback(pending);
+  }
 });
 
 onDestroy(() => {

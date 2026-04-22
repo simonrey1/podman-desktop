@@ -847,10 +847,6 @@ export class PluginSystem {
     const tempFileService = container.get<TempFileService>(TempFileService);
 
     container.bind<ExperimentalFeatureFeedbackHandler>(ExperimentalFeatureFeedbackHandler).toSelf().inSingletonScope();
-    const experimentalFeatureFeedbackHandler = container.get<ExperimentalFeatureFeedbackHandler>(
-      ExperimentalFeatureFeedbackHandler,
-    );
-    await experimentalFeatureFeedbackHandler.init();
 
     await this.setupSecurityRestrictionsOnLinks(messageBox);
 
@@ -2101,6 +2097,10 @@ export class PluginSystem {
         return messageBox.onDidSelectButton(id, index, dropdownIndex);
       },
     );
+
+    this.ipcHandle('showMessageBox:getPending', async (): Promise<Record<string, unknown> | undefined> => {
+      return messageBox.getPendingMessageBox();
+    });
 
     this.ipcHandle(
       'util:createHash',
@@ -3431,6 +3431,11 @@ export class PluginSystem {
     extensionsUpdater.init().catch((err: unknown) => console.error('Unable to perform extension updates', err));
     autoStartEngine.start().catch((err: unknown) => console.error('Unable to perform autostart', err));
     await exploreFeatures.init();
+
+    const experimentalFeatureFeedbackHandler = container.get<ExperimentalFeatureFeedbackHandler>(
+      ExperimentalFeatureFeedbackHandler,
+    );
+    await experimentalFeatureFeedbackHandler.init();
     apiSender.send('explore-features-loaded');
     return this.extensionLoader;
   }
