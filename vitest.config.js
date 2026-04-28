@@ -33,6 +33,14 @@ export default defineConfig({
       '{extensions,packages,tools,storybook,website,scripts}/**/{vitest,vite}.config.{js,ts}',
       '!**/builtin/**',
     ],
+    // Vitest v4 has a race condition where the worker RPC channel closes before
+    // pending onUserConsoleLog messages are flushed, causing spurious failures.
+    // https://github.com/podman-desktop/podman-desktop/issues/17285
+    onUnhandledError(error) {
+      if (error.message?.includes('Closing rpc while')) {
+        return false;
+      }
+    },
     // use GitHub action reporters when running in CI
     reporters: process.env.CI ? [['junit', { includeConsoleOutput: false }], 'default'] : ['default'],
     outputFile: process.env.CI ? { junit: 'coverage/junit-results.xml' } : {},
