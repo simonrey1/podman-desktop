@@ -604,14 +604,51 @@ export class ExtensionLoader implements IAsyncDisposable {
     // do we have circular dependencies?
     this.searchForCircularDependencies(analyzedExtensions);
 
-    // now, need to sort them by extensionDependencies order
-    const sortedExtensions = this.sortExtensionsByDependencies(analyzedExtensions);
+    const beforeAll = performance.now();
 
-    // now, load all extensions
+    // Group extensions into waves: each wave contains extensions whose
+    // dependencies have all been loaded in previous waves.
+    const loaded = new Set<string>();
+    const remaining = new Map(analyzedExtensions.map(ext => [ext.id, ext]));
+    let waveIndex = 0;
 
-    for (const extension of sortedExtensions) {
-      await this.loadExtension(extension);
+    while (remaining.size > 0) {
+      const wave: AnalyzedExtension[] = [];
+      for (const [, ext] of remaining) {
+        const deps = ext.manifest?.extensionDependencies ?? [];
+        if (deps.every((dep: string) => loaded.has(dep))) {
+          wave.push(ext);
+        }
+      }
+
+      if (wave.length === 0) {
+        // All remaining extensions have unmet deps — load them sequentially as fallback
+        console.warn(`Extension loader: ${remaining.size} extension(s) with unmet dependencies, loading sequentially`);
+        for (const [, ext] of remaining) {
+          await this.loadExtension(ext);
+        }
+        break;
+      }
+
+      const beforeWave = performance.now();
+      await Promise.all(wave.map(ext => this.loadExtension(ext)));
+      const afterWave = performance.now();
+
+      console.log(
+        `Extension loader: wave ${waveIndex} loaded ${wave.length} extension(s) in ${Math.round(afterWave - beforeWave)}ms [${wave.map(e => e.id).join(', ')}]`,
+      );
+
+      for (const ext of wave) {
+        loaded.add(ext.id);
+        remaining.delete(ext.id);
+      }
+      waveIndex++;
     }
+
+    const afterAll = performance.now();
+    console.log(
+      `Extension loader: all extensions loaded in ${Math.round(afterAll - beforeAll)}ms (${waveIndex} wave(s))`,
+    );
   }
 
   // do we have circular dependencies?
