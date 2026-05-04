@@ -14,7 +14,7 @@ export let firstmatch = false;
 export let breadcrumb: string | undefined = undefined;
 export let navigationHint: NavigationHint | undefined = undefined;
 export let requestParser:
-  | ((request: { query: Record<string, string>; params: Record<string, string> }) => T)
+  | ((request: { query: Record<string, string>; params: Record<string, string> }) => T | undefined)
   | undefined = undefined;
 
 let showContent = false;
@@ -85,6 +85,6 @@ onDestroy(() => {
 });
 </script>
 
-{#if showContent}
-  <slot params={params} meta={meta} request={request} />
+{#if showContent && (!requestParser || request !== undefined)}
+  <slot params={params} meta={meta} request={request as T} />
 {/if}

@@ -10,6 +10,12 @@ import { parseExtensionListRequest } from '/@/lib/extensions/extension-list';
 import KubernetesRoot from '/@/lib/kube/KubernetesRoot.svelte';
 import PinActions from '/@/lib/statusbar/PinActions.svelte';
 import { handleNavigation } from '/@/navigation';
+import {
+  parseIdEngineIdAndBase64RepoTag,
+  parseName,
+  parseNameAndEngineId,
+  parseNameAndNamespace,
+} from '/@/request-parsers';
 import { kubernetesNoCurrentContext } from '/@/stores/kubernetes-no-current-context';
 
 import AppNavigation from './AppNavigation.svelte';
@@ -208,23 +214,25 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route
             path="/:id/:engineId/:base64RepoTag/*"
             breadcrumb="Image Details"
-            let:meta
+            requestParser={parseIdEngineIdAndBase64RepoTag}
+            let:request
             navigationHint="details">
             <ImageDetails
-              imageID={meta.params.id}
-              engineId={decodeURI(meta.params.engineId)}
-              base64RepoTag={meta.params.base64RepoTag} />
+              imageID={request.id}
+              engineId={request.engineId}
+              base64RepoTag={request.base64RepoTag} />
           </Route>
         </Route>
         <Route
           path="/manifests/:id/:engineId/:base64RepoTag/*"
           breadcrumb="Manifest Details"
-          let:meta
+          requestParser={parseIdEngineIdAndBase64RepoTag}
+          let:request
           navigationHint="details">
           <ManifestDetails
-            imageID={meta.params.id}
-            engineId={decodeURI(meta.params.engineId)}
-            base64RepoTag={meta.params.base64RepoTag} />
+            imageID={request.id}
+            engineId={request.engineId}
+            base64RepoTag={request.base64RepoTag} />
         </Route>
 
         <Route path="/networks/*" breadcrumb="Networks" navigationHint="root" firstmatch>
@@ -234,8 +242,8 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route path="/create/*" breadcrumb="Create Network">
             <CreateNetwork />
           </Route>
-          <Route path="/:name/:engineId/*" breadcrumb="Network Details" let:meta navigationHint="details">
-            <NetworkDetails networkName={decodeURIComponent(meta.params.name)} engineId={decodeURIComponent(meta.params.engineId)} />
+          <Route path="/:name/:engineId/*" breadcrumb="Network Details" requestParser={parseNameAndEngineId} let:request navigationHint="details">
+            <NetworkDetails networkName={request.name} engineId={request.engineId} />
           </Route>
         </Route>
 
@@ -255,13 +263,11 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
             engineId={decodeURI(meta.params.engineId)}
             type="compose" />
         </Route>
-        <Route path="/compose/details/:name/:engineId/*" breadcrumb="Compose Details" let:meta navigationHint="details">
-          <ComposeDetails composeName={decodeURI(meta.params.name)} engineId={decodeURI(meta.params.engineId)} />
+        <Route path="/compose/details/:name/:engineId/*" breadcrumb="Compose Details" requestParser={parseNameAndEngineId} let:request navigationHint="details">
+          <ComposeDetails composeName={request.name} engineId={request.engineId} />
         </Route>
-        <Route path="/pods/podman/:name/:engineId/*" breadcrumb="Pod Details" let:meta navigationHint="details">
-          <PodDetails
-            podName={decodeURI(meta.params.name)}
-            engineId={decodeURIComponent(meta.params.engineId)} />
+        <Route path="/pods/podman/:name/:engineId/*" breadcrumb="Pod Details" requestParser={parseNameAndEngineId} let:request navigationHint="details">
+          <PodDetails podName={request.name} engineId={request.engineId} />
         </Route>
         <Route path="/pod-create-from-containers" breadcrumb="Create Pod">
           <PodCreateFromContainers />
@@ -274,8 +280,8 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route path="/create" breadcrumb="Create a Volume">
             <CreateVolume />
           </Route>
-          <Route path="/:name/:engineId/*" breadcrumb="Volume Details" let:meta navigationHint="details">
-            <VolumeDetails volumeName={decodeURI(meta.params.name)} engineId={decodeURI(meta.params.engineId)} />
+          <Route path="/:name/:engineId/*" breadcrumb="Volume Details" requestParser={parseNameAndEngineId} let:request navigationHint="details">
+            <VolumeDetails volumeName={request.name} engineId={request.engineId} />
           </Route>
         </Route>
         {#if $kubernetesNoCurrentContext}
@@ -292,8 +298,8 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route path="/kubernetes/nodes" breadcrumb="Nodes" navigationHint="root">
             <NodesList />
           </Route>
-          <Route path="/kubernetes/nodes/:name/*" breadcrumb="Node Details" let:meta navigationHint="details">
-            <NodeDetails name={decodeURI(meta.params.name)} />
+          <Route path="/kubernetes/nodes/:name/*" breadcrumb="Node Details" requestParser={parseName} let:request navigationHint="details">
+            <NodeDetails name={request.name} />
           </Route>
           <Route path="/kubernetes/pods" breadcrumb="Pods" navigationHint="root">
             <KubePodsList />
@@ -301,9 +307,10 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route
             path="/kubernetes/pods/:name/:namespace/*"
             breadcrumb="Pod Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <KubePodDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <KubePodDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/persistentvolumeclaims" breadcrumb="Persistent Volume Claims" navigationHint="root">
             <PVCList />
@@ -311,9 +318,10 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route
             path="/kubernetes/persistentvolumeclaims/:name/:namespace/*"
             breadcrumb="Persistent Volume Claim Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <PVCDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <PVCDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/deployments" breadcrumb="Deployments" navigationHint="root">
             <DeploymentsList />
@@ -321,9 +329,10 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route
             path="/kubernetes/deployments/:name/:namespace/*"
             breadcrumb="Deployment Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <DeploymentDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <DeploymentDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/services" breadcrumb="Services" navigationHint="root">
             <ServicesList />
@@ -331,9 +340,10 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route
             path="/kubernetes/services/:name/:namespace/*"
             breadcrumb="Service Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <ServiceDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <ServiceDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/ingressesRoutes" breadcrumb="Ingresses & Routes" navigationHint="root">
             <IngressesRoutesList />
@@ -341,21 +351,22 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route path="/kubernetes/jobs" breadcrumb="Jobs" navigationHint="root">
             <JobList />
           </Route>
-          <Route path="/kubernetes/jobs/:name/:namespace/*" breadcrumb="Job Details" let:meta navigationHint="details">
-            <JobDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+          <Route path="/kubernetes/jobs/:name/:namespace/*" breadcrumb="Job Details" requestParser={parseNameAndNamespace} let:request navigationHint="details">
+            <JobDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/cronjobs" breadcrumb="CronJobs" navigationHint="root">
             <CronJobList />
           </Route>
-          <Route path="/kubernetes/cronjobs/:name/:namespace/*" breadcrumb="CronJob Details" let:meta navigationHint="details">
-            <CronJobDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+          <Route path="/kubernetes/cronjobs/:name/:namespace/*" breadcrumb="CronJob Details" requestParser={parseNameAndNamespace} let:request navigationHint="details">
+            <CronJobDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route
             path="/kubernetes/ingressesRoutes/ingress/:name/:namespace/*"
             breadcrumb="Ingress Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <IngressDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <IngressDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/configmapsSecrets" breadcrumb="ConfigMaps & Secrets" navigationHint="root">
             <ConfigMapSecretList />
@@ -363,23 +374,26 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Route
             path="/kubernetes/configmapsSecrets/configmap/:name/:namespace/*"
             breadcrumb="ConfigMap Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <ConfigMapDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <ConfigMapDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route
             path="/kubernetes/configmapsSecrets/secret/:name/:namespace/*"
             breadcrumb="Secret Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <SecretDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <SecretDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route
             path="/kubernetes/ingressesRoutes/route/:name/:namespace/*"
             breadcrumb="Route Details"
-            let:meta
+            requestParser={parseNameAndNamespace}
+            let:request
             navigationHint="details">
-            <RouteDetails name={decodeURI(meta.params.name)} namespace={decodeURI(meta.params.namespace)} />
+            <RouteDetails name={request.name} namespace={request.namespace} />
           </Route>
           <Route path="/kubernetes/portForward" breadcrumb="Port Forwarding" navigationHint="root">
             <PortForwardingList />
@@ -394,8 +408,8 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
             extensionIds={meta.query.ids ? decodeURIComponent(meta.query.ids).split(',') : []}
             global={true} />
         </Route>
-        <Route path="/contribs/:name/*" breadcrumb="Extension" let:meta>
-          <DockerExtension name={decodeURI(meta.params.name)} />
+        <Route path="/contribs/:name/*" breadcrumb="Extension" requestParser={parseName} let:request>
+          <DockerExtension name={request.name} />
         </Route>
         <Route path="/webviews/:id/*" breadcrumb="Webview" let:meta>
           <Webview id={meta.params.id} />

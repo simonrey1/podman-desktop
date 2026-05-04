@@ -67,6 +67,34 @@ test('renders the route with request parser', async () => {
   });
 });
 
+test('does not render slot when requestParser returns undefined', async () => {
+  vi.mocked(createRouteObject).mockImplementation(() => {
+    return {
+      update: vi.fn(),
+    };
+  });
+  const myParser = (_request: {
+    query: Record<string, string>;
+    params: Record<string, string>;
+  }): { id: number } | undefined => {
+    return undefined;
+  };
+  render(RouteWithRequestSpec, {
+    requestParser: myParser,
+  });
+
+  expect(createRouteObject).toHaveBeenCalled();
+  const { onShow, onMeta } = createRouteObject.mock.calls[0][0];
+  onMeta({
+    query: {},
+    params: {},
+  });
+  onShow();
+  await vi.waitFor(() => {
+    expect(screen.queryByText(/.+/)).not.toBeInTheDocument();
+  });
+});
+
 test('renders the route without request parser', async () => {
   vi.mocked(createRouteObject).mockImplementation(() => {
     return {
