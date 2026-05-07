@@ -1519,6 +1519,49 @@ test('ensure running and not starting machine reports ready provider', async () 
   expect(extension.podmanMachinesStatuses.get('podman-machine-default')).toBe('started');
 });
 
+test('on Linux, stopped machine does not set provider to stopped or configured', async () => {
+  extension.initExtensionContext({ subscriptions: [] } as unknown as extensionApi.ExtensionContext);
+  vi.mocked(extensionApi.env).isLinux = true;
+  vi.mocked(extensionApi.env).isMac = false;
+  vi.spyOn(extensionApi.process, 'exec').mockImplementation(
+    (_command, args) =>
+      new Promise<extensionApi.RunResult>(resolve => {
+        if (args?.[0] === 'machine' && args?.[1] === 'list') {
+          const fakeStoppedMachine = JSON.parse(JSON.stringify(fakeMachineJSON[0]));
+          fakeStoppedMachine.Running = false;
+          resolve({ stdout: JSON.stringify([fakeStoppedMachine]) } as extensionApi.RunResult);
+        } else if (args?.[0] === 'machine' && args?.[1] === 'inspect') {
+          resolve({} as extensionApi.RunResult);
+        } else if (args?.[0] === 'system' && args?.[1] === 'connection' && args?.[2] === 'list') {
+          resolve({
+            stdout: JSON.stringify([{ Name: fakeMachineJSON[0].Name, Default: true }]),
+          } as extensionApi.RunResult);
+        } else if (args?.[0] === '--version') {
+          resolve({ stdout: 'podman version 4.9.0' } as extensionApi.RunResult);
+        }
+      }),
+  );
+
+  await extension.updateMachines(provider, podmanConfiguration);
+
+  expect(provider.updateStatus).not.toHaveBeenCalledWith('stopped');
+  expect(provider.updateStatus).not.toHaveBeenCalledWith('configured');
+});
+
+test('on Linux, stopMachine does not change provider status', async () => {
+  vi.mocked(extensionApi.env).isLinux = true;
+  vi.mocked(extensionApi.env).isMac = false;
+
+  vi.spyOn(extensionApi.process, 'exec').mockResolvedValue({} as extensionApi.RunResult);
+  vi.mocked(PODMAN_BINARY_MOCK.getBinaryInfo).mockResolvedValue({
+    version: '5.1.2',
+  });
+
+  await extension.stopMachine(provider, machineInfo);
+
+  expect(provider.updateStatus).not.toHaveBeenCalled();
+});
+
 test('ensure started machine reports configuration', async () => {
   extension.initExtensionContext({ subscriptions: [] } as unknown as extensionApi.ExtensionContext);
   vi.spyOn(extensionApi.process, 'exec').mockImplementation(

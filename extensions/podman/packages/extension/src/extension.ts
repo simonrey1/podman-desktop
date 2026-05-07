@@ -901,7 +901,9 @@ export async function startMachine(
       );
     }
 
-    provider.updateStatus('started');
+    if (!extensionApi.env.isLinux) {
+      provider.updateStatus('started');
+    }
   } catch (err) {
     telemetryRecords.error = err;
     if (skipHandleError) {
@@ -932,7 +934,9 @@ export async function stopMachine(
     await execPodman(['machine', 'stop', machineInfo.name], machineInfo.vmType, {
       logger: new LoggerDelegator(context, logger),
     });
-    provider.updateStatus('stopped');
+    if (!extensionApi.env.isLinux) {
+      provider.updateStatus('stopped');
+    }
   } catch (err: unknown) {
     telemetryRecords.error = err;
     throw err;
