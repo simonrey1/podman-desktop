@@ -23,7 +23,7 @@ import { generateExtensionManifestJsonSchema } from './extension-manifest-json-s
 function getExtensionSchema(): Record<string, unknown> {
   const schema = generateExtensionManifestJsonSchema();
   const allOf = schema['allOf'] as Record<string, unknown>[];
-  return allOf[1] as Record<string, unknown>;
+  return allOf[0] as Record<string, unknown>;
 }
 
 describe('generateExtensionManifestJsonSchema', () => {
@@ -36,14 +36,19 @@ describe('generateExtensionManifestJsonSchema', () => {
     expect(Array.isArray(schema['allOf'])).toBe(true);
   });
 
-  test('references the SchemaStore package.json schema', () => {
+  test('is self-contained for SchemaStore validation', () => {
     const schema = generateExtensionManifestJsonSchema();
     const allOf = schema['allOf'] as Record<string, unknown>[];
-
-    expect(allOf[0]).toEqual({ $ref: 'https://json.schemastore.org/package.json' });
+    expect(allOf).toHaveLength(1);
+    expect(allOf[0]).not.toHaveProperty('$ref');
   });
 
-  test('includes extension-specific properties in the second allOf entry', () => {
+  test('sets SchemaStore stable schema id', () => {
+    const schema = generateExtensionManifestJsonSchema();
+    expect(schema['$id']).toBe('https://json.schemastore.org/podman-desktop-extension.json');
+  });
+
+  test('includes extension-specific properties in allOf entry', () => {
     const extensionSchema = getExtensionSchema();
 
     expect(extensionSchema['type']).toBe('object');

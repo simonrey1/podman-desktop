@@ -20,7 +20,7 @@ import { z } from 'zod';
 
 import { ExtensionManifestSchema } from './extension-manifest-schema.js';
 
-const PACKAGE_JSON_SCHEMA_URL = 'https://json.schemastore.org/package.json';
+const SCHEMASTORE_STABLE_SCHEMA_ID = 'https://json.schemastore.org/podman-desktop-extension.json';
 
 export function generateExtensionManifestJsonSchema(): Record<string, unknown> {
   const extensionSchema = z.toJSONSchema(ExtensionManifestSchema, {
@@ -29,8 +29,9 @@ export function generateExtensionManifestJsonSchema(): Record<string, unknown> {
 
   return {
     $schema: 'http://json-schema.org/draft-07/schema#',
+    $id: SCHEMASTORE_STABLE_SCHEMA_ID,
     title: 'Podman Desktop Extension Manifest',
     description: 'Schema for Podman Desktop extension package.json files',
-    allOf: [{ $ref: PACKAGE_JSON_SCHEMA_URL }, extensionSchema],
+    allOf: [extensionSchema],
   };
 }

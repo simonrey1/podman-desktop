@@ -1,11 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://json.schemastore.org/podman-desktop-extension.json",
   "title": "Podman Desktop Extension Manifest",
   "description": "Schema for Podman Desktop extension package.json files",
   "allOf": [
-    {
-      "$ref": "https://json.schemastore.org/package.json"
-    },
     {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "type": "object",
