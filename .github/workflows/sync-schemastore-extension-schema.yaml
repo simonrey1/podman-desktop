@@ -68,7 +68,7 @@ jobs:
             fi
           elif [ "${{ github.event_name }}" = "push" ]; then
             # Fork-only E2E path.
-            TAG="v1.27.2"
+            TAG="v1.26.2"
           else
             TAG="${{ github.event.inputs.tag }}"
           fi
@@ -106,7 +106,7 @@ jobs:
       SCHEMA_FILE_NAME: ${{ needs.prepare.outputs.schemaFileName }}
       SCHEMASTORE_SCHEMA_URL: https://www.schemastore.org/${{ needs.prepare.outputs.schemaFileName }}
       SCHEMASTORE_REPOSITORY: ${{ github.event_name == 'push' && 'simonrey1/schemastore' || github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_repository || 'SchemaStore/schemastore' }}
-      SCHEMASTORE_BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_base_branch || 'master' }}
+      SCHEMASTORE_BASE_BRANCH: ${{ github.event_name == 'push' && 'test/podman-desktop-extension-schema-1.27-20260521104547' || github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_base_branch || 'master' }}
       CREATE_PR: ${{ github.event_name == 'push' && 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr || 'true' }}
       SOURCE_REPOSITORY: ${{ github.event_name == 'push' && 'podman-desktop/podman-desktop' || github.repository }}
     steps:
