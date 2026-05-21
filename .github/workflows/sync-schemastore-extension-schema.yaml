@@ -99,9 +99,11 @@ jobs:
       SCHEMASTORE_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_repository || 'SchemaStore/schemastore' }}
       SCHEMASTORE_BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_base_branch || 'master' }}
       CREATE_PR: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr || 'true' }}
+      SOURCE_REPOSITORY: podman-desktop/podman-desktop
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ env.RELEASE_TAG }}
 
       - name: Validate local schema file exists
