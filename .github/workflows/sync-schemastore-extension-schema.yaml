@@ -131,8 +131,8 @@ jobs:
           cp ../schemas/extension-schema.json "src/schemas/json/${VERSIONED_SCHEMA_FILE_NAME}"
 
           python3 - <<'PY'
-          import json
           import os
+          import re
           from pathlib import Path
 
           schema_dir = Path("src/schemas/json")
@@ -143,21 +143,26 @@ jobs:
           versioned_id = f"https://json.schemastore.org/{os.environ['VERSIONED_SCHEMA_FILE_NAME']}"
 
           for file_path, schema_id in ((stable_file, stable_id), (versioned_file, versioned_id)):
-            schema = json.loads(file_path.read_text(encoding="utf-8"))
+            text = file_path.read_text(encoding="utf-8")
 
-            # SchemaStore validation does not resolve cross-schema refs here,
-            # so keep the published file self-contained by dropping package.json allOf ref.
-            all_of = schema.get("allOf")
-            if (
-              isinstance(all_of, list)
-              and all_of
-              and isinstance(all_of[0], dict)
-              and "package.json" in str(all_of[0].get("$ref", ""))
-            ):
-              schema["allOf"] = all_of[1:]
+            # Keep SchemaStore file style and patch minimally.
+            if '"$id":' not in text:
+              text = text.replace(
+                '  "$schema": "http://json-schema.org/draft-07/schema#",\n',
+                f'  "$schema": "http://json-schema.org/draft-07/schema#",\n  "$id": "{schema_id}",\n',
+                1,
+              )
+            else:
+              text = re.sub(r'  "\$id": ".*?",\n', f'  "$id": "{schema_id}",\n', text, count=1)
 
-            schema["$id"] = schema_id
-            file_path.write_text(f"{json.dumps(schema, indent=2)}\n", encoding="utf-8")
+            # SchemaStore validation does not resolve cross-schema refs here.
+            text = text.replace(
+              '    {\n      "$ref": "https://json.schemastore.org/package.json"\n    },\n',
+              "",
+              1,
+            )
+
+            file_path.write_text(text, encoding="utf-8")
           PY
 
       - name: Push branch and optionally create SchemaStore pull request
