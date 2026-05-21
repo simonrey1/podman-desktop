@@ -96,8 +96,6 @@ jobs:
       SCHEMA_MINOR_VERSION: ${{ needs.prepare.outputs.schemaMinorVersion }}
       SCHEMA_FILE_NAME: podman-desktop-extension.json
       VERSIONED_SCHEMA_FILE_NAME: podman-desktop-extension-${{ needs.prepare.outputs.schemaMinorVersion }}.json
-      SCHEMASTORE_STABLE_URL: https://www.schemastore.org/podman-desktop-extension.json
-      SCHEMASTORE_VERSIONED_URL: https://www.schemastore.org/podman-desktop-extension-${{ needs.prepare.outputs.schemaMinorVersion }}.json
       SCHEMASTORE_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_repository || 'SchemaStore/schemastore' }}
       SCHEMASTORE_BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_base_branch || 'master' }}
       CREATE_PR: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr || 'true' }}
@@ -129,129 +127,6 @@ jobs:
           cp ../schemas/extension-schema.json "src/schemas/json/${SCHEMA_FILE_NAME}"
           cp ../schemas/extension-schema.json "src/schemas/json/${VERSIONED_SCHEMA_FILE_NAME}"
 
-          python - <<'PY'
-          import os
-          import re
-          import sys
-          from pathlib import Path
-
-          catalog_path = Path("src/api/json/catalog.json")
-          stable_url = os.environ["SCHEMASTORE_STABLE_URL"]
-          versioned_url = os.environ["SCHEMASTORE_VERSIONED_URL"]
-          schema_minor_version = os.environ["SCHEMA_MINOR_VERSION"]
-          name_marker = '"name": "Podman Desktop Extension"'
-
-          text = catalog_path.read_text(encoding="utf-8")
-          marker_index = text.find(name_marker)
-          if marker_index == -1:
-            print("Podman Desktop catalog entry is missing in SchemaStore.")
-            print("Please merge the one-time bootstrap PR first.")
-            sys.exit(1)
-
-          object_start = text.rfind("{", 0, marker_index)
-          if object_start == -1:
-            print("Could not locate start of Podman Desktop catalog object.")
-            sys.exit(1)
-
-          in_string = False
-          escaped = False
-          depth = 0
-          object_end = -1
-
-          for index in range(object_start, len(text)):
-            char = text[index]
-            if in_string:
-              if escaped:
-                escaped = False
-              elif char == "\\":
-                escaped = True
-              elif char == '"':
-                in_string = False
-              continue
-
-            if char == '"':
-              in_string = True
-            elif char == "{":
-              depth += 1
-            elif char == "}":
-              depth -= 1
-              if depth == 0:
-                object_end = index
-                break
-
-          if object_end == -1:
-            print("Could not locate end of Podman Desktop catalog object.")
-            sys.exit(1)
-
-          block = text[object_start : object_end + 1]
-          block = re.sub(r'("url"\s*:\s*")[^"]+(")', rf'\1{stable_url}\2', block, count=1)
-
-          version_key = f'"{schema_minor_version}"'
-          version_line_regex = rf'({re.escape(version_key)}\s*:\s*")[^"]+(")'
-
-          if re.search(version_line_regex, block):
-            block = re.sub(version_line_regex, rf"\1{versioned_url}\2", block, count=1)
-          elif '"versions": {' in block:
-            versions_start = block.find('"versions": {')
-            brace_start = block.find("{", versions_start)
-
-            in_string = False
-            escaped = False
-            depth = 0
-            versions_end = -1
-
-            for index in range(brace_start, len(block)):
-              char = block[index]
-              if in_string:
-                if escaped:
-                  escaped = False
-                elif char == "\\":
-                  escaped = True
-                elif char == '"':
-                  in_string = False
-                continue
-              if char == '"':
-                in_string = True
-              elif char == "{":
-                depth += 1
-              elif char == "}":
-                depth -= 1
-                if depth == 0:
-                  versions_end = index
-                  break
-
-            if versions_end == -1:
-              print("Could not locate versions object closing brace.")
-              sys.exit(1)
-
-            versions_body = block[brace_start + 1 : versions_end]
-            close_line_start = block.rfind("\n", 0, versions_end) + 1
-            close_indent = re.match(r"\s*", block[close_line_start:versions_end]).group(0)
-            entry_indent = f"{close_indent}  "
-            new_entry = f'{entry_indent}"{schema_minor_version}": "{versioned_url}"'
-
-            if versions_body.strip():
-              replacement_body = f"{versions_body.rstrip()},\n{new_entry}\n{close_indent}"
-            else:
-              replacement_body = f"\n{new_entry}\n{close_indent}"
-
-            block = f"{block[:brace_start + 1]}{replacement_body}{block[versions_end:]}"
-          else:
-            close_line_start = block.rfind("\n", 0, len(block) - 1) + 1
-            close_indent = re.match(r"\s*", block[close_line_start : len(block) - 1]).group(0)
-            block_prefix = block[:close_line_start].rstrip()
-            block = (
-              f"{block_prefix},\n"
-              f'{close_indent}  "versions": {{\n'
-              f'{close_indent}    "{schema_minor_version}": "{versioned_url}"\n'
-              f"{close_indent}  }}\n"
-              f"{close_indent}}}"
-            )
-
-          updated = f"{text[:object_start]}{block}{text[object_end + 1:]}"
-          catalog_path.write_text(updated, encoding="utf-8")
-          PY
-
       - name: Push branch and optionally create SchemaStore pull request
         working-directory: schemastore
         env:
@@ -265,7 +140,7 @@ jobs:
           git config user.name "podman-desktop-bot"
           git config user.email "podman-desktop-bot@users.noreply.github.com"
 
-          git add "src/schemas/json/${SCHEMA_FILE_NAME}" "src/schemas/json/${VERSIONED_SCHEMA_FILE_NAME}" src/api/json/catalog.json
+          git add "src/schemas/json/${SCHEMA_FILE_NAME}" "src/schemas/json/${VERSIONED_SCHEMA_FILE_NAME}"
 
           if git diff --cached --quiet; then
             echo "No changes detected for SchemaStore sync."
@@ -283,6 +158,6 @@ jobs:
           gh pr create \
             --repo "${SCHEMASTORE_REPOSITORY}" \
             --title "Update Podman Desktop extension schema for ${SCHEMA_MINOR_VERSION}" \
-            --body "Sync schema from podman-desktop/podman-desktop ${RELEASE_TAG}. This updates both stable and version-specific SchemaStore schema URLs." \
+            --body "Sync schema from podman-desktop/podman-desktop ${RELEASE_TAG}. This updates the stable and version-specific schema files without touching catalog.json." \
             --base "${SCHEMASTORE_BASE_BRANCH}" \
             --head "${BRANCH_NAME}"
