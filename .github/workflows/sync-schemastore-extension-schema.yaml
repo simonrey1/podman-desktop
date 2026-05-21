@@ -129,6 +129,24 @@ jobs:
           cp ../schemas/extension-schema.json "src/schemas/json/${SCHEMA_FILE_NAME}"
           cp ../schemas/extension-schema.json "src/schemas/json/${VERSIONED_SCHEMA_FILE_NAME}"
 
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          schema_dir = Path("src/schemas/json")
+          stable_file = schema_dir / os.environ["SCHEMA_FILE_NAME"]
+          versioned_file = schema_dir / os.environ["VERSIONED_SCHEMA_FILE_NAME"]
+
+          stable_id = "https://json.schemastore.org/podman-desktop-extension.json"
+          versioned_id = f"https://json.schemastore.org/{os.environ['VERSIONED_SCHEMA_FILE_NAME']}"
+
+          for file_path, schema_id in ((stable_file, stable_id), (versioned_file, versioned_id)):
+            schema = json.loads(file_path.read_text(encoding="utf-8"))
+            schema["$id"] = schema_id
+            file_path.write_text(f"{json.dumps(schema, indent=2)}\n", encoding="utf-8")
+          PY
+
       - name: Push branch and optionally create SchemaStore pull request
         working-directory: schemastore
         env:
