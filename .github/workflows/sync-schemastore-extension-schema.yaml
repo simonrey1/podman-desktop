@@ -34,6 +34,10 @@ on:
         description: 'Base branch in the SchemaStore repository'
         required: false
         default: 'master'
+      source_repository:
+        description: 'Podman Desktop source repository to pull schema tag from (owner/repo)'
+        required: false
+        default: 'podman-desktop/podman-desktop'
       create_pr:
         description: 'Create a pull request after pushing the branch'
         required: false
@@ -100,7 +104,7 @@ jobs:
       SCHEMASTORE_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_repository || 'SchemaStore/schemastore' }}
       SCHEMASTORE_BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_base_branch || 'master' }}
       CREATE_PR: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr || 'true' }}
-      SOURCE_REPOSITORY: podman-desktop/podman-desktop
+      SOURCE_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.source_repository || 'podman-desktop/podman-desktop' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
