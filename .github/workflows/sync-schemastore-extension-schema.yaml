@@ -245,11 +245,12 @@ jobs:
             new_entry = f'{entry_indent}"{schema_minor_version}": "{schema_url}"'
 
             if versions_body.strip():
-              insert_text = f",\n{new_entry}\n{close_indent}"
+              trimmed_body = versions_body.rstrip()
+              replacement_body = f"{trimmed_body},\n{new_entry}\n{close_indent}"
             else:
-              insert_text = f"\n{new_entry}\n{close_indent}"
+              replacement_body = f"\n{new_entry}\n{close_indent}"
 
-            block = f"{block[:versions_end]}{insert_text}{block[versions_end:]}"
+            block = f"{block[:brace_start + 1]}{replacement_body}{block[versions_end:]}"
 
           updated = f"{text[:object_start]}{block}{text[object_end + 1:]}"
           catalog_path.write_text(updated, encoding="utf-8")
