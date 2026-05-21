@@ -30,7 +30,7 @@ export function generateExtensionManifestJsonSchema(): Record<string, unknown> {
   return {
     $schema: 'http://json-schema.org/draft-07/schema#',
     title: 'Podman Desktop Extension Manifest',
-    description: 'Schema for Podman Desktop extension package.json files',
+    description: 'Schema for Podman Desktop extension package.json files (fork-only intentional test change)',
     allOf: [{ $ref: PACKAGE_JSON_SCHEMA_URL }, extensionSchema],
   };
 }
