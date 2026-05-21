@@ -68,7 +68,7 @@ jobs:
             fi
           elif [ "${{ github.event_name }}" = "push" ]; then
             # Fork-only E2E path.
-            TAG="v1.26.2"
+            TAG="v1.27.2"
           else
             TAG="${{ github.event.inputs.tag }}"
           fi
