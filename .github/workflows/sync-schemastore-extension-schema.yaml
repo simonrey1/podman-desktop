@@ -21,6 +21,9 @@ on:
   release:
     types:
       - published
+  push:
+    branches:
+      - test/e2e-fork-workflow-sync-v2
   workflow_dispatch:
     inputs:
       tag:
@@ -63,6 +66,9 @@ jobs:
               echo "isOfficialRelease=false" >> "${GITHUB_OUTPUT}"
               exit 0
             fi
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            # Fork-only E2E path.
+            TAG="v1.27.2"
           else
             TAG="${{ github.event.inputs.tag }}"
           fi
@@ -99,12 +105,14 @@ jobs:
       SCHEMA_MINOR_VERSION: ${{ needs.prepare.outputs.schemaMinorVersion }}
       SCHEMA_FILE_NAME: ${{ needs.prepare.outputs.schemaFileName }}
       SCHEMASTORE_SCHEMA_URL: https://www.schemastore.org/${{ needs.prepare.outputs.schemaFileName }}
-      SCHEMASTORE_REPOSITORY: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_repository || 'SchemaStore/schemastore' }}
+      SCHEMASTORE_REPOSITORY: ${{ github.event_name == 'push' && 'simonrey1/schemastore' || github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_repository || 'SchemaStore/schemastore' }}
       SCHEMASTORE_BASE_BRANCH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.schemastore_base_branch || 'master' }}
-      CREATE_PR: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr || 'true' }}
+      CREATE_PR: ${{ github.event_name == 'push' && 'true' || github.event_name == 'workflow_dispatch' && github.event.inputs.create_pr || 'true' }}
+      SOURCE_REPOSITORY: ${{ github.event_name == 'push' && 'podman-desktop/podman-desktop' || github.repository }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          repository: ${{ env.SOURCE_REPOSITORY }}
           ref: ${{ env.RELEASE_TAG }}
 
       - name: Validate local schema file exists
@@ -118,7 +126,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: ${{ env.SCHEMASTORE_REPOSITORY }}
-          token: ${{ env.SCHEMASTORE_TOKEN }}
+          token: ${{ env.SCHEMASTORE_TOKEN || github.token }}
           path: schemastore
           ref: ${{ env.SCHEMASTORE_BASE_BRANCH }}
 
