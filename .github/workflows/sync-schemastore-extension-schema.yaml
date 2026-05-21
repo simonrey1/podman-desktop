@@ -88,6 +88,7 @@ jobs:
     runs-on: ubuntu-24.04
     needs: prepare
     if: needs.prepare.outputs.isOfficialRelease == 'true'
+    environment: ${{ github.event_name == 'release' && 'npmjs-publication' || '' }}
     permissions:
       contents: read
     env:
@@ -143,6 +144,18 @@ jobs:
 
           for file_path, schema_id in ((stable_file, stable_id), (versioned_file, versioned_id)):
             schema = json.loads(file_path.read_text(encoding="utf-8"))
+
+            # SchemaStore validation does not resolve cross-schema refs here,
+            # so keep the published file self-contained by dropping package.json allOf ref.
+            all_of = schema.get("allOf")
+            if (
+              isinstance(all_of, list)
+              and all_of
+              and isinstance(all_of[0], dict)
+              and "package.json" in str(all_of[0].get("$ref", ""))
+            ):
+              schema["allOf"] = all_of[1:]
+
             schema["$id"] = schema_id
             file_path.write_text(f"{json.dumps(schema, indent=2)}\n", encoding="utf-8")
           PY
