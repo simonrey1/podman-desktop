@@ -62,6 +62,7 @@ import NetworksList from './lib/network/NetworksList.svelte';
 import NodeDetails from './lib/node/NodeDetails.svelte';
 import NodesList from './lib/node/NodesList.svelte';
 import Onboarding from './lib/onboarding/Onboarding.svelte';
+import OnboardingWelcomeSetupModePage from './lib/onboarding/wizard/OnboardingWelcomeSetupModePage.svelte';
 import DeployPodToKube from './lib/pod/DeployPodToKube.svelte';
 import PodCreateFromContainers from './lib/pod/PodCreateFromContainers.svelte';
 import PodDetails from './lib/pod/PodDetails.svelte';
@@ -93,6 +94,13 @@ router.mode.memory();
 
 const LAST_ROUTE_KEY = 'last-route';
 const SETTINGS_PAGE_KEY = 'settings-page';
+
+if (import.meta.env.DEV) {
+  // DevTools helper to quickly open an internal route.
+  (window as Window & { __pdGoto?: (path: string) => void }).__pdGoto = (path: string): void => {
+    router.goto(path);
+  };
+}
 
 let savedRoute: string | undefined = sessionStorage.getItem(LAST_ROUTE_KEY) ?? undefined;
 let savedSettingsPage: string | undefined = sessionStorage.getItem(SETTINGS_PAGE_KEY) ?? undefined;
@@ -175,15 +183,19 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
       <QuickPickInput />
       <CustomPick />
       <MessageBox />
-      <AppNavigation meta={meta} exitSettingsCallback={(): void => router.goto(nonSettingsPage)} />
-      {#if meta.url.startsWith('/preferences')}
+      {#if !meta.url.startsWith('/onboarding-shell-demo')}
+        <AppNavigation meta={meta} exitSettingsCallback={(): void => router.goto(nonSettingsPage)} />
+      {/if}
+      {#if meta.url.startsWith('/preferences') && !meta.url.startsWith('/onboarding-shell-demo')}
         <PreferencesNavigation meta={meta} />
       {/if}
-      {#each $navigationRegistry.filter(item => item.type === 'submenu') as navigationRegistryItem, index (index)}
-        {#if meta.url.startsWith(navigationRegistryItem.link) && navigationRegistryItem.items?.length}
-          <SubmenuNavigation meta={meta} title={navigationRegistryItem.tooltip} link={navigationRegistryItem.link} items={navigationRegistryItem.items} />
-        {/if}
-      {/each}
+      {#if !meta.url.startsWith('/onboarding-shell-demo')}
+        {#each $navigationRegistry.filter(item => item.type === 'submenu') as navigationRegistryItem, index (index)}
+          {#if meta.url.startsWith(navigationRegistryItem.link) && navigationRegistryItem.items?.length}
+            <SubmenuNavigation meta={meta} title={navigationRegistryItem.tooltip} link={navigationRegistryItem.link} items={navigationRegistryItem.items} />
+          {/if}
+        {/each}
+      {/if}
 
       <div
         class="flex flex-col w-full min-w-0 h-full overflow-hidden"
@@ -431,6 +443,9 @@ tablePersistence.storage = new PodmanDesktopStoragePersist();
           <Onboarding
             extensionIds={meta.query.ids ? decodeURIComponent(meta.query.ids).split(',') : []}
             global={true} />
+        </Route>
+        <Route path="/onboarding-shell-demo" breadcrumb="Onboarding Shell Demo" navigationHint="details">
+          <OnboardingWelcomeSetupModePage />
         </Route>
         <Route path="/contribs/:name/*" breadcrumb="Extension" let:meta>
           <DockerExtension name={decodeURI(meta.params.name)} />
