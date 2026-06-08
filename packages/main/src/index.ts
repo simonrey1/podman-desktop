@@ -97,6 +97,10 @@ app.whenReady().then(
     // Setup the default tray icon + menu items (skip if user disabled tray)
     const showTrayIcon = readShowTrayIconSetting();
     if (showTrayIcon) {
+      if (isMac()) {
+        // Defer NSStatusItem creation until after first window initialization.
+        await podmanDesktopMain.mainWindowDeferred.promise;
+      }
       animatedTray = new AnimatedTray();
       tray = new Tray(animatedTray.getDefaultImage());
       animatedTray.setTray(tray);
