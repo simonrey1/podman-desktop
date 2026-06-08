@@ -94,14 +94,34 @@ app.on('will-finish-launching', () => {
 
 app.whenReady().then(
   async () => {
+    // Create tray menu first so startup can continue even if tray is deferred.
+    const trayMenu = new TrayMenu(undefined, undefined);
+
     // Setup the default tray icon + menu items (skip if user disabled tray)
     const showTrayIcon = readShowTrayIconSetting();
     if (showTrayIcon) {
-      animatedTray = new AnimatedTray();
-      tray = new Tray(animatedTray.getDefaultImage());
-      animatedTray.setTray(tray);
+      if (isMac()) {
+        // TokenEater-style lifecycle shift: create status item after first window.
+        podmanDesktopMain.mainWindowDeferred.promise
+          .then(() => {
+            if (tray || stoppedExtensions.val) {
+              return;
+            }
+            animatedTray = new AnimatedTray();
+            tray = new Tray(animatedTray.getDefaultImage());
+            animatedTray.setTray(tray);
+            trayMenu.attachTray(tray, animatedTray);
+          })
+          .catch((error: unknown) => {
+            console.error('Error initializing tray on macOS after first window', error);
+          });
+      } else {
+        animatedTray = new AnimatedTray();
+        tray = new Tray(animatedTray.getDefaultImage());
+        animatedTray.setTray(tray);
+        trayMenu.attachTray(tray, animatedTray);
+      }
     }
-    const trayMenu = new TrayMenu(tray, animatedTray);
 
     const _onDidCreatedConfigurationRegistry = new Emitter<ConfigurationRegistry>();
     const onDidCreatedConfigurationRegistry: Event<ConfigurationRegistry> = _onDidCreatedConfigurationRegistry.event;

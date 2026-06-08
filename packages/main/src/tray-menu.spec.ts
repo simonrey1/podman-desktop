@@ -188,6 +188,17 @@ test('Tray click trigger is only added on Windows devices', () => {
   expect(onSpy).not.toHaveBeenCalledWith('click', expect.any(Function));
 });
 
+test('Tray click trigger is attached when tray is initialized later', () => {
+  const onSpy = vi.spyOn(tray, 'on');
+  vi.spyOn(util, 'isWindows').mockReturnValue(true);
+
+  trayMenu = new TrayMenu(undefined, undefined);
+  expect(onSpy).not.toHaveBeenCalled();
+
+  trayMenu.attachTray(tray, animatedTray);
+  expect(onSpy).toHaveBeenCalledWith('click', expect.any(Function));
+});
+
 test('with a provider already found, should push the addProviderMenuItem fine', async () => {
   const onSpy = vi.spyOn(ipcMain, 'on');
   const menuBuild = vi.spyOn(Menu, 'buildFromTemplate');

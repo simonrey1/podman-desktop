@@ -85,6 +85,7 @@ vi.mock(import('./util.js'), () => ({
   isWindows: vi.fn().mockReturnValue(false),
   isMac: vi.fn().mockReturnValue(false),
   isLinux: vi.fn().mockReturnValue(false),
+  stoppedExtensions: { val: false },
 }));
 
 vi.mock(import('electron'), async () => {

@@ -40,6 +40,9 @@ interface ProviderContainerConnectionInfoMenuItem extends ProviderContainerConne
 
 export class TrayMenu {
   private globalStatus: TrayIconStatus = 'initialized';
+  private tray: Tray | undefined;
+  private animatedTray: AnimatedTray | undefined;
+  private hasWindowsClickHandler = false;
 
   private readonly startMenuTemplate: MenuItemConstructorOptions[] = [
     { type: 'separator' },
@@ -54,10 +57,9 @@ export class TrayMenu {
   private menuCustomItems = new Map<string, MenuItemConstructorOptions>();
   private menuContainerProviderConnectionItems = new Map<string, ProviderContainerConnectionInfoMenuItem>();
 
-  constructor(
-    private readonly tray: Tray | undefined,
-    private readonly animatedTray: AnimatedTray | undefined,
-  ) {
+  constructor(tray: Tray | undefined, animatedTray: AnimatedTray | undefined) {
+    this.tray = tray;
+    this.animatedTray = animatedTray;
     ipcMain.on(
       'tray:add-provider-menu-item',
       (_, param: { providerId: string; providerInfo: ProviderInfo; menuItem: MenuItemConstructorOptions }) => {
@@ -139,11 +141,16 @@ export class TrayMenu {
       this.updateMenu();
     });
 
-    if (isWindows()) {
-      tray?.on('click', this.showMainWindow.bind(this));
-    }
+    this.registerWindowsClickHandler();
 
     // create menu first time
+    this.updateMenu();
+  }
+
+  public attachTray(tray: Tray, animatedTray: AnimatedTray): void {
+    this.tray = tray;
+    this.animatedTray = animatedTray;
+    this.registerWindowsClickHandler();
     this.updateMenu();
   }
 
@@ -312,6 +319,14 @@ export class TrayMenu {
       this.globalStatus = 'initialized';
     }
     this.animatedTray?.setStatus(this.globalStatus);
+  }
+
+  private registerWindowsClickHandler(): void {
+    if (!isWindows() || !this.tray || this.hasWindowsClickHandler) {
+      return;
+    }
+    this.tray.on('click', this.showMainWindow.bind(this));
+    this.hasWindowsClickHandler = true;
   }
 
   private createProviderMenuItem(item: ProviderMenuItem): MenuItemConstructorOptions {
