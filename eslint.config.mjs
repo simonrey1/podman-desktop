@@ -26,6 +26,7 @@ import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { FlatCompat } from '@eslint/eslintrc';
+import { createJiti } from 'jiti';
 import unicorn from 'eslint-plugin-unicorn';
 import noNull from 'eslint-plugin-no-null';
 import sonarjs from 'eslint-plugin-sonarjs';
@@ -39,6 +40,8 @@ import svelteConfig from './svelte.config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const jiti = createJiti(import.meta.url);
+const noAssignMutatedArrayRule = await jiti.import('./scripts/no-assign-mutated-array-rule.ts', { default: true });
 const compat = new FlatCompat({
   baseDirectory: __dirname,
   recommendedConfig: js.configs.recommended,
@@ -100,6 +103,11 @@ export default [
       'file-progress': fixupPluginRules(fileProgress),
       import: fixupPluginRules(importPlugin),
       'no-null': fixupPluginRules(noNull),
+      'podman-desktop-local': {
+        rules: {
+          'no-assign-mutated-array': noAssignMutatedArrayRule,
+        },
+      },
       'redundant-undefined': fixupPluginRules(redundantUndefined),
       'simple-import-sort': fixupPluginRules(simpleImportSort),
       vitest,
@@ -183,6 +191,7 @@ export default [
       '@typescript-eslint/no-require-imports': 'off',
 
       'file-progress/activate': 'warn',
+      'podman-desktop-local/no-assign-mutated-array': 'error',
 
       // disabled import/namespace rule as the plug-in is not fully compatible using the compat mode
       'import/namespace': 'off',

@@ -270,6 +270,7 @@ function sortImpl(): void {
     comparator = (a, b): number => -comparatorTemp(a, b);
   }
 
+  // eslint-disable-next-line podman-desktop-local/no-assign-mutated-array
   data = data.sort(comparator);
 }
 
