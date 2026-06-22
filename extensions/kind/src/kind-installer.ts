@@ -76,6 +76,14 @@ export class KindInstaller {
     }
   }
 
+  private async getOctokitOrThrow(): Promise<Octokit> {
+    await this.ensureOctokit();
+    if (!this.octokit) {
+      throw new Error('Octokit instance not initialized');
+    }
+    return this.octokit;
+  }
+
   // Get the latest version of kubectl from GitHub Releases
   // and return the artifact metadata
   async getLatestVersionAsset(): Promise<KindGithubReleaseArtifactMetadata> {
@@ -88,13 +96,9 @@ export class KindInstaller {
   // return name, tag and id of the release
   async grabLatestsReleasesMetadata(): Promise<KindGithubReleaseArtifactMetadata[]> {
     // Grab last 5 majors releases from GitHub using the GitHub API
-    await this.ensureOctokit();
+    const octokit = await this.getOctokitOrThrow();
 
-    if (!this.octokit) {
-      throw new Error('Octokit instance not initialized');
-    }
-
-    const lastReleases = await this.octokit.repos.listReleases({
+    const lastReleases = await octokit.repos.listReleases({
       owner: this.KIND_GITHUB_OWNER,
       repo: this.KIND_GITHUB_REPOSITORY,
     });
@@ -138,11 +142,7 @@ export class KindInstaller {
   // operatingSystem: win32, darwin, linux (see os.platform())
   // arch: x64, arm64 (see os.arch())
   async getReleaseAssetId(releaseId: number, operatingSystem: string, arch: string): Promise<number> {
-    await this.ensureOctokit();
-
-    if (!this.octokit) {
-      throw new Error('Octokit instance not initialized');
-    }
+    const octokit = await this.getOctokitOrThrow();
 
     if (operatingSystem === 'win32') {
       operatingSystem = 'windows';
@@ -151,7 +151,7 @@ export class KindInstaller {
       arch = 'amd64';
     }
 
-    const listOfAssets = await this.octokit.repos.listReleaseAssets({
+    const listOfAssets = await octokit.repos.listReleaseAssets({
       owner: this.KIND_GITHUB_OWNER,
       repo: this.KIND_GITHUB_REPOSITORY,
       release_id: releaseId,
@@ -201,13 +201,9 @@ export class KindInstaller {
   }
 
   async downloadReleaseAsset(assetId: number, destination: string): Promise<void> {
-    await this.ensureOctokit();
+    const octokit = await this.getOctokitOrThrow();
 
-    if (!this.octokit) {
-      throw new Error('Octokit instance not initialized');
-    }
-
-    const asset = await this.octokit.repos.getReleaseAsset({
+    const asset = await octokit.repos.getReleaseAsset({
       owner: this.KIND_GITHUB_OWNER,
       repo: this.KIND_GITHUB_REPOSITORY,
       asset_id: assetId,

@@ -42,17 +42,21 @@ export class KubectlGitHubReleases {
     }
   }
 
+  private async getOctokitOrThrow(): Promise<Octokit> {
+    await this.ensureOctokit();
+    if (!this.octokit) {
+      throw new Error('Octokit instance not initialized');
+    }
+    return this.octokit;
+  }
+
   // Provides last 5 majors releases from GitHub using the GitHub API
   // return name, tag and id of the release
   async grabLatestsReleasesMetadata(): Promise<KubectlGithubReleaseArtifactMetadata[]> {
     // Grab last 5 majors releases from GitHub using the GitHub API
-    await this.ensureOctokit();
+    const octokit = await this.getOctokitOrThrow();
 
-    if (!this.octokit) {
-      throw new Error('Octokit instance not initialized');
-    }
-
-    const lastReleases = await this.octokit.repos.listReleases({
+    const lastReleases = await octokit.repos.listReleases({
       owner: KubectlGitHubReleases.KUBECTL_GITHUB_OWNER,
       repo: KubectlGitHubReleases.KUBECTL_GITHUB_REPOSITORY,
       per_page: 10, // limit to last 5 releases
