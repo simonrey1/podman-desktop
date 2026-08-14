@@ -28,7 +28,9 @@ function handleToggle(): void {
       : 'border-(--pd-content-card-border) bg-(--pd-content-card-inset-bg) opacity-75',
   ]}
   onclick={handleToggle}>
-  <Checkbox checked={checked} title="{displayName} checkbox" class="shrink-0" />
+  <div class="pointer-events-none shrink-0">
+    <Checkbox checked={checked} title="{displayName} checkbox" />
+  </div>
 
   {#if icon}
     <IconImage image={icon} class="h-10 w-10 shrink-0" alt="{displayName} logo" />
