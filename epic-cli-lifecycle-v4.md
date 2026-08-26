@@ -40,7 +40,7 @@
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Core (packages/extension-api + packages/main)                       │
 │                                                                      │
-│  CliTool                                                             │
+│  CliTool instance (returned by cli.createCliTool())                  │
 │    ├── detect(options?)                                              │
 │    │     → which/where.exe + fallback dirs + version parse           │
 │    │     → returns { path, version, installationSource }             │
@@ -55,19 +55,19 @@
 └──────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐
-│  extension-github (bundled, pre-installed)                            │
+│  extension-github (bundled, pre-installed)                           │
 │                                                                      │
-│  Exported API (@podman-desktop/extension-github-api)                  │
+│  Exported API (@podman-desktop/extension-github-api)                 │
 │    └── getCliInstaller(config)                                       │
 │          config: { owner, repo, resolveAssetName(v, os, arch) }      │
-│          returns CliInstaller:                                        │
-│            ├── listVersions(options?)                                 │
+│          returns CliInstaller:                                       │
+│            ├── listVersions(options?)                                │
 │            │     → Octokit listReleases, filter, sort                │
-│            └── installToStorage(release, destPath)                    │
-│                  → find asset by name, download, chmod                │
-│                  → returns path to ready-to-use binary                │
+│            └── installToStorage(release, destPath)                   │
+│                  → find asset by name, download, chmod               │
+│                  → returns path to ready-to-use binary               │
 │                                                                      │
-│  Internals: Octokit + github-authentication session                   │
+│  Internals: Octokit + github-authentication session                  │
 └──────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -163,7 +163,7 @@ chmod → copy to system dir with admin privileges:
 
 ### Uninstall (admin delete)
 
-`deleteFile` + `deleteFileAsAdmin` — **character-for-character identical** in 3 built-in extensions:
+`deleteFile` + `deleteFileAsAdmin` — **character-for-character identical** in 5 extensions:
 
 - [compose/extension.ts L480-521](https://github.com/podman-desktop/podman-desktop/blob/083a61d7/extensions/compose/src/extension.ts#L480-L521)
 - [kubectl/extension.ts L499-540](https://github.com/podman-desktop/podman-desktop/blob/083a61d7/extensions/kubectl-cli/src/extension.ts#L499-L540)
