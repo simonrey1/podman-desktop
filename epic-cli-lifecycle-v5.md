@@ -40,7 +40,7 @@
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Core (packages/extension-api + packages/main)                       │
 │                                                                      │
-│  CliTool instance (returned by cli.createCliTool())                   │
+│  CliTool instance (returned by cli.createCliTool())                  │
 │    ├── detect(options?)                                              │
 │    │     → which/where.exe + fallback dirs + version parse           │
 │    │     → returns { path, version, installationSource }             │
@@ -56,24 +56,24 @@
 └──────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐
-│  extension-github (bundled, pre-installed)                            │
+│  extension-github (bundled, pre-installed)                           │
 │                                                                      │
-│  Exported API (@podman-desktop/extension-github-api)                  │
+│  Exported API (@podman-desktop/extension-github-api)                 │
 │    └── getInstaller(tool, config)                                    │
-│          → returns a CliToolInstaller (compatible with                │
-│            tool.registerInstaller())                                  │
+│          → returns a CliToolInstaller (compatible with               │
+│            tool.registerInstaller())                                 │
 │          → default flow:                                             │
 │            1. selectVersion: listReleases → QuickPick                │
 │            2. doInstall: download (via resolveAssetName or           │
-│                          resolveDownloadUrl) → postDownload hook      │
+│                          resolveDownloadUrl) → postDownload hook     │
 │                          → installSystemWide → updateVersion         │
-│            3. doUninstall: uninstall storage + system binaries        │
+│            3. doUninstall: uninstall storage + system binaries       │
 │          → hooks:                                                    │
 │            • resolveAssetName(v, os, arch) → asset filename          │
-│            • resolveDownloadUrl(release, os, arch) → direct URL      │
+│            • resolveDownloadUrl(asset) → direct URL                  │
 │            • postDownload(path) → transformed binary path            │
 │                                                                      │
-│  Internals: Octokit + github-authentication session                   │
+│  Internals: Octokit + github-authentication session                  │
 └──────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -251,10 +251,17 @@ export interface GetInstallerConfig {
 
   // Provide ONE of these two (mutually exclusive):
   resolveAssetName?: (version: string, os: string, arch: string) => string;   // find asset in GH release by name
-  resolveDownloadUrl?: (release: GitHubRelease, os: string, arch: string) => string; // direct URL (e.g. CDN)
+  resolveDownloadUrl?: (asset: GitHubReleaseAsset) => string | Promise<string>; // return custom download URL for this asset
 
   // Optional hook: transform downloaded file before installSystemWide
   postDownload?: (downloadedPath: string) => Promise<string>;
+}
+
+export interface GitHubReleaseAsset {
+  release: GitHubRelease;
+  assets: string[];  // list of asset filenames in this release
+  os: string;        // raw os.platform()
+  arch: string;      // raw os.arch()
 }
 
 export interface GitHubExtensionApi {
@@ -275,7 +282,7 @@ export interface GitHubExtensionApi {
 | Hook | Use case | Behavior |
 | ---- | -------- | -------- |
 | `resolveAssetName(version, os, arch)` | compose, kind, minikube, minc, grype | Returns asset filename to find in the GitHub release |
-| `resolveDownloadUrl(release, os, arch)` | kubectl (CDN) | Returns a direct download URL. Mutually exclusive with `resolveAssetName`. |
+| `resolveDownloadUrl(asset)` | kubectl (CDN) | Receives the GitHub release asset object (with release, assets list, os, arch), returns a direct download URL. Can be sync or async. Mutually exclusive with `resolveAssetName`. |
 | `postDownload(path)` | grype (archive extraction) | Called after download+chmod, before installSystemWide. Returns the actual binary path to install. |
 
 ---
@@ -370,11 +377,11 @@ const tool = extensionApi.cli.createCliTool({
 tool.registerInstaller(github.getInstaller(tool, {
   owner: 'kubernetes',
   repo: 'kubernetes',
-  resolveDownloadUrl: (release, os, arch) => {
-    const mappedOs = os === 'win32' ? 'windows' : os;
-    const mappedArch = arch === 'x64' ? 'amd64' : arch;
-    const suffix = os === 'win32' ? '.exe' : '';
-    return `https://dl.k8s.io/release/${release.tag}/bin/${mappedOs}/${mappedArch}/kubectl${suffix}`;
+  resolveDownloadUrl: (asset) => {
+    const mappedOs = asset.os === 'win32' ? 'windows' : asset.os;
+    const mappedArch = asset.arch === 'x64' ? 'amd64' : asset.arch;
+    const suffix = asset.os === 'win32' ? '.exe' : '';
+    return `https://dl.k8s.io/release/${asset.release.tag}/bin/${mappedOs}/${mappedArch}/kubectl${suffix}`;
   },
 }));
 ```
