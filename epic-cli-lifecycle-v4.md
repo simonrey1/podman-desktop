@@ -223,6 +223,8 @@ uninstall(binaryPath: string): Promise<void>;
 
 - Tries `unlink()`, on EACCES retries with admin. No-ops on ENOENT.
 
+> All three methods live on the `CliTool` instance (not static on `cli` namespace) because they use the tool's `name` for path resolution and the `versionArgs`/`parseVersion` configured at creation time.
+
 ---
 
 ## Extension-github API
