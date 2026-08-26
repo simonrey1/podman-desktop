@@ -120,7 +120,7 @@ Every extension manually maps `os.platform()` and `os.arch()` to asset naming co
 - [grype/anchore-cli-service.ts L412-453](https://github.com/podman-desktop/extension-grype/blob/6f0082a3/packages/backend/src/services/anchore-cli-service.ts#L412-L453)
 - [minc/github-helper.ts L134-155](https://github.com/minc-org/minc-extension/blob/aef2656d/src/helper/github-helper.ts#L134-L155)
 
-→ Replaced by inline mapping in **`resolveAssetName(version, os, arch)`** callback (1-2 lines each)
+→ **Not changed by this epic.** Each extension keeps its own mapping logic inside the `resolveAssetName` callback it provides to `getCliInstaller()`.
 
 ### GitHub release listing (Octokit + auth)
 
