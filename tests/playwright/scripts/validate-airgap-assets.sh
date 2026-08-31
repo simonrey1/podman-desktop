@@ -78,23 +78,18 @@ verify_installer_checksums() {
     return
   fi
 
+  if [ -z "${PK}" ]; then
+    echo "SKIP: no installer checksums to verify on ${OS}"
+    return
+  fi
+
   local files=()
-  case "${OS}" in
-    Darwin)
-      while IFS= read -r fname; do
-        files+=("${fname}")
-      done < <(jq -r '.platform.darwin.arch | to_entries[].value.fileName' "${PODMAN_JSON}" | tr -d '\r')
-      ;;
-    MINGW*|MSYS*|CYGWIN*|Windows_NT)
-      while IFS= read -r fname; do
-        files+=("${fname}")
-      done < <(jq -r '.platform.win32.arch | to_entries[].value.fileName' "${PODMAN_JSON}" | tr -d '\r')
-      ;;
-    *)
-      echo "SKIP: no installer checksums to verify on ${OS}"
-      return
-      ;;
-  esac
+  while IFS= read -r fname; do
+    [ -n "${fname}" ] && files+=("${fname}")
+  done < <(jq -r --arg pk "${PK}" --arg ver "${version}" '
+    .versions as $v | .platform[$pk].arch | to_entries[] |
+    select($v[.value.versionRef].version == $ver) | .value.fileName
+  ' "${PODMAN_JSON}" | tr -d '\r')
 
   echo "Files to verify: ${files[*]:-none}"
 
@@ -172,10 +167,20 @@ verify_oci_checksums() {
     return
   fi
 
+  local allowed_arches
+  allowed_arches=$(jq -r --arg pk "${PK}" --arg ver "${version}" '
+    .versions as $v | .platform[$pk].arch | to_entries[] |
+    select($v[.value.versionRef].version == $ver) |
+    (if .key == "x64" then "x86_64" elif .key == "arm64" then "aarch64" else .key end)
+  ' "${PODMAN_JSON}" 2>/dev/null || true)
+
   echo "Found OCI entries for: $(echo "${arch_digests}" | awk '{printf "%s ", $1}')"
 
   while IFS=' ' read -r arch digest; do
     [ -z "${arch}" ] && continue
+    if ! echo "${allowed_arches}" | grep -qF "${arch}"; then
+      continue
+    fi
 
     local local_name
     case "${arch}" in
@@ -244,11 +249,26 @@ if [ ! -d "${ASSETS_DIR}" ]; then
   exit 1
 fi
 
-VERSION=$(jq -r '.version' "${PODMAN_JSON}" | tr -d '\r')
-echo "Podman version: ${VERSION}"
-
 OS="$(uname -s)"
 ARCH="$(uname -m)"
+
+case "${OS}" in
+  Darwin) PK="darwin" ;;
+  MINGW*|MSYS*|CYGWIN*|Windows_NT) PK="win32" ;;
+  *) PK="" ;;
+esac
+
+VERSIONS=()
+if [ -n "${PK}" ]; then
+  while IFS= read -r v; do
+    [ -n "$v" ] && VERSIONS+=("$v")
+  done < <(jq -r --arg pk "${PK}" '
+    .versions as $vers |
+    [.platform[$pk].arch | to_entries[].value.versionRef] | unique[] |
+    $vers[.].version
+  ' "${PODMAN_JSON}" | sort -u)
+fi
+echo "Podman version(s): ${VERSIONS[*]:-none}"
 echo "Platform: ${OS} / ${ARCH}"
 echo ""
 
@@ -256,7 +276,7 @@ echo "--- DEBUG: assets directory listing ---"
 ls -la "${ASSETS_DIR}/" 2>&1 || echo "(empty or inaccessible)"
 echo ""
 
-echo "--- DEBUG: podman5.json platform structure ---"
+echo "--- DEBUG: podman.json platform structure ---"
 jq '.platform' "${PODMAN_JSON}"
 echo ""
 
@@ -295,9 +315,11 @@ esac
 
 echo ""
 echo "--- Checksum verification ---"
-verify_installer_checksums "${VERSION}"
-echo ""
-verify_oci_checksums "${VERSION}"
+for ver in "${VERSIONS[@]}"; do
+  verify_installer_checksums "${ver}"
+  echo ""
+  verify_oci_checksums "${ver}"
+done
 
 echo ""
 if [ "${ERRORS}" -gt 0 ]; then
