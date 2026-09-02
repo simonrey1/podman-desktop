@@ -23,11 +23,11 @@ import type { BrowserWindowConstructorOptions, Rectangle } from 'electron';
 import { app, autoUpdater, BrowserWindow, ipcMain, nativeTheme, screen } from 'electron';
 import contextMenu from 'electron-context-menu';
 
-import { getDevIconPath } from './dev-instance.js';
 import { buildDevelopmentMenu } from './development-menu-builder.js';
 import { DevelopmentModeTracker } from './development-mode-tracker.js';
 import { NavigationItemsMenuBuilder } from './navigation-items-menu-builder.js';
 import { OpenDevTools } from './open-dev-tools.js';
+import { getDevWindowIconPath } from './plugin/app-ready/app-identity-plugin.js';
 import type { ConfigurationRegistry } from './plugin/configuration-registry.js';
 import type { WindowHandler } from './system/window/window-handler.js';
 import { isLinux, isMac, stoppedExtensions } from './util.js';
@@ -49,7 +49,7 @@ async function createWindow(): Promise<BrowserWindow> {
   // We use the native theme to determine if we should use a dark background color or not.
   const INITIAL_APP_BACKGROUND_COLOR = nativeTheme.shouldUseDarkColors ? '#18181b' : '#ffffff';
 
-  const devIconPath = getDevIconPath(app);
+  const devIconPath = getDevWindowIconPath(app);
 
   const browserWindowConstructorOptions: BrowserWindowConstructorOptions = {
     show: false, // Use 'ready-to-show' event to show window

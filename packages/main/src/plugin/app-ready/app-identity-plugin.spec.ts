@@ -23,11 +23,12 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { isMac } from '/@/util.js';
 
-import { applyDevDockIcon, configureDevInstance, getDevIconPath } from './dev-instance.js';
+import { AppIdentityPlugin, getDevWindowIconPath } from './app-identity-plugin.js';
 
 vi.mock(import('/@/util.js'));
 
 const APP_DATA_PATH = '/mock/appData';
+const APP_ROOT_PATH = '/mock/appRoot';
 
 function createMockApp(overrides?: Partial<ElectronApp>): ElectronApp {
   return {
@@ -35,7 +36,7 @@ function createMockApp(overrides?: Partial<ElectronApp>): ElectronApp {
       if (name === 'appData') return APP_DATA_PATH;
       return `/mock/${name}`;
     }),
-    getAppPath: vi.fn().mockReturnValue('/mock/appRoot'),
+    getAppPath: vi.fn().mockReturnValue(APP_ROOT_PATH),
     setPath: vi.fn(),
     setName: vi.fn(),
     dock: {
@@ -49,55 +50,57 @@ beforeEach(() => {
   vi.resetAllMocks();
 });
 
-describe('configureDevInstance', () => {
+describe('onBeforeReady', () => {
   test('should redirect userData to a dev-specific directory', () => {
     const app = createMockApp();
+    const plugin = new AppIdentityPlugin(app);
 
-    configureDevInstance(app);
+    plugin.onBeforeReady();
 
     expect(app.setPath).toHaveBeenCalledWith('userData', path.join(APP_DATA_PATH, 'containers/podman-desktop-dev'));
   });
 
   test('should set app name to include Dev suffix', () => {
     const app = createMockApp();
+    const plugin = new AppIdentityPlugin(app);
 
-    configureDevInstance(app);
+    plugin.onBeforeReady();
 
     expect(app.setName).toHaveBeenCalledWith('Podman Desktop Dev');
   });
 });
 
-describe('applyDevDockIcon', () => {
-  test('should set dock icon on macOS', () => {
+describe('onReady', () => {
+  test('should set dock icon on macOS', async () => {
     vi.mocked(isMac).mockReturnValue(true);
     const mockIcon = { mock: 'icon' };
     vi.mocked(nativeImage.createFromPath).mockReturnValue(mockIcon as never);
     const app = createMockApp();
+    const plugin = new AppIdentityPlugin(app);
 
-    applyDevDockIcon(app);
+    await plugin.onReady();
 
-    expect(nativeImage.createFromPath).toHaveBeenCalledWith(
-      path.resolve('/mock/appRoot', 'buildResources/icon-dev.png'),
-    );
+    expect(nativeImage.createFromPath).toHaveBeenCalledWith(path.resolve(APP_ROOT_PATH, 'buildResources/icon-dev.png'));
     expect(app.dock?.setIcon).toHaveBeenCalledWith(mockIcon);
   });
 
-  test('should not set dock icon on non-macOS', () => {
+  test('should not set dock icon on non-macOS', async () => {
     vi.mocked(isMac).mockReturnValue(false);
     const app = createMockApp();
+    const plugin = new AppIdentityPlugin(app);
 
-    applyDevDockIcon(app);
+    await plugin.onReady();
 
     expect(nativeImage.createFromPath).not.toHaveBeenCalled();
   });
 });
 
-describe('getDevIconPath', () => {
+describe('getDevWindowIconPath', () => {
   test('should return resolved path to dev icon', () => {
     const app = createMockApp();
 
-    const result = getDevIconPath(app);
+    const result = getDevWindowIconPath(app);
 
-    expect(result).toBe(path.resolve('/mock/appRoot', 'buildResources/icon-dev.png'));
+    expect(result).toBe(path.resolve(APP_ROOT_PATH, 'buildResources/icon-dev.png'));
   });
 });
