@@ -168,7 +168,7 @@ export class DockerPluginAdapter {
       }
 
       // eslint-disable-next-line sonarjs/os-command
-      const spawnProcess = spawn(updatedCommand, updatedArgs, { env, shell: true });
+      const spawnProcess = spawn(updatedCommand, updatedArgs, { env, shell: true, windowsHide: true });
       spawnProcess.stdout.setEncoding('utf8');
       spawnProcess.stdout.on('data', data => {
         execResult.stdout += data;
@@ -252,7 +252,7 @@ export class DockerPluginAdapter {
       updatedArgs = args;
     }
 
-    const spawnProcess = spawn(updatedCommand, updatedArgs, { env });
+    const spawnProcess = spawn(updatedCommand, updatedArgs, { env, windowsHide: true });
 
     let isSplitOutputLines = false;
     if (options.splitOutputLines) {

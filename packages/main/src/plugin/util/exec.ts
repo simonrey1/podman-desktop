@@ -153,12 +153,12 @@ export class Exec {
     const cwd = options?.cwd;
 
     if (options?.detached) {
-      const childProcess = spawn(command, args ?? [], { env, cwd, detached: true, stdio: 'ignore' });
+      const childProcess = spawn(command, args ?? [], { env, cwd, detached: true, stdio: 'ignore', windowsHide: true });
       childProcess.unref();
       return this.awaitChildProcess(childProcess, command, { stdout: '', stderr: '' });
     }
 
-    const childProcess = spawn(command, args ?? [], { env, cwd });
+    const childProcess = spawn(command, args ?? [], { env, cwd, windowsHide: true });
     const output = { stdout: '', stderr: '' };
 
     childProcess.stdout.setEncoding(options?.encoding ?? 'utf8');

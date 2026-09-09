@@ -70,7 +70,11 @@ describe('exec', () => {
 
     const { stdout } = await exec.exec(command, args);
 
-    expect(spawnMock).toHaveBeenCalledWith(command, args, { env: expect.any(Object) });
+    expect(spawnMock).toHaveBeenCalledWith(
+      command,
+      args,
+      expect.objectContaining({ env: expect.any(Object), windowsHide: true }),
+    );
     expect(stdout).toBeDefined();
     expect(stdout).toContain('Hello, World!');
     expect(setEncodingMock).toBeCalledWith('utf8');
@@ -234,9 +238,14 @@ describe('exec', () => {
 
     const { stdout } = await httpExec.exec(command, args);
 
-    expect(spawnMock).toHaveBeenCalledWith(command, args, {
-      env: expect.objectContaining({ HTTP_PROXY: 'http://127.0.0.1:8888' }),
-    });
+    expect(spawnMock).toHaveBeenCalledWith(
+      command,
+      args,
+      expect.objectContaining({
+        env: expect.objectContaining({ HTTP_PROXY: 'http://127.0.0.1:8888' }),
+        windowsHide: true,
+      }),
+    );
     expect(stdout).toBeDefined();
     expect(stdout).toContain('Hello, World!');
     expect(setEncodingMock).toBeCalledWith('utf8');
@@ -271,9 +280,14 @@ describe('exec', () => {
 
     const { stdout } = await httpsExec.exec(command, args);
 
-    expect(spawnMock).toHaveBeenCalledWith(command, args, {
-      env: expect.objectContaining({ HTTPS_PROXY: 'http://127.0.0.1:8888' }),
-    });
+    expect(spawnMock).toHaveBeenCalledWith(
+      command,
+      args,
+      expect.objectContaining({
+        env: expect.objectContaining({ HTTPS_PROXY: 'http://127.0.0.1:8888' }),
+        windowsHide: true,
+      }),
+    );
     expect(stdout).toBeDefined();
     expect(stdout).toContain('Hello, World!');
     expect(setEncodingMock).toBeCalledWith('utf8');
@@ -308,7 +322,11 @@ describe('exec', () => {
 
     const { stdout } = await noProxyExec.exec(command, args);
 
-    expect(spawnMock).toHaveBeenCalledWith(command, args, { env: expect.objectContaining({ NO_PROXY: '127.0.0.1' }) });
+    expect(spawnMock).toHaveBeenCalledWith(
+      command,
+      args,
+      expect.objectContaining({ env: expect.objectContaining({ NO_PROXY: '127.0.0.1' }), windowsHide: true }),
+    );
     expect(stdout).toBeDefined();
     expect(stdout).toContain('Hello, World!');
     expect(setEncodingMock).toBeCalledWith('utf8');
