@@ -1667,7 +1667,7 @@ export async function start(
       command = 'flatpak-spawn';
       args = ['--host', 'podman', ...args];
     }
-    const podmanProcess = spawn(command, args);
+    const podmanProcess = spawn(command, args, { windowsHide: true });
     podmanProcess.on('error', err => {
       console.error('Failed to spawn process.', err);
     });

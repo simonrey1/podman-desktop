@@ -55,7 +55,7 @@ test('expect correct parsing', async () => {
     }),
   } as unknown as ChildProcess);
   const result = await spawnWithPromise(command, commandArgs);
-  expect(vi.mocked(spawn)).toBeCalledWith(command, commandArgs);
+  expect(vi.mocked(spawn)).toBeCalledWith(command, commandArgs, { windowsHide: true });
   expect(result).toBeDefined();
   expect(result.stdout).toBe(stdoutOutput);
   expect(result.error).toBeUndefined();

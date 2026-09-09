@@ -28,7 +28,7 @@ export async function spawnWithPromise(command: string, spawnArgs?: string[]): P
   try {
     const content = await new Promise<string>((resolve, reject) => {
       //  launch command
-      const child = spawn(command, spawnArgs);
+      const child = spawn(command, spawnArgs, { windowsHide: true });
       let output = '';
       child.stdout.setEncoding('utf8');
       // collect output and append the result
