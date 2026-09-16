@@ -40,6 +40,7 @@ import {
   isRootfulMachineInitSupported,
   isStartNowAtMachineInitSupported,
   isUserModeNetworkingSupported,
+  updateCliDefaultProviderContext,
 } from '/@/extension';
 import { ExtensionContextSymbol, ProviderCleanupSymbol, TelemetryLoggerSymbol } from '/@/inject/symbols';
 import { MachineJSON } from '/@/types';
@@ -117,6 +118,9 @@ export class PodmanInstall {
           isPodman6OrLater(newInstalledPodman.version),
         );
         await calcPodmanMachineSetting();
+        // Re-query the CLI default provider now that podman is installed,
+        // so the machine creation dropdown picks up the installer's choice.
+        await updateCliDefaultProviderContext();
       }
       // update detections checks
       provider.updateDetectionChecks(getDetectionChecks(newInstalledPodman));

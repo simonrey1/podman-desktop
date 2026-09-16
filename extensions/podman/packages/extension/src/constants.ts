@@ -33,6 +33,7 @@ export const PODMAN_MACHINE_EDIT_DISK_SIZE = 'podman.podmanMachineEditDiskSizeSu
 export const PODMAN_MACHINE_EDIT_ROOTFUL = 'podman.podmanMachineEditRootfulSupported';
 export const PODMAN_IMPORT_NATIVE_CA_SUPPORTED_KEY = 'podman.isImportNativeCASupported';
 export const PODMAN_EDIT_IMPORT_NATIVE_CA = 'podman.podmanMachineEditImportNativeCASupported';
+export const CLI_DEFAULT_MACHINE_PROVIDER_KEY = 'podman.cliDefaultMachineProvider';
 
 /**
  * Command ID to uninstall a version of podman installed with non-msi installer
