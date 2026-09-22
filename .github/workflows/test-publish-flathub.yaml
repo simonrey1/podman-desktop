@@ -1,0 +1,129 @@
+name: Test publish-flathub with pnpm 12 metadata fix
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'release version like 1.30.0'
+        required: true
+        default: '1.30.0'
+
+permissions:
+  contents: read
+
+jobs:
+  test-update-flathub:
+    name: Test Flathub manifest generation
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'flathub/io.podman_desktop.PodmanDesktop'
+          ref: 'master'
+
+      - name: Set version
+        id: VERSION
+        run: |
+          version="${{ github.event.inputs.version }}"
+          if [[ $version == v* ]]; then
+            version="${version:1}"
+          fi
+          echo "desktopVersion=$version" >> ${GITHUB_OUTPUT}
+
+      - name: Show original manifest
+        run: cat io.podman_desktop.PodmanDesktop.yml
+
+      - name: Update the yaml file
+        run: |
+          # Grab the source code of Podman Desktop (from upstream, same tarball)
+          export PODMAN_DESKTOP_SOURCE_URL="https://github.com/containers/podman-desktop/archive/refs/tags/v${{ steps.VERSION.outputs.desktopVersion }}.tar.gz"
+          wget ${PODMAN_DESKTOP_SOURCE_URL} -qO podman-desktop-source.tgz
+          export PODMAN_DESKTOP_SOURCE_SHASUM=$(shasum -a 256 podman-desktop-source.tgz | awk '{print $1}')
+          echo "podman Desktop source .tgz file sha256 is ${PODMAN_DESKTOP_SOURCE_SHASUM}"
+
+          # Grab the pnpm cache from simonrey1 fork (has metadata included)
+          export PNPM_STORE_CACHE_ARM64_URL="https://github.com/simonrey1/podman-desktop/releases/download/v${{ steps.VERSION.outputs.desktopVersion }}/store-cache-pnpm-arm64.tgz"
+          wget ${PNPM_STORE_CACHE_ARM64_URL} -qO podman-desktop-pnpm-arm64.tgz
+          export PODMAN_DESKTOP_PNPM_ARM64_SHASUM=$(shasum -a 256 podman-desktop-pnpm-arm64.tgz | awk '{print $1}')
+          echo "podman Desktop pnpm arm64 .tgz file sha256 is ${PODMAN_DESKTOP_PNPM_ARM64_SHASUM}"
+
+          export PNPM_STORE_CACHE_AMD64_URL="https://github.com/simonrey1/podman-desktop/releases/download/v${{ steps.VERSION.outputs.desktopVersion }}/store-cache-pnpm-amd64.tgz"
+          wget ${PNPM_STORE_CACHE_AMD64_URL} -qO podman-desktop-pnpm-amd64.tgz
+          export PODMAN_DESKTOP_PNPM_AMD64_SHASUM=$(shasum -a 256 podman-desktop-pnpm-amd64.tgz | awk '{print $1}')
+          echo "podman Desktop pnpm amd64 .tgz file sha256 is ${PODMAN_DESKTOP_PNPM_AMD64_SHASUM}"
+
+          # grab the package.json of the current tagged version
+          wget "https://raw.githubusercontent.com/podman-desktop/podman-desktop/refs/tags/v${{ steps.VERSION.outputs.desktopVersion }}/package.json" -qO podman-desktop-package.json
+
+          PODMAN_DESKTOP_PNPM_VERSION=$(jq -r '.packageManager' podman-desktop-package.json | cut -d '@' -f 2 | cut -d '+' -f 1)
+          echo "Found pnpm version ${PODMAN_DESKTOP_PNPM_VERSION}"
+          export PNPM_AMD64_URL=https://github.com/pnpm/pnpm/releases/download/v${PODMAN_DESKTOP_PNPM_VERSION}/pnpm-linux-x64.tar.gz
+          export PNPM_ARM64_URL=https://github.com/pnpm/pnpm/releases/download/v${PODMAN_DESKTOP_PNPM_VERSION}/pnpm-linux-arm64.tar.gz
+          wget ${PNPM_ARM64_URL} -qO pnpm-arm64.zip
+          export PNPM_ARM64_SHASUM=$(shasum -a 256 pnpm-arm64.zip | awk '{print $1}')
+          echo "pnpm arm64 zip sha256 is ${PNPM_ARM64_SHASUM}"
+          wget ${PNPM_AMD64_URL} -qO pnpm-amd64.zip
+          export PNPM_AMD64_SHASUM=$(shasum -a 256 pnpm-amd64.zip | awk '{print $1}')
+          echo "pnpm amd64 zip sha256 is ${PNPM_AMD64_SHASUM}"
+
+          ELECTRON_VERSION=$(jq -r '.devDependencies.electron' podman-desktop-package.json)
+          echo "Found electron ${ELECTRON_VERSION}"
+
+          export ELECTRON_BASE_URL="https://github.com/electron/electron/releases/download/v${ELECTRON_VERSION}"
+          export ELECTRON_BASE_URL_SHA=$(echo -n "$ELECTRON_BASE_URL" | sha256sum | cut -d ' ' -f 1)
+          export ELECTRON_CACHE_DIRECTORY="electron-cache/${ELECTRON_BASE_URL_SHA}"
+          export ELECTRON_CACHE_DIRECTORY_SLASH="${ELECTRON_CACHE_DIRECTORY}/"
+
+          export ELECTRON_AMD64_URL="${ELECTRON_BASE_URL}/electron-v${ELECTRON_VERSION}-linux-x64.zip"
+          wget ${ELECTRON_AMD64_URL} -qO electron-x64.zip
+          export ELECTRON_AMD64_SHASUM=$(shasum -a 256 electron-x64.zip | awk '{print $1}')
+          echo "electron x64 zip sha256 is ${ELECTRON_AMD64_SHASUM}"
+
+          export ELECTRON_ARM64_URL="${ELECTRON_BASE_URL}/electron-v${ELECTRON_VERSION}-linux-arm64.zip"
+          wget ${ELECTRON_ARM64_URL} -qO electron-arm64.zip
+          export ELECTRON_ARM64_SHASUM=$(shasum -a 256 electron-arm64.zip | awk '{print $1}')
+          echo "electron arm64 zip sha256 is ${ELECTRON_ARM64_SHASUM}"
+
+          cp io.podman_desktop.PodmanDesktop.yml io.podman_desktop.PodmanDesktop.ori
+
+          # --- All the same yq updates as publish-flathub.yaml ---
+          yq -i '(.modules[].sources[] | select(.url == "*electron*x64*")) += {"url":strenv(ELECTRON_AMD64_URL), "dest":strenv(ELECTRON_CACHE_DIRECTORY_SLASH), "sha256":strenv(ELECTRON_AMD64_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+          yq -i '(.modules[].sources[] | select(.url == "*electron*arm64*")) += {"url":strenv(ELECTRON_ARM64_URL), "dest":strenv(ELECTRON_CACHE_DIRECTORY_SLASH), "sha256":strenv(ELECTRON_ARM64_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+
+          yq -i '(.modules[].sources[] | select(.url == "*pnpm*linux-x64*")) += {"url":strenv(PNPM_AMD64_URL), "sha256":strenv(PNPM_AMD64_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+          yq -i '(.modules[].sources[] | select(.url == "*pnpm*linux-arm64*")) += {"url":strenv(PNPM_ARM64_URL),"sha256":strenv(PNPM_ARM64_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+
+          yq -i '(.modules[].sources[] | select(.url == "*pnpm*linux-x64*")).type = "archive"' io.podman_desktop.PodmanDesktop.yml
+          yq -i 'del((.modules[].sources[] | select(.url == "*pnpm*linux-x64*")).dest-filename)' io.podman_desktop.PodmanDesktop.yml
+          yq -i '(.modules[].sources[] | select(.url == "*pnpm*linux-x64*")).strip-components = 0' io.podman_desktop.PodmanDesktop.yml
+          yq -i '(.modules[].sources[] | select(.url == "*pnpm*linux-arm64*")).type = "archive"' io.podman_desktop.PodmanDesktop.yml
+          yq -i 'del((.modules[].sources[] | select(.url == "*pnpm*linux-arm64*")).dest-filename)' io.podman_desktop.PodmanDesktop.yml
+          yq -i '(.modules[].sources[] | select(.url == "*pnpm*linux-arm64*")).strip-components = 0' io.podman_desktop.PodmanDesktop.yml
+
+          yq -i '(.modules[].sources[] | select(.url == "*store-cache-pnpm*amd64*")) += {"url":strenv(PNPM_STORE_CACHE_AMD64_URL), "sha256":strenv(PODMAN_DESKTOP_PNPM_AMD64_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+          yq -i '(.modules[].sources[] | select(.url == "*store-cache-pnpm*arm64*")) += {"url":strenv(PNPM_STORE_CACHE_ARM64_URL), "sha256":strenv(PODMAN_DESKTOP_PNPM_ARM64_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+
+          yq -i '(.modules[].sources[] | select(.url == "*podman-desktop*refs*tags*")) += {"url":strenv(PODMAN_DESKTOP_SOURCE_URL), "sha256":strenv(PODMAN_DESKTOP_SOURCE_SHASUM)}' io.podman_desktop.PodmanDesktop.yml
+
+          # --- pnpm 12 metadata fix: inject the metadata move command ---
+          # (this sed can be removed once the Flathub manifest has this line permanently)
+          sed -i '/mkdir pnpm-store && mv v11 pnpm-store\//a\      # pnpm 12 requires the registry metadata cache for offline installs\n      - mkdir -p $XDG_CACHE_HOME \&\& mv pnpm-metadata/pnpm $XDG_CACHE_HOME/' io.podman_desktop.PodmanDesktop.yml
+
+      - name: Show diff
+        run: |
+          echo "=== DIFF ==="
+          diff -u io.podman_desktop.PodmanDesktop.ori io.podman_desktop.PodmanDesktop.yml || true
+
+      - name: Show generated manifest (build-commands section)
+        run: |
+          echo "=== BUILD COMMANDS ==="
+          grep -A5 'mkdir pnpm-store' io.podman_desktop.PodmanDesktop.yml
+          echo ""
+          echo "=== STORE CACHE URLs ==="
+          grep 'store-cache-pnpm' io.podman_desktop.PodmanDesktop.yml
+
+      - name: Upload generated manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-flathub-manifest
+          path: io.podman_desktop.PodmanDesktop.yml
