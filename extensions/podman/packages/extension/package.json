@@ -226,7 +226,7 @@
         },
         "podman.factory.machine.win.provider": {
           "type": "string",
-          "default": "wsl",
+          "default": "CLI_DEFAULT_MACHINE_PROVIDER",
           "enum": [
             "wsl",
             "hyperv"

@@ -183,6 +183,11 @@ async function loadConnectionParams(): Promise<void> {
           }
           break;
         }
+        case 'CLI_DEFAULT_MACHINE_PROVIDER': {
+          const contextDefault = globalContext?.getValue<string>('podman.cliDefaultMachineProvider');
+          property.default = contextDefault ?? 'wsl';
+          break;
+        }
         default: {
           break;
         }

@@ -32,6 +32,7 @@ import { compare } from 'semver';
 import { getSocketCompatibility } from '/@/compatibility-mode/compatibility-mode';
 import {
   CLEANUP_REQUIRED_MACHINE_KEY,
+  CLI_DEFAULT_MACHINE_PROVIDER_KEY,
   CREATE_WSL_MACHINE_OPTION_SELECTED_KEY,
   PODMAN_DOCKER_COMPAT_ENABLE_KEY,
   PODMAN_EDIT_IMPORT_NATIVE_CA,
@@ -135,6 +136,7 @@ const updateMachinesMutex = new Mutex();
 let createWSLMachineOptionSelected = false;
 let wslAndHypervEnabledContextValue = false;
 let wslEnabled = false;
+let cliDefaultProvider: string | undefined;
 let wslWarningShown = false;
 
 let extensionNotifications: ExtensionNotifications;
@@ -1606,6 +1608,10 @@ export async function start(
     updateWSLHyperVEnabledContextValue(isWslAndHyperEnabled);
   }
 
+  // Query the CLI's configured default machine provider so the creation
+  // form dropdown can pre-select it instead of using a hardcoded default.
+  await updateCliDefaultProviderContext();
+
   if (extensionApi.env.isMac) {
     provider.registerCleanup(new PodmanCleanupMacOS());
   } else if (extensionApi.env.isWindows) {
@@ -1870,8 +1876,9 @@ export async function connectionAuditor(items: extensionApi.AuditRequestItems): 
 
   const winProvider = items['podman.factory.machine.win.provider'];
   // set createWSLMachineOptionSelected if the user actively selected wsl from the list in the UI, or
-  // if the list is not visible (so only one provider is active) and the provider is wsl
-  const isWSL = winProvider === 'wsl' || (winProvider === undefined && wslEnabled);
+  // if the list is not visible (so only one provider is active) and the CLI default provider is wsl
+  const effectiveProvider = winProvider ?? cliDefaultProvider;
+  const isWSL = effectiveProvider === 'wsl' || (effectiveProvider === undefined && wslEnabled);
   if (createWSLMachineOptionSelected !== isWSL) {
     createWSLMachineOptionSelected = isWSL;
     extensionApi.context.setValue(CREATE_WSL_MACHINE_OPTION_SELECTED_KEY, createWSLMachineOptionSelected);
@@ -1999,6 +2006,35 @@ export async function getJSONMachineListByProvider(containerMachineProvider?: st
   return { stdout, stderr };
 }
 
+/**
+ * Query the Podman CLI's configured default machine provider via `podman machine info`.
+ * The CLI resolves this from CONTAINERS_MACHINE_PROVIDER env var, containers.conf [machine] provider,
+ * or platform default (WSL on Windows, libkrun on macOS).
+ * Returns undefined if the command fails (e.g. podman not installed).
+ */
+export async function getCliDefaultProvider(): Promise<string | undefined> {
+  try {
+    const { stdout } = await extensionApi.process.exec(getPodmanCli(), ['machine', 'info', '--format', 'json']);
+    const info = JSON.parse(stdout) as { Host?: { VMType?: string } };
+    return info.Host?.VMType;
+  } catch (error) {
+    console.debug('Unable to query CLI default machine provider:', error);
+    return undefined;
+  }
+}
+
+/**
+ * Query the CLI default provider and update the context value so the renderer
+ * can use it to pre-select the provider dropdown.
+ */
+export async function updateCliDefaultProviderContext(): Promise<void> {
+  const provider = await getCliDefaultProvider();
+  if (provider) {
+    cliDefaultProvider = provider;
+    extensionApi.context.setValue(CLI_DEFAULT_MACHINE_PROVIDER_KEY, provider);
+  }
+}
+
 export function resetStopLoop(): void {
   stopLoop = false;
 }
@@ -2076,6 +2112,11 @@ export function isLibkrunSupported(podmanVersion: string): boolean {
 // Set wslEnabled. Used for testing purposes
 export function setWSLEnabled(enabled: boolean): void {
   wslEnabled = enabled;
+}
+
+// Set cliDefaultProvider. Used for testing purposes
+export function setCliDefaultProvider(provider: string | undefined): void {
+  cliDefaultProvider = provider;
 }
 
 export function isPodman5OrLater(podmanVersion: string): boolean {
@@ -2207,7 +2248,7 @@ export async function createMachine(
     telemetryRecords.provider = provider;
   } else {
     if (extensionApi.env.isWindows) {
-      provider = process.env.CONTAINERS_MACHINE_PROVIDER ?? 'wsl';
+      provider = process.env.CONTAINERS_MACHINE_PROVIDER ?? cliDefaultProvider ?? 'wsl';
       telemetryRecords.provider = provider;
     } else if (extensionApi.env.isMac) {
       if (os.arch() === 'x64') {

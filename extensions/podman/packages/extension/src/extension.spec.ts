@@ -823,10 +823,12 @@ describe('createMachine on windows without an explicit provider', () => {
 
   afterEach(() => {
     process.env.CONTAINERS_MACHINE_PROVIDER = originalProvider;
+    extension.setCliDefaultProvider(undefined);
   });
 
-  test('defaults to wsl when CONTAINERS_MACHINE_PROVIDER is not set', async () => {
+  test('defaults to wsl when CONTAINERS_MACHINE_PROVIDER is not set and no CLI default', async () => {
     delete process.env.CONTAINERS_MACHINE_PROVIDER;
+    extension.setCliDefaultProvider(undefined);
 
     await extension.createMachine(
       {
@@ -846,6 +848,33 @@ describe('createMachine on windows without an explicit provider', () => {
         token: undefined,
         env: {
           CONTAINERS_MACHINE_PROVIDER: 'wsl',
+        },
+      },
+    );
+  });
+
+  test('uses CLI default provider when CONTAINERS_MACHINE_PROVIDER is not set', async () => {
+    delete process.env.CONTAINERS_MACHINE_PROVIDER;
+    extension.setCliDefaultProvider('hyperv');
+
+    await extension.createMachine(
+      {
+        'podman.factory.machine.cpus': '2',
+        'podman.factory.machine.image': 'path',
+        'podman.factory.machine.memory': '1048000000',
+        'podman.factory.machine.diskSize': '250000000000',
+      },
+      podmanConfiguration,
+    );
+
+    expect(vi.mocked(extensionApi.process.exec)).toBeCalledWith(
+      podmanCli.getPodmanCli(),
+      expect.arrayContaining(['--image', 'path']),
+      {
+        logger: undefined,
+        token: undefined,
+        env: {
+          CONTAINERS_MACHINE_PROVIDER: 'hyperv',
         },
       },
     );
@@ -874,6 +903,56 @@ describe('createMachine on windows without an explicit provider', () => {
           CONTAINERS_MACHINE_PROVIDER: 'hyperv',
         },
       },
+    );
+  });
+});
+
+describe('getCliDefaultProvider', () => {
+  test('returns VMType from podman machine info', async () => {
+    vi.mocked(extensionApi.process.exec).mockResolvedValueOnce({
+      stdout: JSON.stringify({ Host: { VMType: 'hyperv' } }),
+      stderr: '',
+      command: 'podman',
+    });
+
+    const result = await extension.getCliDefaultProvider();
+    expect(result).toBe('hyperv');
+    expect(vi.mocked(extensionApi.process.exec)).toBeCalledWith(podmanCli.getPodmanCli(), [
+      'machine',
+      'info',
+      '--format',
+      'json',
+    ]);
+  });
+
+  test('returns undefined when podman machine info fails', async () => {
+    vi.mocked(extensionApi.process.exec).mockRejectedValueOnce(new Error('podman not found'));
+
+    const result = await extension.getCliDefaultProvider();
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('updateCliDefaultProviderContext', () => {
+  test('sets context value when CLI returns a provider', async () => {
+    vi.mocked(extensionApi.process.exec).mockResolvedValueOnce({
+      stdout: JSON.stringify({ Host: { VMType: 'hyperv' } }),
+      stderr: '',
+      command: 'podman',
+    });
+
+    await extension.updateCliDefaultProviderContext();
+    expect(extensionApi.context.setValue).toHaveBeenCalledWith('podman.cliDefaultMachineProvider', 'hyperv');
+  });
+
+  test('does not set context value when CLI fails', async () => {
+    vi.mocked(extensionApi.process.exec).mockRejectedValueOnce(new Error('podman not found'));
+    vi.mocked(extensionApi.context.setValue).mockReset();
+
+    await extension.updateCliDefaultProviderContext();
+    expect(extensionApi.context.setValue).not.toHaveBeenCalledWith(
+      'podman.cliDefaultMachineProvider',
+      expect.anything(),
     );
   });
 });
@@ -4021,11 +4100,26 @@ describe('connectionAuditor', () => {
 
     // verify isCreateWSLOptionSelected is set to true
     extension.setWSLEnabled(true);
+    extension.setCliDefaultProvider(undefined);
 
     await extension.connectionAuditor({
       'podman.factory.machine.win.provider': undefined,
     });
     expect(extensionApi.context.setValue).toHaveBeenLastCalledWith(CREATE_WSL_MACHINE_OPTION_SELECTED_KEY, true);
+  });
+  test('check if podman.isCreateWSLOptionSelected is set to false if podman.factory.machine.win.provider is undefined and CLI default is hyperv', async () => {
+    // be sure isCreateWSLOptionSelected is set to true
+    await extension.connectionAuditor({
+      'podman.factory.machine.win.provider': 'wsl',
+    });
+
+    // verify isCreateWSLOptionSelected is set to false when CLI default is hyperv
+    extension.setCliDefaultProvider('hyperv');
+
+    await extension.connectionAuditor({
+      'podman.factory.machine.win.provider': undefined,
+    });
+    expect(extensionApi.context.setValue).toHaveBeenLastCalledWith(CREATE_WSL_MACHINE_OPTION_SELECTED_KEY, false);
   });
   test('check if podman.isCreateWSLOptionSelected is set to false if podman.factory.machine.win.provider = hyperv', async () => {
     // be sure isCreateWSLOptionSelected is set to true
@@ -4047,6 +4141,7 @@ describe('connectionAuditor', () => {
 
     // verify isCreateWSLOptionSelected is set to false
     extension.setWSLEnabled(false);
+    extension.setCliDefaultProvider(undefined);
 
     await extension.connectionAuditor({
       'podman.factory.machine.win.provider': undefined,
