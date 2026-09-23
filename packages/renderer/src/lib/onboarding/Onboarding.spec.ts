@@ -69,8 +69,8 @@ test('Expect to have the "Try again" and Cancel buttons if the step represent a 
   expect(button).toBeInTheDocument();
   const buttonCancel = screen.getByRole('button', { name: 'Cancel Setup' });
   expect(buttonCancel).toBeInTheDocument();
-  const infoMessage = screen.queryByLabelText('Next Info Message');
-  expect(infoMessage).not.toBeInTheDocument();
+  const nextButton = screen.getByRole('button', { name: 'Next Step' });
+  expect(nextButton).toBeDisabled();
 });
 
 test('Expect not to have the "Try again" and "Cancel" buttons if the step represent a completed state', async () => {
@@ -102,8 +102,8 @@ test('Expect not to have the "Try again" and "Cancel" buttons if the step repres
   expect(buttonTryAgain).not.toBeInTheDocument();
   const buttonCancel = screen.queryByRole('button', { name: 'Cancel Setup' });
   expect(buttonCancel).not.toBeInTheDocument();
-  const infoMessage = screen.getByLabelText('Next Info Message');
-  expect(infoMessage).toBeInTheDocument();
+  const nextButton = screen.getByRole('button', { name: 'Next Step' });
+  expect(nextButton).toBeInTheDocument();
 });
 
 test('Expect to have the "Step Body" div if the step does not include a component', async () => {
