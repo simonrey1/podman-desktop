@@ -34,6 +34,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 import product from '/@product.json' with { type: 'json' };
 
 import { ConfigurationRegistry } from './configuration-registry.js';
+import type { Context } from './context/context.js';
 import type { DefaultConfiguration } from './default-configuration.js';
 import type { Directories } from './directories.js';
 import type { LockedConfiguration } from './locked-configuration.js';
@@ -61,6 +62,10 @@ vi.mock(import('node:fs/promises'), () => ({
   readFile: vi.fn(),
   rename: vi.fn(),
   copyFile: vi.fn(),
+}));
+
+vi.mock(import('./context/context.js'), () => ({
+  Context: vi.fn(),
 }));
 
 // mock DefaultConfiguration for the new managed defaults functionality
@@ -103,9 +108,26 @@ const lockedConfiguration = {
   getContent: getLockedContentMock,
 } as unknown as LockedConfiguration;
 
+const getValueMock = vi.fn();
+let contextChangeListener: ((event: { key: string; value: unknown }) => void) | undefined;
+const onDidChangeValueMock = vi
+  .fn()
+  .mockImplementation((listener: (event: { key: string; value: unknown }) => void) => {
+    contextChangeListener = listener;
+    return { dispose: vi.fn() };
+  });
+const context = {
+  getValue: getValueMock,
+  onDidChangeValue: onDidChangeValueMock,
+} as unknown as Context;
+
 beforeEach(async () => {
   vi.resetAllMocks();
   vi.clearAllMocks();
+  onDidChangeValueMock.mockImplementation((listener: (event: { key: string; value: unknown }) => void) => {
+    contextChangeListener = listener;
+    return { dispose: vi.fn() };
+  });
   getConfigurationDirectoryMock.mockReturnValue('/my-config-dir');
   getManagedDefaultsDirectoryMock.mockReturnValue('/usr/share/podman-desktop');
 
@@ -133,7 +155,13 @@ beforeEach(async () => {
   // Setup LockedConfiguration mock for the new functionality
   getLockedContentMock.mockResolvedValue({});
 
-  configurationRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+  configurationRegistry = new ConfigurationRegistry(
+    apiSender,
+    directories,
+    defaultConfiguration,
+    lockedConfiguration,
+    context,
+  );
   await configurationRegistry.init();
 
   const node: IConfigurationNode = {
@@ -251,7 +279,13 @@ test('should work with an invalid configuration file', async () => {
 
   getConfigurationDirectoryMock.mockReturnValue('/my-config-dir');
 
-  configurationRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+  configurationRegistry = new ConfigurationRegistry(
+    apiSender,
+    directories,
+    defaultConfiguration,
+    lockedConfiguration,
+    context,
+  );
   readFileSyncMock.mockReturnValue('invalid JSON content');
 
   // Mock promises methods for this test
@@ -488,7 +522,13 @@ describe('applyManagedDefaults function tests', () => {
     getContentMock.mockResolvedValue(managedDefaults);
 
     // Create the test registry
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // Setup the values
@@ -516,7 +556,13 @@ describe('applyManagedDefaults function tests', () => {
 
     getContentMock.mockResolvedValue(managedDefaults);
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const configurationValues = (
@@ -533,7 +579,13 @@ describe('applyManagedDefaults function tests', () => {
   test('make sure that the user config remains unchanged when defaults are empty', async () => {
     getContentMock.mockResolvedValue({});
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const configurationValues = (
@@ -556,7 +608,13 @@ describe('applyManagedDefaults function tests', () => {
     };
     getContentMock.mockResolvedValue(managedDefaults);
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
     const configurationValues = (
       testRegistry as unknown as { configurationValues: Map<string, { [key: string]: unknown }> }
@@ -586,7 +644,13 @@ describe('applyManagedDefaults function tests', () => {
 
     // Make sure that the console log is called when the settings are applied on each run
     try {
-      const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+      const testRegistry = new ConfigurationRegistry(
+        apiSender,
+        directories,
+        defaultConfiguration,
+        lockedConfiguration,
+        context,
+      );
       await testRegistry.init();
 
       expect(mockedConsoleLog).toHaveBeenCalledWith(
@@ -600,7 +664,13 @@ describe('applyManagedDefaults function tests', () => {
   });
 
   test('check the applyManagedDefaults returns array of applied keys', async () => {
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const configData: Record<string, unknown> = { existingKey: 'existingValue' };
@@ -632,7 +702,13 @@ describe('applyManagedDefaults function tests', () => {
 
     getContentMock.mockResolvedValue(managedDefaults);
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // saveDefault should have been called (via atomic write)
@@ -645,7 +721,13 @@ describe('applyManagedDefaults function tests', () => {
     // No managed defaults
     getContentMock.mockResolvedValue({});
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // saveDefault should NOT have been called (no rename means no atomic write was scheduled)
@@ -660,7 +742,13 @@ describe('applyManagedDefaults function tests', () => {
 
     getContentMock.mockResolvedValue(managedDefaults);
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // Register the configuration with schema default 'myDefault' (same as managed default)
@@ -703,7 +791,13 @@ describe('applyManagedDefaults function tests', () => {
 
     getContentMock.mockResolvedValue(managedDefaults);
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // Register the configuration with schema default 'myDefault' (different from managed default)
@@ -747,7 +841,13 @@ describe('Managed Defaults', () => {
     getContentMock.mockResolvedValue(managedDefaults);
 
     // Create new registry instance to test the managed defaults loading
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // Access private configurationValues to verify managed defaults were loaded
@@ -764,7 +864,13 @@ describe('Managed Defaults', () => {
     getContentMock.mockResolvedValue({});
 
     // Create new registry instance
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     // Access private configurationValues to verify empty managed defaults
@@ -793,6 +899,7 @@ describe('Managed Locked', () => {
       directories,
       defaultConfiguration,
       testLockedConfiguration,
+      context,
     );
     await testRegistry.init();
 
@@ -817,6 +924,7 @@ describe('Managed Locked', () => {
       directories,
       defaultConfiguration,
       testLockedConfiguration,
+      context,
     );
     await testRegistry.init();
 
@@ -841,6 +949,7 @@ describe('Managed Locked', () => {
       directories,
       defaultConfiguration,
       testLockedConfiguration,
+      context,
     );
     await testRegistry.init();
 
@@ -907,7 +1016,13 @@ describe('configuration.override from product.json', () => {
       },
     };
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const node: IConfigurationNode = {
@@ -946,7 +1061,13 @@ describe('configuration.override from product.json', () => {
       },
     };
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const node: IConfigurationNode = {
@@ -987,7 +1108,13 @@ describe('configuration.override from product.json', () => {
       },
     };
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const nodes: IConfigurationNode[] = [
@@ -1040,7 +1167,13 @@ describe('configuration.override from product.json', () => {
     // Empty configuration.override
     (vi.mocked(product).configuration.override as { [key: string]: Partial<IConfigurationPropertySchema> }) = {};
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const node: IConfigurationNode = {
@@ -1074,7 +1207,13 @@ describe('configuration.override from product.json', () => {
       | { [key: string]: Partial<IConfigurationPropertySchema> }
       | undefined) = undefined;
 
-    const testRegistry = new ConfigurationRegistry(apiSender, directories, defaultConfiguration, lockedConfiguration);
+    const testRegistry = new ConfigurationRegistry(
+      apiSender,
+      directories,
+      defaultConfiguration,
+      lockedConfiguration,
+      context,
+    );
     await testRegistry.init();
 
     const node: IConfigurationNode = {
@@ -1114,7 +1253,7 @@ describe('declarative env:/file: defaults', () => {
     vi.mocked(homedir).mockReturnValue('/home/testuser');
   });
 
-  function registerWithDefault(defaultValue: unknown): IConfigurationPropertySchema | undefined {
+  function registerWithDefault(defaultValue: unknown, extensionId?: string): IConfigurationPropertySchema | undefined {
     const node: IConfigurationNode = {
       id: 'my-extension',
       title: 'My Extension',
@@ -1128,6 +1267,9 @@ describe('declarative env:/file: defaults', () => {
         },
       },
     };
+    if (extensionId) {
+      (node as IConfigurationNode & { extension: { id: string } }).extension = { id: extensionId };
+    }
     configurationRegistry.registerConfigurations([node]);
     return configurationRegistry.getConfigurationProperties()['my-extension.credentialsFile'];
   }
@@ -1281,5 +1423,128 @@ describe('declarative env:/file: defaults', () => {
     const property = registerWithDefault('file:~/.config/my-tool/credentials.json');
 
     expect(property?.default).toBeUndefined();
+  });
+
+  test('should resolve single context: string default when context value is set', () => {
+    getValueMock.mockReturnValue('hyperv');
+
+    const property = registerWithDefault('context:my-extension.defaultProvider', 'my-extension');
+
+    expect(property?.default).toBe('hyperv');
+    expect(getValueMock).toHaveBeenCalledWith('my-extension.defaultProvider');
+  });
+
+  test('should resolve single context: string default to undefined when context value is not set', () => {
+    getValueMock.mockReturnValue(undefined);
+
+    const property = registerWithDefault('context:my-extension.defaultProvider', 'my-extension');
+
+    expect(property?.default).toBeUndefined();
+  });
+
+  test('should resolve context: entry in array before falling through to env:', () => {
+    getValueMock.mockReturnValue('hyperv');
+
+    const property = registerWithDefault(['context:my-extension.defaultProvider', `env:${ENV_VAR}`], 'my-extension');
+
+    expect(property?.default).toBe('hyperv');
+  });
+
+  test('should skip empty context: value and fall through to env:', () => {
+    getValueMock.mockReturnValue('');
+    process.env[ENV_VAR] = '/from/env';
+
+    const property = registerWithDefault(['context:my-extension.defaultProvider', `env:${ENV_VAR}`], 'my-extension');
+
+    expect(property?.default).toBe('/from/env');
+  });
+
+  test('should skip unset context: value and fall through to env:', () => {
+    getValueMock.mockReturnValue(undefined);
+    process.env[ENV_VAR] = '/from/env';
+
+    const property = registerWithDefault(['context:my-extension.defaultProvider', `env:${ENV_VAR}`], 'my-extension');
+
+    expect(property?.default).toBe('/from/env');
+  });
+
+  test('should resolve context: with empty key to undefined', () => {
+    const property = registerWithDefault('context:', 'my-extension');
+
+    expect(property?.default).toBeUndefined();
+    expect(getValueMock).not.toHaveBeenCalled();
+  });
+
+  test('should reject non-string context values', () => {
+    getValueMock.mockReturnValue(42);
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const property = registerWithDefault('context:my-extension.defaultProvider', 'my-extension');
+
+    expect(property?.default).toBeUndefined();
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('non-string value'));
+  });
+
+  test('should warn when context key is outside extension scope', () => {
+    getValueMock.mockReturnValue('hyperv');
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    registerWithDefault('context:other-extension.provider', 'my-extension');
+
+    // The binding was rejected so no re-resolve will happen
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('outside the scope of extension'));
+  });
+
+  test('should re-resolve context: default when context value is set after registration', () => {
+    getValueMock.mockReturnValue(undefined);
+
+    const property = registerWithDefault('context:my-extension.defaultProvider', 'my-extension');
+    expect(property?.default).toBeUndefined();
+
+    // Simulate the extension setting the context value in activate()
+    getValueMock.mockReturnValue('hyperv');
+    contextChangeListener?.({ key: 'my-extension.defaultProvider', value: 'hyperv' });
+
+    const updatedProperty = configurationRegistry.getConfigurationProperties()['my-extension.credentialsFile'];
+    expect(updatedProperty?.default).toBe('hyperv');
+  });
+
+  test('should re-resolve context: default in array and update configuration value', () => {
+    getValueMock.mockReturnValue(undefined);
+
+    const property = registerWithDefault(['context:my-extension.defaultProvider', `env:${ENV_VAR}`], 'my-extension');
+    expect(property?.default).toBeUndefined();
+
+    // Simulate context value being set
+    getValueMock.mockReturnValue('wsl');
+    contextChangeListener?.({ key: 'my-extension.defaultProvider', value: 'wsl' });
+
+    const updatedProperty = configurationRegistry.getConfigurationProperties()['my-extension.credentialsFile'];
+    expect(updatedProperty?.default).toBe('wsl');
+
+    expect(configurationRegistry.getConfiguration('my-extension').get('credentialsFile')).toBe('wsl');
+  });
+
+  test('should not re-resolve when an unrelated context key changes', () => {
+    getValueMock.mockReturnValue(undefined);
+    registerWithDefault('context:my-extension.defaultProvider', 'my-extension');
+
+    contextChangeListener?.({ key: 'some.other.key', value: 'whatever' });
+
+    const property = configurationRegistry.getConfigurationProperties()['my-extension.credentialsFile'];
+    expect(property?.default).toBeUndefined();
+  });
+
+  test('should fire onDidUpdateConfiguration when context default is re-resolved', () => {
+    getValueMock.mockReturnValue(undefined);
+    registerWithDefault('context:my-extension.defaultProvider', 'my-extension');
+
+    const listener = vi.fn();
+    configurationRegistry.onDidUpdateConfiguration(listener);
+
+    getValueMock.mockReturnValue('hyperv');
+    contextChangeListener?.({ key: 'my-extension.defaultProvider', value: 'hyperv' });
+
+    expect(listener).toHaveBeenCalledWith({ properties: ['my-extension.credentialsFile'] });
   });
 });

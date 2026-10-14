@@ -16,9 +16,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 import type { ApiSenderType } from '@podman-desktop/core-api/api-sender';
-import { beforeEach, expect, test } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
 import { ConfigurationRegistry } from './configuration-registry.js';
+import type { Context } from './context/context.js';
 import type { DefaultConfiguration } from './default-configuration.js';
 import type { Directories } from './directories.js';
 import type { LockedConfiguration } from './locked-configuration.js';
@@ -33,6 +34,7 @@ beforeEach(() => {
     {} as Directories,
     {} as DefaultConfiguration,
     {} as LockedConfiguration,
+    { onDidChangeValue: vi.fn().mockReturnValue({ dispose: vi.fn() }) } as unknown as Context,
   );
   trayVisibility = new TrayVisibility(configurationRegistry);
 });

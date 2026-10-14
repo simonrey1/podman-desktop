@@ -21,13 +21,19 @@
  *--------------------------------------------------------------------------------------------*/
 // based on https://github.com/microsoft/vscode/blob/3eed9319874b7ca037128962593b6a8630869253/src/vs/platform/contextkey/browser/contextKeyService.ts
 
+import type { Event } from '@podman-desktop/core-api';
 import { ApiSenderType } from '@podman-desktop/core-api/api-sender';
 import type { IContext } from '@podman-desktop/core-api/context';
 import { inject, injectable } from 'inversify';
 
+import { Emitter } from '/@/plugin/events/emitter.js';
+
 @injectable()
 export class Context implements IContext {
   private _value: Record<string, unknown>;
+
+  private readonly _onDidChangeValue = new Emitter<{ key: string; value: unknown }>();
+  readonly onDidChangeValue: Event<{ key: string; value: unknown }> = this._onDidChangeValue.event;
 
   constructor(@inject(ApiSenderType) private apiSender: ApiSenderType) {
     this._value = {};
@@ -44,6 +50,7 @@ export class Context implements IContext {
         key,
         value,
       });
+      this._onDidChangeValue.fire({ key, value });
       return true;
     }
     return false;
