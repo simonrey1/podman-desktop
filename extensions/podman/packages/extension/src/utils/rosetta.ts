@@ -129,8 +129,16 @@ export class RosettaProvisioner {
     const args = machineName ? [machineName] : [];
     // Stop/start errors propagate — the machine state has changed and the
     // caller must not report a stale status.
-    await execPodman(['machine', 'stop', ...args], vmType);
-    await execPodman(['machine', 'start', ...args], vmType, options);
+    // Use `podman machine restart` when available (Podman ≥ 6.1.0) for a
+    // single atomic operation; fall back to stop + start on older versions.
+    const binaryInfo = await this.podmanBinary.getBinaryInfo();
+    const PODMAN_MINIMUM_VERSION_FOR_MACHINE_RESTART = '6.1.0';
+    if (binaryInfo?.version && compare(binaryInfo.version, PODMAN_MINIMUM_VERSION_FOR_MACHINE_RESTART) >= 0) {
+      await execPodman(['machine', 'restart', ...args], vmType, options);
+    } else {
+      await execPodman(['machine', 'stop', ...args], vmType);
+      await execPodman(['machine', 'start', ...args], vmType, options);
+    }
     return true;
   }
 
