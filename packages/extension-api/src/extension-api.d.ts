@@ -378,6 +378,7 @@ declare module '@podman-desktop/api' {
   export interface ProviderConnectionLifecycle {
     start?(startContext: LifecycleContext, logger?: Logger): Promise<void>;
     stop?(stopContext: LifecycleContext, logger?: Logger): Promise<void>;
+    restart?(restartContext: LifecycleContext, logger?: Logger): Promise<void>;
     delete?(logger?: Logger): Promise<void>;
     edit?(
       editContext: LifecycleContext,

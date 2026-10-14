@@ -69,17 +69,31 @@ async function restartConnectionProvider(
   if (providerConnectionInfo.status === 'started') {
     updateConnectionStatus(provider, providerConnectionInfo, 'restart');
     const loggerHandlerKey = registerConnectionCallback(getLoggerHandler(provider, providerConnectionInfo));
-    await window.stopProviderConnectionLifecycle(
-      provider.internalId,
-      $state.snapshot(providerConnectionInfo),
-      loggerHandlerKey,
-      eventCollect,
-    );
-    addConnectionToRestartingQueue({
-      container: providerConnectionInfo.name,
-      provider: provider.internalId,
-      loggerHandlerKey,
-    });
+
+    if (providerConnectionInfo.lifecycleMethods?.includes('restart')) {
+      try {
+        await window.restartProviderConnectionLifecycle(
+          provider.internalId,
+          $state.snapshot(providerConnectionInfo),
+          loggerHandlerKey,
+          eventCollect,
+        );
+      } catch (e) {
+        console.error(e);
+      }
+    } else {
+      await window.stopProviderConnectionLifecycle(
+        provider.internalId,
+        $state.snapshot(providerConnectionInfo),
+        loggerHandlerKey,
+        eventCollect,
+      );
+      addConnectionToRestartingQueue({
+        container: providerConnectionInfo.name,
+        provider: provider.internalId,
+        loggerHandlerKey,
+      });
+    }
   }
 }
 

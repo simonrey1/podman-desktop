@@ -46,7 +46,9 @@ let rosettaProvisioner: RosettaProvisioner;
 beforeEach(() => {
   vi.resetAllMocks();
 
-  const podmanBinary = {} as PodmanBinary;
+  const podmanBinary = {
+    getBinaryInfo: vi.fn().mockResolvedValue({ version: '5.6.0' }),
+  } as unknown as PodmanBinary;
   rosettaProvisioner = new RosettaProvisioner(podmanBinary);
 });
 
@@ -402,5 +404,32 @@ describe('provisionAndRestartForRosetta', () => {
     await expect(
       rosettaProvisioner.provisionAndRestartForRosetta(machineName, vmType, podmanConfiguration, podmanVersion),
     ).rejects.toThrow('start failed');
+  });
+
+  test('uses podman machine restart when Podman >= 6.1.0', async () => {
+    vi.mocked(envAPI).isMac = true;
+    vi.mocked(arch).mockReturnValue('arm64');
+    vi.mocked(release).mockReturnValue(tahoeRelease);
+    vi.mocked(podmanConfiguration.isRosettaEnabled).mockResolvedValue(true);
+
+    // Override getBinaryInfo to return Podman 6.1.0
+    (rosettaProvisioner as unknown as { podmanBinary: { getBinaryInfo: ReturnType<typeof vi.fn> } }).podmanBinary.getBinaryInfo.mockResolvedValue({ version: '6.1.0' });
+
+    // test -f fails → file missing; touch succeeds; restart succeeds
+    vi.mocked(execPodman)
+      .mockRejectedValueOnce(new Error('exit code 1'))
+      .mockResolvedValueOnce({ stdout: '', stderr: '', command: '' } as RunResult)
+      .mockResolvedValueOnce({ stdout: '', stderr: '', command: '' } as RunResult);
+
+    const result = await rosettaProvisioner.provisionAndRestartForRosetta(
+      machineName,
+      vmType,
+      podmanConfiguration,
+      podmanVersion,
+    );
+    expect(result).toBe(true);
+    // ssh test -f, ssh sudo touch, machine restart (single command instead of stop + start)
+    expect(execPodman).toHaveBeenCalledTimes(3);
+    expect(execPodman).toHaveBeenNthCalledWith(3, ['machine', 'restart', machineName], vmType, undefined);
   });
 });
