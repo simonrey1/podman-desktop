@@ -792,6 +792,9 @@ export class ProviderRegistry {
       if (connection.lifecycle.stop) {
         lifecycleMethods.push('stop');
       }
+      if (connection.lifecycle.restart) {
+        lifecycleMethods.push('restart');
+      }
       if (connection.lifecycle.edit) {
         lifecycleMethods.push('edit');
       }
@@ -1311,6 +1314,46 @@ export class ProviderRegistry {
       console.warn(`Can't stop connection ${provider.id}.${providerConnectionInfo.name}`, err);
       const errorMessage = err instanceof Error ? err.message : String(err);
       this.connectionErrors.set(connection, errorMessage);
+    }
+  }
+
+  async restartProviderConnection(
+    internalProviderId: string,
+    providerConnectionInfo: ProviderConnectionInfo,
+    logHandler?: Logger,
+  ): Promise<void> {
+    const connection = this.getMatchingConnectionFromProvider(internalProviderId, providerConnectionInfo);
+
+    const lifecycle = connection.lifecycle;
+    if (!lifecycle?.restart) {
+      throw new Error('The container connection does not support restart lifecycle');
+    }
+
+    const context = this.connectionLifecycleContexts.get(connection);
+    if (!context) {
+      throw new Error('The connection does not have context to restart');
+    }
+
+    const provider = this.providers.get(internalProviderId);
+    if (!provider) {
+      throw new Error('Cannot find provider');
+    }
+
+    try {
+      this.fireConnectionUpdateEvent(provider.id, providerConnectionInfo, 'stopped');
+      await lifecycle.restart(context, logHandler);
+      this.connectionErrors.delete(connection);
+      if (this.isProviderContainerConnection(providerConnectionInfo)) {
+        this.fireUpdateContainerConnectionEvents(provider.id, providerConnectionInfo);
+      } else {
+        this.fireConnectionUpdateEvent(provider.id, providerConnectionInfo, 'started');
+      }
+    } catch (err) {
+      console.warn(`Can't restart connection ${provider.id}.${providerConnectionInfo.name}`, err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.connectionErrors.set(connection, errorMessage);
+      this.fireConnectionUpdateEvent(provider.id, providerConnectionInfo, 'unknown', errorMessage);
+      throw err;
     }
   }
 

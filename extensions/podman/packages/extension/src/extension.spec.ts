@@ -1195,6 +1195,31 @@ describe('startMachine rosetta enable-file provisioning', () => {
   });
 });
 
+describe('restartMachine', () => {
+  test.each([
+    {
+      podmanVersion: '6.1.0',
+      expectedCommands: [['machine', 'restart', 'name']],
+    },
+    {
+      podmanVersion: '6.0.0',
+      expectedCommands: [
+        ['machine', 'stop', 'name'],
+        ['machine', 'start', 'name'],
+      ],
+    },
+  ])('uses the supported restart command for Podman $podmanVersion', async ({ podmanVersion, expectedCommands }) => {
+    const execMock = vi.spyOn(extensionApi.process, 'exec').mockResolvedValue({} as extensionApi.RunResult);
+    vi.mocked(PODMAN_BINARY_MOCK.getBinaryInfo).mockResolvedValue({ version: podmanVersion } as InstalledPodman);
+    vi.mocked(ROSETTA_PROVISIONER_MOCK.provisionAndRestartForRosetta).mockResolvedValue(false);
+
+    await extension.restartMachine(provider, podmanConfiguration, machineInfo);
+
+    expect(ROSETTA_PROVISIONER_MOCK.checkRosettaMacArm).toHaveBeenCalledWith(podmanConfiguration);
+    expect(execMock.mock.calls.map(([, args]) => args)).toEqual(expectedCommands);
+  });
+});
+
 describe('on Linux, startMachine and stopMachine should not update provider status', () => {
   beforeEach(() => {
     vi.spyOn(provider, 'updateStatus').mockImplementation(() => {});

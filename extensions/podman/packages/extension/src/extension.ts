@@ -869,6 +869,15 @@ export async function registerProviderFor(
         throw err;
       }
     },
+    restart: async (context, logger): Promise<void> => {
+      try {
+        await restartMachine(provider, podmanConfiguration, machineInfo, context, logger);
+        containerProviderConnection.error = undefined;
+      } catch (err) {
+        containerProviderConnection.error = err instanceof Error ? err.message : String(err);
+        throw err;
+      }
+    },
     delete: async (logger): Promise<void> => {
       try {
         await execPodman(['machine', 'rm', '-f', machineInfo.name], machineInfo.vmType, {
@@ -1069,6 +1078,67 @@ export async function stopMachine(
     const endTime = performance.now();
     telemetryRecords.duration = endTime - startTime;
     sendTelemetryRecords('podman.machine.stop', telemetryRecords, false);
+  }
+}
+
+const PODMAN_MINIMUM_VERSION_FOR_MACHINE_RESTART = '6.1.0';
+
+export function isMachineRestartSupported(podmanVersion: string): boolean {
+  return compare(podmanVersion, PODMAN_MINIMUM_VERSION_FOR_MACHINE_RESTART) >= 0;
+}
+
+export async function restartMachine(
+  provider: extensionApi.Provider,
+  podmanConfiguration: PodmanConfiguration,
+  machineInfo: MachineInfo,
+  context?: extensionApi.LifecycleContext,
+  logger?: extensionApi.Logger,
+): Promise<void> {
+  const startTime = performance.now();
+  const telemetryRecords: Record<string, unknown> = {};
+  telemetryRecords.provider = machineInfo.vmType;
+
+  try {
+    await rosettaProvisioner.checkRosettaMacArm(podmanConfiguration);
+
+    const podmanInstallation = await podmanBinary.getBinaryInfo();
+    const podmanVersion = podmanInstallation?.version;
+
+    const runOptions: extensionApi.RunOptions = {
+      logger: new LoggerDelegator(context, logger),
+    };
+
+    if (podmanVersion && isMachineRestartSupported(podmanVersion)) {
+      telemetryRecords.nativeRestart = true;
+      await execPodman(['machine', 'restart', machineInfo.name], machineInfo.vmType, runOptions);
+    } else {
+      telemetryRecords.nativeRestart = false;
+      await execPodman(['machine', 'stop', machineInfo.name], machineInfo.vmType, runOptions);
+      await execPodman(['machine', 'start', machineInfo.name], machineInfo.vmType, runOptions);
+    }
+
+    // Re-provision Rosetta after restart if needed
+    if (podmanVersion) {
+      await rosettaProvisioner.provisionAndRestartForRosetta(
+        machineInfo.name,
+        machineInfo.vmType,
+        podmanConfiguration,
+        podmanVersion,
+        { logger: new LoggerDelegator(context, logger) },
+      );
+    }
+
+    if (!extensionApi.env.isLinux) {
+      provider.updateStatus('started');
+    }
+  } catch (err) {
+    telemetryRecords.error = err;
+    await doHandleError(provider, machineInfo, podmanConfiguration, typeof err === 'string' ? err : (err as RunError));
+    throw err;
+  } finally {
+    const endTime = performance.now();
+    telemetryRecords.duration = endTime - startTime;
+    sendTelemetryRecords('podman.machine.restart', telemetryRecords, true);
   }
 }
 

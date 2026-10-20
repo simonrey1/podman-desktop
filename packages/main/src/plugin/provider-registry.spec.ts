@@ -1636,6 +1636,52 @@ test('should send events when stopping a container connection', async () => {
   expect(onAfterDidUpdateContainerConnectionCalled).toBeTruthy();
 });
 
+test('should report a failed restart and propagate its error', async () => {
+  const provider = providerRegistry.createProvider('id', 'name', {
+    id: 'internal',
+    name: 'internal',
+    status: 'installed',
+  });
+  const connection: ProviderContainerConnectionInfo = {
+    connectionType: 'container',
+    name: 'connection',
+    displayName: 'connection',
+    type: 'podman',
+    endpoint: {
+      socketPath: '/endpoint1.sock',
+    },
+    canStart: false,
+    canStop: false,
+    canEdit: false,
+    canDelete: false,
+    status: 'started',
+  };
+  const restartError = new Error('restart failed');
+  const restartMock = vi.fn().mockRejectedValue(restartError);
+
+  provider.registerContainerProviderConnection({
+    name: connection.name,
+    displayName: connection.displayName,
+    type: connection.type,
+    lifecycle: { restart: restartMock },
+    endpoint: connection.endpoint,
+    status: () => 'started',
+  });
+
+  const updates: { status: ProviderConnectionStatus; error?: string }[] = [];
+  providerRegistry.onDidUpdateContainerConnection(event => {
+    updates.push({ status: event.status, error: event.error });
+  });
+
+  await expect(providerRegistry.restartProviderConnection('0', connection)).rejects.toBe(restartError);
+
+  expect(restartMock).toHaveBeenCalledOnce();
+  expect(updates).toEqual([
+    { status: 'stopped', error: undefined },
+    { status: 'unknown', error: 'restart failed' },
+  ]);
+});
+
 test('should send events when container connection status change', async () => {
   const provider = providerRegistry.createProvider('id', 'name', {
     id: 'internal',
