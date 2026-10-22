@@ -23,6 +23,7 @@ import { env as envAPI, process as processAPI, window as windowAPI } from '@podm
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { PodmanConfiguration } from './podman-configuration';
+import { PodmanMachineLifecycle } from './podman-machine-lifecycle';
 import { RosettaProvisioner } from './rosetta';
 import { execPodman } from './util';
 
@@ -45,7 +46,7 @@ let rosettaProvisioner: RosettaProvisioner;
 beforeEach(() => {
   vi.resetAllMocks();
 
-  rosettaProvisioner = new RosettaProvisioner();
+  rosettaProvisioner = new RosettaProvisioner(new PodmanMachineLifecycle());
 });
 
 describe('checkRosettaMacArm', async () => {
