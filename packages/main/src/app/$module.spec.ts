@@ -16,9 +16,11 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import { ApiSenderType } from '@desktop-framework/api/api-sender';
 import { Container } from 'inversify';
 import { expect, test } from 'vitest';
 
+import { ApiSender } from '/@/app/api-sender.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 
 import { module } from './$module.js';
@@ -31,4 +33,11 @@ test('should bind a single main window deferred', () => {
 
   expect(deferred.promise).toBeInstanceOf(Promise);
   expect(container.get(MainWindowDeferred)).toBe(deferred);
+});
+
+test('should bind the api sender as the ApiSenderType singleton', () => {
+  const container = new Container();
+  container.load(module);
+
+  expect(container.get(ApiSenderType)).toBe(container.get(ApiSender));
 });

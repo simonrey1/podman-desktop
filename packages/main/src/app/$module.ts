@@ -16,12 +16,16 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import { ApiSenderType } from '@desktop-framework/api/api-sender';
 import type { BrowserWindow } from 'electron';
 import { ContainerModule } from 'inversify';
 
+import { ApiSender } from '/@/app/api-sender.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 
 const module = new ContainerModule(options => {
+  options.bind<ApiSender>(ApiSender).toSelf().inSingletonScope();
+  options.bind<ApiSenderType>(ApiSenderType).toService(ApiSender);
   options
     .bind<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred)
     .toConstantValue(Promise.withResolvers<BrowserWindow>());
