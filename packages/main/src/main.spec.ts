@@ -55,7 +55,11 @@ vi.mock(import('./system/window/window-handler.js'));
 vi.mock(import('./system/startup-install.js'));
 vi.mock(import('./plugin/util/read-tray-setting.js'));
 vi.mock(import('./tray-menu.js'));
-vi.mock(import('/@/app/security-restrictions.js'));
+vi.mock(import('/@/app/security-restrictions.js'), async importOriginal => {
+  const mod = await importOriginal();
+  mod.SecurityRestrictions.prototype.init = vi.fn();
+  return mod;
+});
 vi.mock(import('electron-context-menu'), () => ({
   default: vi.fn(),
 }));

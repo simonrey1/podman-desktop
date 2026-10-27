@@ -26,9 +26,8 @@ import type { AppPlugin } from '/@/app/app-plugin.js';
 import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
 import { DevIconBuilder } from '/@/app/dev-icon-builder.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
-import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { WindowPlugin } from '/@/app/window-plugin.js';
-import { ElectronApp as ElectronAppSymbol } from '/@/inject/symbol.js';
+import { ElectronApp as ElectronAppSymbol, StartupSymbol } from '/@/inject/symbol.js';
 import { restoreWindow } from '/@/mainWindow.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 import type { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
@@ -112,6 +111,9 @@ export class Main implements IDisposable {
   }
 
   protected init(additionalData: AdditionalData): void {
+    // instantiate the startup services (e.g. the security restrictions)
+    this.#container.getAll(StartupSymbol);
+
     this.#plugins.forEach(plugin => {
       plugin.onBeforeReady?.();
     });
@@ -125,12 +127,6 @@ export class Main implements IDisposable {
       this.app.quit();
       process.exit(0);
     }
-
-    /**
-     * Enable security restrictions according to Electron guidelines
-     */
-    const security = new SecurityRestrictions(this.app);
-    security.init();
 
     /**
      * Disable Hardware Acceleration for more power-save

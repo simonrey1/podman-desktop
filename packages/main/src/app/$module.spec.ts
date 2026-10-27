@@ -18,9 +18,11 @@
 
 import { ApiSenderType } from '@desktop-framework/api/api-sender';
 import { Container } from 'inversify';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { SecurityRestrictions } from '/@/app/security-restrictions.js';
+import { ElectronApp, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 
 import { module } from './$module.js';
@@ -40,4 +42,16 @@ test('should bind the api sender as the ApiSenderType singleton', () => {
   container.load(module);
 
   expect(container.get(ApiSenderType)).toBe(container.get(ApiSender));
+});
+
+test('should instantiate the security restrictions as a startup service', () => {
+  const app = { on: vi.fn() } as unknown as Electron.App;
+  const container = new Container();
+  container.bind(ElectronApp).toConstantValue(app);
+  container.load(module);
+
+  const startupServices = container.getAll(StartupSymbol);
+
+  expect(startupServices).toContainEqual(expect.any(SecurityRestrictions));
+  expect(app.on).toHaveBeenCalledWith('web-contents-created', expect.any(Function));
 });

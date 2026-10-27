@@ -18,3 +18,6 @@
 
 /** The Electron application, bound by Main. */
 export const ElectronApp = Symbol.for('ElectronApp');
+
+/** Services instantiated by Main when it starts, they do their work in their @postConstruct method. */
+export const StartupSymbol = Symbol.for('Startup');
