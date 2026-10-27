@@ -40,7 +40,13 @@ vi.mock(import('/@/app/app-identity-plugin.js'));
 vi.mock(import('/@/app/dev-icon-builder.js'));
 vi.mock(import('/@/util.js'));
 vi.mock(import('/@/mainWindow.js'));
-vi.mock(import('/@/app/protocol-launcher.js'));
+// keep the class (and its inversify metadata) so the container can build it, only its methods are mocked
+vi.mock(import('/@/app/protocol-launcher.js'), async importOriginal => {
+  const mod = await importOriginal();
+  mod.ProtocolLauncher.prototype.handleOpenUrl = vi.fn();
+  mod.ProtocolLauncher.prototype.handleAdditionalProtocolLauncherArgs = vi.fn();
+  return mod;
+});
 vi.mock(import('./plugin/index.js'));
 vi.mock(import('electron-util/main'), () => ({ aboutMenuItem: vi.fn() }));
 vi.mock(import('./application-menu-builder.js'));

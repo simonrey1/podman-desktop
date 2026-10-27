@@ -16,14 +16,17 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 import type { BrowserWindow } from 'electron';
+import { inject, injectable } from 'inversify';
 
+import { MainWindowDeferred } from '/@/plugin/api.js';
 import { isWindows } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 
+@injectable()
 export class ProtocolLauncher {
   private readonly protocol = product.urlProtocol;
 
-  constructor(private browserWindow: PromiseWithResolvers<BrowserWindow>) {}
+  constructor(@inject(MainWindowDeferred) private browserWindow: PromiseWithResolvers<BrowserWindow>) {}
 
   /**
    * if arg starts with '<protocol>://extension', replace it with '<protocol>:extension'

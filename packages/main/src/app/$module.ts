@@ -21,11 +21,13 @@ import type { BrowserWindow } from 'electron';
 import { ContainerModule } from 'inversify';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 
 const module = new ContainerModule(options => {
   options.bind<ApiSender>(ApiSender).toSelf().inSingletonScope();
   options.bind<ApiSenderType>(ApiSenderType).toService(ApiSender);
+  options.bind<ProtocolLauncher>(ProtocolLauncher).toSelf().inSingletonScope();
   options
     .bind<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred)
     .toConstantValue(Promise.withResolvers<BrowserWindow>());

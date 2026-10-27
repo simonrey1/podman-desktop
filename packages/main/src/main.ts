@@ -86,7 +86,7 @@ export class Main implements IDisposable {
     this.#container.bind<ElectronApp>(ElectronAppSymbol).toConstantValue(app);
     this.#container.load(appModule);
     this.mainWindowDeferred = this.#container.get<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred);
-    this.protocolLauncher = new ProtocolLauncher(this.mainWindowDeferred);
+    this.protocolLauncher = this.#container.get<ProtocolLauncher>(ProtocolLauncher);
     const identity = import.meta.env.DEV
       ? new AppIdentityDevPlugin(this.app, new DevIconBuilder(this.app.getAppPath()))
       : undefined;
