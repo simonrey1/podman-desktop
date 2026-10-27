@@ -25,8 +25,8 @@ import type { AppPlugin } from '/@/app/app-plugin.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { WindowPlugin } from '/@/app/window-plugin.js';
-import { restoreWindow } from '/@/mainWindow.js';
 import type { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
+import { restoreWindow } from '/@/system/window/main-window.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 
@@ -43,7 +43,7 @@ vi.mock(import('/@/app/app-identity.js'), async importOriginal => {
 });
 vi.mock(import('/@/app/dev-icon-builder.js'));
 vi.mock(import('/@/util.js'));
-vi.mock(import('/@/mainWindow.js'));
+vi.mock(import('/@/system/window/main-window.js'));
 // keep the class (and its inversify metadata) so the container can build it, only its methods are mocked
 vi.mock(import('/@/app/protocol-launcher.js'), async importOriginal => {
   const mod = await importOriginal();

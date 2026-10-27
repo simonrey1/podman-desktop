@@ -23,14 +23,15 @@ import type { BrowserWindowConstructorOptions, Rectangle } from 'electron';
 import { app, autoUpdater, BrowserWindow, ipcMain, nativeTheme, screen } from 'electron';
 import contextMenu from 'electron-context-menu';
 
-import { buildDevelopmentMenu } from './development-menu-builder.js';
-import { DevelopmentModeTracker } from './development-mode-tracker.js';
-import { NavigationItemsMenuBuilder } from './navigation-items-menu-builder.js';
-import { OpenDevTools } from './open-dev-tools.js';
-import type { ConfigurationRegistry } from './plugin/configuration-registry.js';
-import { LoginMinimizeHandler } from './system/window/login-minimize-handler.js';
-import type { WindowHandler } from './system/window/window-handler.js';
-import { isLinux, isMac, stoppedExtensions } from './util.js';
+import { buildDevelopmentMenu } from '/@/development-menu-builder.js';
+import { DevelopmentModeTracker } from '/@/development-mode-tracker.js';
+import { NavigationItemsMenuBuilder } from '/@/navigation-items-menu-builder.js';
+import { OpenDevTools } from '/@/open-dev-tools.js';
+import type { ConfigurationRegistry } from '/@/plugin/configuration-registry.js';
+import { isLinux, isMac, stoppedExtensions } from '/@/util.js';
+
+import { LoginMinimizeHandler } from './login-minimize-handler.js';
+import type { WindowHandler } from './window-handler.js';
 
 const openDevTools = new OpenDevTools();
 const loginMinimizeHandler = new LoginMinimizeHandler();

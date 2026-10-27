@@ -20,11 +20,11 @@ import type { App as ElectronApp, BrowserWindow, Event as ElectronEvent } from '
 import { assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { WindowPlugin } from '/@/app/window-plugin.js';
-import { createNewWindow, restoreWindow } from '/@/mainWindow.js';
+import { createNewWindow, restoreWindow } from '/@/system/window/main-window.js';
 import { isMac } from '/@/util.js';
 
 // mock createNewWindow & restoreWindow
-vi.mock(import('/@/mainWindow.js'));
+vi.mock(import('/@/system/window/main-window.js'));
 vi.mock(import('electron-context-menu'), () => ({
   default: vi.fn(),
 }));

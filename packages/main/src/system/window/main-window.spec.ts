@@ -21,21 +21,21 @@ import type Electron from 'electron';
 import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { DevelopmentModeTracker } from './development-mode-tracker.js';
-import { OpenDevTools } from './open-dev-tools.js';
-import type { ConfigurationRegistry } from './plugin/configuration-registry.js';
-import * as util from './util.js';
+import { DevelopmentModeTracker } from '/@/development-mode-tracker.js';
+import { OpenDevTools } from '/@/open-dev-tools.js';
+import type { ConfigurationRegistry } from '/@/plugin/configuration-registry.js';
+import * as util from '/@/util.js';
 
 vi.mock(import('electron-context-menu'), async () => ({
   default: vi.fn(),
 }));
-vi.mock(import('./development-menu-builder.js'));
-vi.mock(import('./development-mode-tracker.js'));
-vi.mock(import('./navigation-items-menu-builder.js'));
-vi.mock(import('./open-dev-tools.js'));
-vi.mock(import('./app/app-identity.js'));
+vi.mock(import('/@/development-menu-builder.js'));
+vi.mock(import('/@/development-mode-tracker.js'));
+vi.mock(import('/@/navigation-items-menu-builder.js'));
+vi.mock(import('/@/open-dev-tools.js'));
+vi.mock(import('/@/app/app-identity.js'));
 
-vi.mock(import('./util.js'), async () => ({
+vi.mock(import('/@/util.js'), async () => ({
   isLinux: vi.fn().mockReturnValue(false),
   isMac: vi.fn().mockReturnValue(false),
   isWindows: vi.fn().mockReturnValue(false),
@@ -98,7 +98,7 @@ function getHandler(mockOnFn: ReturnType<typeof vi.fn>, eventName: string): (...
 
 describe('createNewWindow', () => {
   test('should show window on normal launch', async () => {
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -116,7 +116,7 @@ describe('createNewWindow', () => {
     vi.mocked(util.isMac).mockReturnValue(true);
     process.argv = ['electron', '--minimize'];
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -136,7 +136,7 @@ describe('createNewWindow', () => {
       wasOpenedAtLogin: true,
     } as Electron.LoginItemSettings);
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -173,7 +173,7 @@ describe('createNewWindow', () => {
       wasOpenedAtLogin: true,
     } as Electron.LoginItemSettings);
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -210,7 +210,7 @@ describe('createNewWindow', () => {
       wasOpenedAtLogin: true,
     } as Electron.LoginItemSettings);
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -245,7 +245,7 @@ describe('createNewWindow', () => {
       wasOpenedAtLogin: true,
     } as Electron.LoginItemSettings);
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -280,7 +280,7 @@ describe('createNewWindow', () => {
       wasOpenedAtLogin: true,
     } as Electron.LoginItemSettings);
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -297,7 +297,7 @@ describe('createNewWindow', () => {
   test('should force quit on close when tray is disabled', async () => {
     vi.mocked(util.isLinux).mockReturnValue(true);
 
-    const { createNewWindow } = await import('./mainWindow.js');
+    const { createNewWindow } = await import('./main-window.js');
 
     await createNewWindow();
 
@@ -340,7 +340,7 @@ describe('createNewWindow', () => {
     });
 
     test('should show window via did-finish-load on Linux X11', async () => {
-      const { createNewWindow } = await import('./mainWindow.js');
+      const { createNewWindow } = await import('./main-window.js');
 
       await createNewWindow();
 
@@ -356,7 +356,7 @@ describe('createNewWindow', () => {
     test('should show window via did-finish-load on Linux Wayland', async () => {
       process.env['WAYLAND_DISPLAY'] = 'wayland-0';
 
-      const { createNewWindow } = await import('./mainWindow.js');
+      const { createNewWindow } = await import('./main-window.js');
 
       await createNewWindow();
 
@@ -370,7 +370,7 @@ describe('createNewWindow', () => {
     });
 
     test('should not register ready-to-show on Linux (avoids Wayland show() feedback loop)', async () => {
-      const { createNewWindow } = await import('./mainWindow.js');
+      const { createNewWindow } = await import('./main-window.js');
 
       await createNewWindow();
 
@@ -384,7 +384,7 @@ describe('createNewWindow', () => {
     test('should not register did-finish-load handler when not on Linux', async () => {
       vi.mocked(util.isLinux).mockReturnValue(false);
 
-      const { createNewWindow } = await import('./mainWindow.js');
+      const { createNewWindow } = await import('./main-window.js');
 
       await createNewWindow();
 
@@ -397,7 +397,7 @@ describe('createNewWindow', () => {
     test('should not show window via did-finish-load when --minimize flag is set', async () => {
       process.argv = ['electron', '--minimize'];
 
-      const { createNewWindow } = await import('./mainWindow.js');
+      const { createNewWindow } = await import('./main-window.js');
 
       await createNewWindow();
 
