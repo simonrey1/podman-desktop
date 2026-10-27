@@ -15,13 +15,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
-import type { Event, IDisposable } from '@desktop-framework/api';
+import type { Event } from '@desktop-framework/api';
 import type { App as ElectronApp, BrowserWindow } from 'electron';
 import { ipcMain, Menu, Tray } from 'electron';
 import { Container } from 'inversify';
 
 import { module as appModule } from '/@/app/$module.js';
-import type { AppPlugin } from '/@/app/app-plugin.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { ElectronApp as ElectronAppSymbol, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
@@ -49,24 +48,13 @@ export type AdditionalData = {
 /**
  * The main Podman Desktop entry point
  */
-export class Main implements IDisposable {
+export class Main {
   // TODO: should be renamed to #app
   public app: ElectronApp;
   // TODO: should be renamed to #mainWindowDeferred
   public mainWindowDeferred: PromiseWithResolvers<BrowserWindow>;
   // TODO: should be renamed to #protocolLauncher
   public protocolLauncher: ProtocolLauncher;
-
-  /**
-   * Represents a collection of application plugins.
-   *
-   * Each plugin exposes a {@link AppPlugin#onReady} method called when {@link ElectronApp#whenReady} resolved.
-   *
-   * Plugins are {@link IDisposable} and are disposed when {@link ElectronApp#on('before-quit')} is emitted
-   *
-   * @type {Array<AppPlugin>}
-   */
-  readonly #plugins: Array<AppPlugin>;
 
   // application scope container, the plugin system works in a child container
   readonly #container = new Container();
@@ -82,7 +70,6 @@ export class Main implements IDisposable {
     this.#container.load(appModule);
     this.mainWindowDeferred = this.#container.get<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred);
     this.protocolLauncher = this.#container.get<ProtocolLauncher>(ProtocolLauncher);
-    this.#plugins = [];
   }
 
   main(args: string[]): void {
@@ -100,12 +87,8 @@ export class Main implements IDisposable {
   }
 
   protected init(additionalData: AdditionalData): void {
-    // instantiate the startup services (e.g. the security restrictions)
+    // instantiate the startup services (e.g. the security restrictions), before the single instance lock
     this.#container.getAll(StartupSymbol);
-
-    this.#plugins.forEach(plugin => {
-      plugin.onBeforeReady?.();
-    });
 
     /**
      * Prevent multiple instances
@@ -145,21 +128,16 @@ export class Main implements IDisposable {
     this.app.on('second-instance', this.onSecondInstance.bind(this));
     this.app.on('will-finish-launching', this.onWillFinishLaunching.bind(this));
     this.app.on('window-all-closed', this.onWindowAllClosed.bind(this));
-    this.app.on('before-quit', this.onBeforeQuit.bind(this));
     this.app.on('will-quit', this.onWillQuit.bind(this));
     this.app.once('before-quit', this.onBeforeQuitStopExtensions.bind(this));
 
-    /**
-     * Register {@link Main#whenReady} for ready event
-     */
-    this.app.whenReady().then(this.whenReady.bind(this)).catch(console.error);
     this.app
       .whenReady()
       .then(this.startPluginSystem.bind(this), (e: unknown) => console.error('Failed to start app:', e));
   }
 
   /**
-   * Starts the plugin system, once {@link ElectronApp#whenReady} resolved and the plugins started
+   * Starts the plugin system, once {@link ElectronApp#whenReady} resolved
    */
   protected async startPluginSystem(): Promise<void> {
     // Setup the default tray icon + menu items (skip if user disabled tray)
@@ -256,17 +234,6 @@ export class Main implements IDisposable {
   }
 
   /**
-   * Waits for all plugins to complete their initialization and become ready.
-   *
-   * This method calls for each plugin their corresponding {@link AppPlugin#onReady} method.
-   *
-   * @return {Promise<Array<void>>}
-   */
-  protected async whenReady(): Promise<Array<void>> {
-    return Promise.all(this.#plugins.map(plugin => plugin.onReady()));
-  }
-
-  /**
    * Listener for {@link ElectronApp.on('second-instance')} event
    * do not use _args as it may contain additional arguments
    */
@@ -306,16 +273,5 @@ export class Main implements IDisposable {
     if (!isMac()) {
       this.app.quit();
     }
-  }
-
-  /**
-   * Listener for {@link ElectronApp.on('before-quit')} event
-   */
-  protected onBeforeQuit(): void {
-    this.dispose();
-  }
-
-  dispose(): void {
-    this.#plugins.forEach(plugin => plugin.dispose());
   }
 }
