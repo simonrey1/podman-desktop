@@ -175,7 +175,7 @@ import { Updater } from '/@/plugin/updater.js';
 import { Welcome } from '/@/plugin/welcome.js';
 import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
 import { module as startupModule } from '/@/system/startup/$module.js';
-import { TrayMenu } from '/@/system/tray/tray-menu.js';
+import { module as trayModule } from '/@/system/tray/$module.js';
 import { module as windowModule } from '/@/system/window/$module.js';
 import { createHash, isMac } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
@@ -310,10 +310,7 @@ export class PluginSystem {
   private extensionLoader!: ExtensionLoader;
   private validExtList!: ExtensionInfo[];
 
-  constructor(
-    private trayMenu: TrayMenu,
-    private parentContainer: Container,
-  ) {
+  constructor(private parentContainer: Container) {
     app.on('before-quit', () => {
       this.isQuitting = true;
     });
@@ -494,11 +491,11 @@ export class PluginSystem {
     const container = new Container({ parent: this.parentContainer });
     container.load(windowModule);
     container.load(startupModule);
+    container.load(trayModule);
     const apiSender = container.get<ApiSender>(ApiSender);
     this.apiSender = apiSender;
     container.bind<IPCHandle>(IPCHandle).toConstantValue(this.ipcHandle);
     container.bind<IPCMainOn>(IPCMainOn).toConstantValue(this.ipcMainOn);
-    container.bind<TrayMenu>(TrayMenu).toConstantValue(this.trayMenu);
     container.bind<IconRegistry>(IconRegistry).toSelf().inSingletonScope();
     const directoryStrategy = new DirectoryStrategy();
     if (directoryStrategy.shouldUseXDGDirectories()) {
