@@ -36,6 +36,7 @@ import { ZoomLevelHandler } from '/@/plugin/zoom-level-handler.js';
 import { isLinux, isMac, stoppedExtensions } from '/@/util.js';
 
 import { LoginMinimizeHandler } from './login-minimize-handler.js';
+import { RendererV2Configuration } from './renderer-v2-configuration.js';
 import { WindowHandler } from './window-handler.js';
 
 const openDevTools = new OpenDevTools();
@@ -45,6 +46,8 @@ let navigationItemsMenuBuilder: NavigationItemsMenuBuilder;
 // development mode for extensions
 export interface WindowConfig {
   icon?: Electron.NativeImage;
+  // load packages/renderer-v2 instead of packages/renderer
+  useRendererV2?: boolean;
 }
 
 let isExtensionsDevelopmentModeEnabled = false;
@@ -227,17 +230,7 @@ async function createWindow(
     },
   });
 
-  /**
-   * URL for main window.
-   * Vite dev server for development.
-   * `file://../renderer/index.html` for production and test
-   */
-  const pageUrl =
-    import.meta.env.DEV && import.meta.env.VITE_DEV_SERVER_URL !== undefined
-      ? import.meta.env.VITE_DEV_SERVER_URL
-      : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
-
-  await browserWindow.loadURL(pageUrl);
+  await browserWindow.loadURL(getRendererUrl(config?.useRendererV2 ?? false));
 
   // save and restore the window position and size
   const windowHandler = new WindowHandler(configurationRegistry, browserWindow);
@@ -255,6 +248,21 @@ async function createWindow(
   }
 
   return browserWindow;
+}
+
+/**
+ * URL for main window.
+ * Vite dev server for development.
+ * `file://../renderer/dist/index.html` for production and test,
+ * `file://../renderer-v2/dist/index.html` when the experimental renderer v2 is enabled.
+ */
+export function getRendererUrl(useRendererV2: boolean): string {
+  const devServerUrl = useRendererV2 ? import.meta.env.VITE_DEV_SERVER_URL_V2 : import.meta.env.VITE_DEV_SERVER_URL;
+  if (import.meta.env.DEV && devServerUrl !== undefined) {
+    return devServerUrl;
+  }
+  const rendererFolder = useRendererV2 ? 'renderer-v2' : 'renderer';
+  return new URL(`../${rendererFolder}/dist/index.html`, 'file://' + __dirname).toString();
 }
 
 // Create a new window if there is no existing window
@@ -285,6 +293,8 @@ export class MainWindow {
     @inject(AppIdentity)
     @optional()
     private readonly appIdentity: AppIdentity | undefined,
+    @inject(RendererV2Configuration)
+    private readonly rendererV2Configuration: RendererV2Configuration,
   ) {}
 
   @postConstruct()
@@ -314,7 +324,10 @@ export class MainWindow {
   }
 
   protected createWindow(): void {
-    createNewWindow(this.configurationRegistry, this.apiSender, { icon: this.appIdentity?.getWindowIcon() })
+    createNewWindow(this.configurationRegistry, this.apiSender, {
+      icon: this.appIdentity?.getWindowIcon(),
+      useRendererV2: this.rendererV2Configuration.isEnabled(),
+    })
       .then(browserWindow => {
         this.#browserWindow = browserWindow;
       })

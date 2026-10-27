@@ -32,6 +32,10 @@ interface ImportMetaEnv {
    * The value of the variable is set in scripts/watch.js and depend on packages/main/vite.config.js
    */
   readonly VITE_DEV_SERVER_URL: undefined | string;
+  /**
+   * Dev server URL of the experimental renderer v2 (packages/renderer-v2), set in scripts/watch.mjs
+   */
+  readonly VITE_DEV_SERVER_URL_V2: undefined | string;
 }
 
 interface ImportMeta {

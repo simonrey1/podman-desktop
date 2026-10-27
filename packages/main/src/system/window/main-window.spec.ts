@@ -29,7 +29,8 @@ import type { ConfigurationRegistry } from '/@/plugin/configuration-registry.js'
 import { ZoomLevelHandler } from '/@/plugin/zoom-level-handler.js';
 import * as util from '/@/util.js';
 
-import { MainWindow } from './main-window.js';
+import { getRendererUrl, MainWindow } from './main-window.js';
+import { RendererV2Configuration } from './renderer-v2-configuration.js';
 import { WindowHandler } from './window-handler.js';
 
 vi.mock(import('electron-context-menu'), async () => ({
@@ -353,7 +354,12 @@ describe('window set-up', () => {
 describe('MainWindow', () => {
   test('should create the window, expose it once loaded and deliver the api sender events to its page', async () => {
     const apiSender = new ApiSender();
-    const mainWindow = new MainWindow(configurationRegistry, apiSender, undefined);
+    const mainWindow = new MainWindow(
+      configurationRegistry,
+      apiSender,
+      undefined,
+      new RendererV2Configuration(configurationRegistry),
+    );
     mainWindow.init();
 
     await vi.waitFor(() => expect(mainWindow.browserWindow).toBeDefined());
@@ -370,7 +376,12 @@ describe('MainWindow', () => {
   });
 
   test('should create a window on macOS activate when there is none', async () => {
-    const mainWindow = new MainWindow(configurationRegistry, new ApiSender(), undefined);
+    const mainWindow = new MainWindow(
+      configurationRegistry,
+      new ApiSender(),
+      undefined,
+      new RendererV2Configuration(configurationRegistry),
+    );
     mainWindow.init();
     await vi.waitFor(() => expect(mainWindow.browserWindow).toBeDefined());
     vi.mocked(BrowserWindow).mockClear();
@@ -378,5 +389,47 @@ describe('MainWindow', () => {
     getHandler(vi.mocked(app.on), 'activate')({}, true);
 
     await vi.waitFor(() => expect(BrowserWindow).toHaveBeenCalledOnce());
+  });
+});
+
+describe('renderer v2', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  test.each([
+    { useRendererV2: false, folder: 'renderer' },
+    { useRendererV2: true, folder: 'renderer-v2' },
+  ])('should load the $folder dist in production', ({ useRendererV2, folder }) => {
+    vi.stubEnv('DEV', false);
+
+    expect(getRendererUrl(useRendererV2)).toMatch(new RegExp(`/${folder}/dist/index\\.html$`));
+  });
+
+  test('should load the matching dev server in development', () => {
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('VITE_DEV_SERVER_URL', 'http://localhost:5173/');
+    vi.stubEnv('VITE_DEV_SERVER_URL_V2', 'http://localhost:5174/');
+
+    expect(getRendererUrl(false)).toBe('http://localhost:5173/');
+    expect(getRendererUrl(true)).toBe('http://localhost:5174/');
+  });
+
+  test('should load renderer v2 in the main window when the experimental flag is enabled', async () => {
+    vi.stubEnv('DEV', false);
+    preferences['enabled'] = {};
+    const mainWindow = new MainWindow(
+      configurationRegistry,
+      new ApiSender(),
+      undefined,
+      new RendererV2Configuration(configurationRegistry),
+    );
+
+    mainWindow.init();
+
+    await vi.waitFor(() => expect(mainWindow.browserWindow).toBeDefined());
+    expect(mainWindow.browserWindow?.loadURL).toHaveBeenCalledWith(
+      expect.stringMatching(/\/renderer-v2\/dist\/index\.html$/),
+    );
   });
 });

@@ -397,6 +397,19 @@ const setupExtensionApiWatcher = name => {
 
     await viteDevServer.listen();
 
+    // Experimental renderer v2 (SvelteKit). Its URL is passed to the main process,
+    // which loads it instead of the renderer when the 'rendererV2.enabled' setting is on.
+    const viteDevServerV2 = await createServer({
+      mode,
+      logLevel: LOG_LEVEL,
+      configFile: 'packages/renderer-v2/vite.config.ts',
+    });
+    await viteDevServerV2.listen();
+    const rendererV2Url = viteDevServerV2.resolvedUrls?.local[0];
+    if (rendererV2Url) {
+      process.env.VITE_DEV_SERVER_URL_V2 = rendererV2Url;
+    }
+
     // get extensions folder
     const extensionsFolder = resolve(__dirname, '../extensions/');
 

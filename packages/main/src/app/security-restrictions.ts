@@ -30,11 +30,13 @@ type PermissionRequestPermission = Parameters<NonNullable<Parameters<Session['se
 /**
  * List of origins that you allow open INSIDE the application and permissions for each of them.
  *
- * In development mode you need allow open `VITE_DEV_SERVER_URL`
+ * In development mode you need allow open `VITE_DEV_SERVER_URL` (and `VITE_DEV_SERVER_URL_V2` for the experimental renderer v2)
  */
 const ALLOWED_ORIGINS_AND_PERMISSIONS = new Map<string, Set<PermissionRequestPermission>>(
-  import.meta.env.DEV && import.meta.env.VITE_DEV_SERVER_URL
-    ? [[new URL(import.meta.env.VITE_DEV_SERVER_URL).origin, new Set(['clipboard-sanitized-write', 'clipboard-read'])]]
+  import.meta.env.DEV
+    ? [import.meta.env.VITE_DEV_SERVER_URL, import.meta.env.VITE_DEV_SERVER_URL_V2]
+        .filter((url): url is string => !!url)
+        .map(url => [new URL(url).origin, new Set(['clipboard-sanitized-write', 'clipboard-read'])])
     : [],
 );
 

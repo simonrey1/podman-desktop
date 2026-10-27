@@ -20,8 +20,10 @@ import { ContainerModule } from 'inversify';
 
 import { MainWindowSymbol, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindow } from '/@/system/window/main-window.js';
+import { RendererV2Configuration } from '/@/system/window/renderer-v2-configuration.js';
 
 const module = new ContainerModule(options => {
+  options.bind<RendererV2Configuration>(RendererV2Configuration).toSelf().inSingletonScope();
   options.bind<MainWindow>(MainWindow).toSelf().inSingletonScope();
   options.bind<MainWindow>(MainWindowSymbol).toService(MainWindow);
 
