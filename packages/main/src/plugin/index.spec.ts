@@ -105,11 +105,15 @@ vi.mock(import('./image-registry.js'), importOriginal => mockOriginalClass(impor
 let pluginSystem: TestPluginSystem;
 
 class TestPluginSystem extends PluginSystem {
+  // container given to initConfigurationRegistry by initExtensions
+  container: InversifyContainer | undefined;
+
   override async initConfigurationRegistry(
     container: InversifyContainer,
     notifications: NotificationCardOptions[],
     configurationRegistryEmitter: Emitter<ConfigurationRegistry>,
   ): Promise<ConfigurationRegistry> {
+    this.container = container;
     if (!container.isBound(ConfigurationRegistry)) {
       container.bind<ConfigurationRegistry>(ConfigurationRegistry).toSelf().inSingletonScope();
     }
@@ -225,6 +229,23 @@ test('Should drop the queued events when the window has been destroyed while the
   apiSender.send('bar', 'hello-again');
   expect(webContents.send).toHaveBeenCalledTimes(1);
   expect(webContents.send).toHaveBeenCalledWith('api-sender', 'bar', 'hello-again');
+});
+
+test('initExtensions resolves the services of the parent container', async () => {
+  const parent = new InversifyContainer();
+  const token = Symbol('parent-service');
+  parent.bind(token).toConstantValue('from-parent');
+  const childPluginSystem = new TestPluginSystem(
+    {} as unknown as TrayMenu,
+    Promise.withResolvers<BrowserWindow>(),
+    parent,
+  );
+
+  await childPluginSystem.initExtensions(new Emitter<ConfigurationRegistry>());
+
+  assert(childPluginSystem.container);
+  expect(childPluginSystem.container.get(token)).toBe('from-parent');
+  expect(parent.isBound(ConfigurationRegistry)).toBe(false);
 });
 
 test('Check SecurityRestrictions on Links and user accept', async () => {

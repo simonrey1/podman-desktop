@@ -313,6 +313,7 @@ export class PluginSystem {
   constructor(
     private trayMenu: TrayMenu,
     private mainWindowDeferred: PromiseWithResolvers<BrowserWindow>,
+    private parentContainer?: Container,
   ) {
     app.on('before-quit', () => {
       this.isQuitting = true;
@@ -563,7 +564,8 @@ export class PluginSystem {
 
     // init api sender
     const apiSender = this.getApiSender(this.getRequiredWebContentsSender());
-    const container = new Container();
+    // child of the application container: it can resolve the application services, not the other way around
+    const container = new Container({ parent: this.parentContainer });
     container.bind<ApiSenderType>(ApiSenderType).toConstantValue(apiSender);
     container.bind<IPCHandle>(IPCHandle).toConstantValue(this.ipcHandle);
     container.bind<IPCMainOn>(IPCMainOn).toConstantValue(this.ipcMainOn);

@@ -18,6 +18,7 @@
 import type { IConfigurationRegistry } from '@desktop-framework/api/configuration';
 import type { App as ElectronApp, BrowserWindow, Menu as ElectronMenu } from 'electron';
 import { Menu } from 'electron';
+import { Container } from 'inversify';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { restoreWindow } from '/@/mainWindow.js';
@@ -242,6 +243,15 @@ describe('plugin system', () => {
     main.mainWindowDeferred.resolve({} as BrowserWindow);
 
     await vi.waitFor(() => expect(Menu.setApplicationMenu).toHaveBeenCalledWith(menu));
+  });
+
+  test('should give the plugin system the application container', async () => {
+    new Main(ELECTRON_APP_MOCK).main([]);
+    whenReady.resolve();
+
+    await vi.waitFor(() =>
+      expect(PluginSystem).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.any(Container)),
+    );
   });
 
   test('should stop the extensions before quitting', async () => {

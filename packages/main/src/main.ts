@@ -18,6 +18,7 @@
 import type { Event, IDisposable } from '@desktop-framework/api';
 import type { App as ElectronApp, BrowserWindow } from 'electron';
 import { ipcMain, Menu, Tray } from 'electron';
+import { Container } from 'inversify';
 
 import { restoreWindow } from '/@/mainWindow.js';
 import { AppIdentityDevPlugin } from '/@/plugin/app-ready/app-identity-plugin.js';
@@ -68,6 +69,9 @@ export class Main implements IDisposable {
    * @type {Array<AppPlugin>}
    */
   readonly #plugins: Array<AppPlugin>;
+
+  // application scope container, the plugin system works in a child container
+  readonly #container = new Container();
 
   #extensionLoader: ExtensionLoader | undefined;
   #animatedTray: AnimatedTray | undefined;
@@ -181,7 +185,7 @@ export class Main implements IDisposable {
     const onDidCreatedConfigurationRegistry: Event<ConfigurationRegistry> = _onDidCreatedConfigurationRegistry.event;
 
     // Start extensions
-    const pluginSystem = new PluginSystem(trayMenu, this.mainWindowDeferred);
+    const pluginSystem = new PluginSystem(trayMenu, this.mainWindowDeferred, this.#container);
 
     onDidCreatedConfigurationRegistry(async (configurationRegistry: ConfigurationRegistry) => {
       // If we've manually set the tray icon color, update the tray icon. This can only be done
