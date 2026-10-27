@@ -47,7 +47,7 @@ vi.mock(import('/@/app/protocol-launcher.js'), async importOriginal => {
 });
 vi.mock(import('./plugin/index.js'));
 vi.mock(import('electron-util/main'), () => ({ aboutMenuItem: vi.fn() }));
-vi.mock(import('./system/startup-install.js'));
+vi.mock(import('./system/startup/startup-install.js'));
 vi.mock(import('./plugin/util/read-tray-setting.js'));
 vi.mock(import('./tray-menu.js'));
 vi.mock(import('/@/app/security-restrictions.js'), async importOriginal => {

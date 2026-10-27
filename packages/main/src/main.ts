@@ -32,7 +32,7 @@ import type { ConfigurationRegistry } from './plugin/configuration-registry.js';
 import { Emitter } from './plugin/events/emitter.js';
 import { PluginSystem } from './plugin/index.js';
 import { readShowTrayIconSetting } from './plugin/util/read-tray-setting.js';
-import { StartupInstall } from './system/startup-install.js';
+import { StartupInstall } from './system/startup/startup-install.js';
 import { AnimatedDevTray } from './tray-animate-dev-icon.js';
 import { AnimatedTray } from './tray-animate-icon.js';
 import { TrayMenu } from './tray-menu.js';
