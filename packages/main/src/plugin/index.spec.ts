@@ -35,6 +35,7 @@ import { Container as InversifyContainer } from 'inversify';
 import type { MockInstance } from 'vitest';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { MainWindowDeferred } from '/@/plugin/api.js';
 import { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { Updater } from '/@/plugin/updater.js';
 import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
@@ -153,7 +154,9 @@ beforeEach(async () => {
   webContents.send = vi.fn();
 
   mainWindowDeferred = Promise.withResolvers<BrowserWindow>();
-  pluginSystem = new TestPluginSystem({} as unknown as TrayMenu, mainWindowDeferred);
+  const applicationContainer = new InversifyContainer();
+  applicationContainer.bind(MainWindowDeferred).toConstantValue(mainWindowDeferred);
+  pluginSystem = new TestPluginSystem({} as unknown as TrayMenu, applicationContainer);
 
   vi.mocked(ipcMain.handle).mockImplementation((channel: string, listener: unknown) => {
     handlers.set(channel, listener);
@@ -235,11 +238,8 @@ test('initExtensions resolves the services of the parent container', async () =>
   const parent = new InversifyContainer();
   const token = Symbol('parent-service');
   parent.bind(token).toConstantValue('from-parent');
-  const childPluginSystem = new TestPluginSystem(
-    {} as unknown as TrayMenu,
-    Promise.withResolvers<BrowserWindow>(),
-    parent,
-  );
+  parent.bind(MainWindowDeferred).toConstantValue(Promise.withResolvers<BrowserWindow>());
+  const childPluginSystem = new TestPluginSystem({} as unknown as TrayMenu, parent);
 
   await childPluginSystem.initExtensions(new Emitter<ConfigurationRegistry>());
 

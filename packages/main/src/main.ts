@@ -20,6 +20,7 @@ import type { App as ElectronApp, BrowserWindow } from 'electron';
 import { ipcMain, Menu, Tray } from 'electron';
 import { Container } from 'inversify';
 
+import { module as appModule } from '/@/app/$module.js';
 import { AppIdentityDevPlugin } from '/@/app/app-identity-plugin.js';
 import type { AppPlugin } from '/@/app/app-plugin.js';
 import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
@@ -27,7 +28,9 @@ import { DevIconBuilder } from '/@/app/dev-icon-builder.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { WindowPlugin } from '/@/app/window-plugin.js';
+import { ElectronApp as ElectronAppSymbol } from '/@/inject/symbol.js';
 import { restoreWindow } from '/@/mainWindow.js';
+import { MainWindowDeferred } from '/@/plugin/api.js';
 import type { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
@@ -80,7 +83,9 @@ export class Main implements IDisposable {
   constructor(app: ElectronApp) {
     this.app = app;
     this.app.name = product.name;
-    this.mainWindowDeferred = Promise.withResolvers<BrowserWindow>();
+    this.#container.bind<ElectronApp>(ElectronAppSymbol).toConstantValue(app);
+    this.#container.load(appModule);
+    this.mainWindowDeferred = this.#container.get<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred);
     this.protocolLauncher = new ProtocolLauncher(this.mainWindowDeferred);
     const identity = import.meta.env.DEV
       ? new AppIdentityDevPlugin(this.app, new DevIconBuilder(this.app.getAppPath()))
@@ -185,7 +190,7 @@ export class Main implements IDisposable {
     const onDidCreatedConfigurationRegistry: Event<ConfigurationRegistry> = _onDidCreatedConfigurationRegistry.event;
 
     // Start extensions
-    const pluginSystem = new PluginSystem(trayMenu, this.mainWindowDeferred, this.#container);
+    const pluginSystem = new PluginSystem(trayMenu, this.#container);
 
     onDidCreatedConfigurationRegistry(async (configurationRegistry: ConfigurationRegistry) => {
       // If we've manually set the tray icon color, update the tray icon. This can only be done

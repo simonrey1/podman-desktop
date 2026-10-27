@@ -249,9 +249,7 @@ describe('plugin system', () => {
     new Main(ELECTRON_APP_MOCK).main([]);
     whenReady.resolve();
 
-    await vi.waitFor(() =>
-      expect(PluginSystem).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.any(Container)),
-    );
+    await vi.waitFor(() => expect(PluginSystem).toHaveBeenCalledWith(expect.anything(), expect.any(Container)));
   });
 
   test('should stop the extensions before quitting', async () => {

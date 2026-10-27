@@ -159,7 +159,7 @@ import { app, BrowserWindow, clipboard, ipcMain, shell } from 'electron';
 import type { IpcMainInvokeEvent } from 'electron/main';
 import { Container } from 'inversify';
 
-import { IPCHandle, IPCMainOn, MainWindowDeferred } from '/@/plugin/api.js';
+import { IPCHandle, IPCMainOn } from '/@/plugin/api.js';
 import { ContainerfileParser } from '/@/plugin/containerfile-parser.js';
 import { ExtensionApiVersion } from '/@/plugin/extension/extension-api-version.js';
 import { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
@@ -312,8 +312,7 @@ export class PluginSystem {
 
   constructor(
     private trayMenu: TrayMenu,
-    private mainWindowDeferred: PromiseWithResolvers<BrowserWindow>,
-    private parentContainer?: Container,
+    private parentContainer: Container,
   ) {
     app.on('before-quit', () => {
       this.isQuitting = true;
@@ -824,7 +823,6 @@ export class PluginSystem {
     const webviewRegistry = container.get<WebviewRegistry>(WebviewRegistry);
     await webviewRegistry.start();
 
-    container.bind<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred).toConstantValue(this.mainWindowDeferred);
     container.bind<DialogRegistry>(DialogRegistry).toSelf().inSingletonScope();
 
     const dialogRegistry = container.get<DialogRegistry>(DialogRegistry);
