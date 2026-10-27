@@ -31,7 +31,6 @@ import { buildDevelopmentMenu } from '/@/development-menu-builder.js';
 import { DevelopmentModeTracker } from '/@/development-mode-tracker.js';
 import { NavigationItemsMenuBuilder } from '/@/navigation-items-menu-builder.js';
 import { OpenDevTools } from '/@/open-dev-tools.js';
-import { MainWindowDeferred } from '/@/plugin/api.js';
 import { ConfigurationRegistry } from '/@/plugin/configuration-registry.js';
 import { ZoomLevelHandler } from '/@/plugin/zoom-level-handler.js';
 import { isLinux, isMac, stoppedExtensions } from '/@/util.js';
@@ -271,18 +270,18 @@ export async function createNewWindow(
 }
 
 /**
- * Creates the main window once the configuration registry is available, and resolves {@link MainWindowDeferred}
- * when its page is loaded. It is a startup service of the plugin system container.
+ * Creates the main window once the configuration registry is available, and gives access to it once its page
+ * is loaded. It is a startup service of the plugin system container.
  */
 @injectable()
 export class MainWindow {
+  #browserWindow: BrowserWindow | undefined;
+
   constructor(
     @inject(ConfigurationRegistry)
     private readonly configurationRegistry: ConfigurationRegistry,
     @inject(ApiSender)
     private readonly apiSender: ApiSender,
-    @inject(MainWindowDeferred)
-    private readonly mainWindowDeferred: PromiseWithResolvers<BrowserWindow>,
     @inject(AppIdentity)
     @optional()
     private readonly appIdentity: AppIdentity | undefined,
@@ -309,9 +308,16 @@ export class MainWindow {
     });
   }
 
+  /** The main window, once its page is loaded. */
+  get browserWindow(): BrowserWindow | undefined {
+    return this.#browserWindow;
+  }
+
   protected createWindow(): void {
     createNewWindow(this.configurationRegistry, this.apiSender, { icon: this.appIdentity?.getWindowIcon() })
-      .then(this.mainWindowDeferred.resolve)
+      .then(browserWindow => {
+        this.#browserWindow = browserWindow;
+      })
       .catch((error: unknown) => {
         console.error('Error creating window', error);
       });

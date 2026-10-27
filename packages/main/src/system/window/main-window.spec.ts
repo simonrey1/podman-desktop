@@ -351,15 +351,15 @@ describe('window set-up', () => {
 });
 
 describe('MainWindow', () => {
-  test('should create the window, resolve the deferred and deliver the api sender events to its page', async () => {
+  test('should create the window, expose it once loaded and deliver the api sender events to its page', async () => {
     const apiSender = new ApiSender();
-    const deferred = Promise.withResolvers<BrowserWindow>();
-    new MainWindow(configurationRegistry, apiSender, deferred, undefined).init();
-    await deferred.promise;
+    const mainWindow = new MainWindow(configurationRegistry, apiSender, undefined);
+    mainWindow.init();
 
+    await vi.waitFor(() => expect(mainWindow.browserWindow).toBeDefined());
     const bwInstance = vi.mocked(BrowserWindow).mock.results[0]?.value;
     assert(bwInstance);
-    await expect(deferred.promise).resolves.toBe(bwInstance);
+    expect(mainWindow.browserWindow).toBe(bwInstance);
 
     bwInstance.webContents.isDestroyed = vi.fn().mockReturnValue(false);
     apiSender.markReady();
@@ -370,9 +370,9 @@ describe('MainWindow', () => {
   });
 
   test('should create a window on macOS activate when there is none', async () => {
-    const deferred = Promise.withResolvers<BrowserWindow>();
-    new MainWindow(configurationRegistry, new ApiSender(), deferred, undefined).init();
-    await deferred.promise;
+    const mainWindow = new MainWindow(configurationRegistry, new ApiSender(), undefined);
+    mainWindow.init();
+    await vi.waitFor(() => expect(mainWindow.browserWindow).toBeDefined());
     vi.mocked(BrowserWindow).mockClear();
 
     getHandler(vi.mocked(app.on), 'activate')({}, true);

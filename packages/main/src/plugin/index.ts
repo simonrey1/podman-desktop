@@ -757,7 +757,6 @@ export class PluginSystem {
     container.bind<DialogRegistry>(DialogRegistry).toSelf().inSingletonScope();
 
     const dialogRegistry = container.get<DialogRegistry>(DialogRegistry);
-    dialogRegistry.init();
 
     container.bind<NavigationManager>(NavigationManager).toSelf().inSingletonScope();
     container.bind<CommandsInit>(CommandsInit).toSelf().inSingletonScope();

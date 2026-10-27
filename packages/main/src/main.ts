@@ -16,14 +16,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 import type { Event } from '@desktop-framework/api';
-import type { App as ElectronApp, BrowserWindow } from 'electron';
+import type { App as ElectronApp } from 'electron';
 import { Tray } from 'electron';
 import { Container } from 'inversify';
 
 import { module as appModule } from '/@/app/$module.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { ElectronApp as ElectronAppSymbol, StartupSymbol } from '/@/inject/symbol.js';
-import { MainWindowDeferred } from '/@/plugin/api.js';
 import type { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { restoreWindow } from '/@/system/window/main-window.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
@@ -48,8 +47,6 @@ export type AdditionalData = {
 export class Main {
   // TODO: should be renamed to #app
   public app: ElectronApp;
-  // TODO: should be renamed to #mainWindowDeferred
-  public mainWindowDeferred: PromiseWithResolvers<BrowserWindow>;
   // TODO: should be renamed to #protocolLauncher
   public protocolLauncher: ProtocolLauncher;
 
@@ -65,7 +62,6 @@ export class Main {
     this.app.name = product.name;
     this.#container.bind<ElectronApp>(ElectronAppSymbol).toConstantValue(app);
     this.#container.load(appModule);
-    this.mainWindowDeferred = this.#container.get<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred);
     this.protocolLauncher = this.#container.get<ProtocolLauncher>(ProtocolLauncher);
   }
 

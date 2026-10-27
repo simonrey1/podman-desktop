@@ -18,11 +18,12 @@
 
 import { ContainerModule } from 'inversify';
 
-import { StartupSymbol } from '/@/inject/symbol.js';
+import { MainWindowSymbol, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindow } from '/@/system/window/main-window.js';
 
 const module = new ContainerModule(options => {
   options.bind<MainWindow>(MainWindow).toSelf().inSingletonScope();
+  options.bind<MainWindow>(MainWindowSymbol).toService(MainWindow);
 
   // mark it as a startup service: it is created once the configuration registry is available
   options.bind(StartupSymbol).toService(MainWindow);
