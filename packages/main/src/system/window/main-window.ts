@@ -190,14 +190,10 @@ async function createWindow(
       return;
     }
 
-    const closeBehaviorConfiguration = configurationRegistry?.getConfiguration('preferences');
-    let exitonclose = isLinux(); // default value, which we will use unless the user preference is available.
-    if (closeBehaviorConfiguration) {
-      exitonclose = closeBehaviorConfiguration.get<boolean>('ExitOnClose') === true;
-      if (closeBehaviorConfiguration.get<boolean>('ShowTrayIcon') === false) {
-        exitonclose = true;
-      }
-    }
+    const closeBehaviorConfiguration = configurationRegistry.getConfiguration('preferences');
+    const exitonclose =
+      closeBehaviorConfiguration.get<boolean>('ExitOnClose') === true ||
+      closeBehaviorConfiguration.get<boolean>('ShowTrayIcon') === false;
 
     e.preventDefault();
     if (!exitonclose) {

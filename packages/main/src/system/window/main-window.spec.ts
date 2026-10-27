@@ -189,6 +189,27 @@ describe('createNewWindow', () => {
     expect(bwInstance.show).toHaveBeenCalled();
   });
 
+  test.each([
+    { exitOnClose: true, showTrayIcon: true, quits: true },
+    { exitOnClose: false, showTrayIcon: true, quits: false },
+    { exitOnClose: undefined, showTrayIcon: undefined, quits: false },
+  ])(
+    'close with ExitOnClose=$exitOnClose and ShowTrayIcon=$showTrayIcon should quit: $quits',
+    async ({ exitOnClose, showTrayIcon, quits }) => {
+      preferences['ExitOnClose'] = exitOnClose;
+      preferences['ShowTrayIcon'] = showTrayIcon;
+      const { createNewWindow } = await import('./main-window.js');
+      await createNewWindow(configurationRegistry, new ApiSender());
+      const bwInstance = vi.mocked(BrowserWindow).mock.results[0]?.value;
+      assert(bwInstance);
+
+      getHandler(bwInstance.on, 'close')({ preventDefault: vi.fn() });
+
+      expect(bwInstance.destroy).toHaveBeenCalledTimes(quits ? 1 : 0);
+      expect(bwInstance.hide).toHaveBeenCalledTimes(quits ? 0 : 1);
+    },
+  );
+
   test('should force quit on close when tray is disabled', async () => {
     vi.mocked(util.isLinux).mockReturnValue(true);
     preferences['ExitOnClose'] = false;
