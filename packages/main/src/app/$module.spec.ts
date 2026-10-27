@@ -21,6 +21,7 @@ import { Container } from 'inversify';
 import { expect, test, vi } from 'vitest';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { ElectronApp, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
@@ -44,14 +45,15 @@ test('should bind the api sender as the ApiSenderType singleton', () => {
   expect(container.get(ApiSenderType)).toBe(container.get(ApiSender));
 });
 
-test('should instantiate the security restrictions as a startup service', () => {
-  const app = { on: vi.fn() } as unknown as Electron.App;
+test('should instantiate the startup services', () => {
+  const app = { on: vi.fn(), whenReady: vi.fn().mockReturnValue(new Promise(() => {})) } as unknown as Electron.App;
   const container = new Container();
   container.bind(ElectronApp).toConstantValue(app);
   container.load(module);
 
   const startupServices = container.getAll(StartupSymbol);
 
-  expect(startupServices).toContainEqual(expect.any(SecurityRestrictions));
+  expect(startupServices).toEqual([expect.any(SecurityRestrictions), expect.any(DefaultProtocolClient)]);
   expect(app.on).toHaveBeenCalledWith('web-contents-created', expect.any(Function));
+  expect(app.whenReady).toHaveBeenCalled();
 });

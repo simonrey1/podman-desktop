@@ -23,7 +23,6 @@ import { Container } from 'inversify';
 import { module as appModule } from '/@/app/$module.js';
 import { AppIdentityDevPlugin } from '/@/app/app-identity-plugin.js';
 import type { AppPlugin } from '/@/app/app-plugin.js';
-import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
 import { DevIconBuilder } from '/@/app/dev-icon-builder.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { WindowPlugin } from '/@/app/window-plugin.js';
@@ -91,7 +90,6 @@ export class Main implements IDisposable {
       : undefined;
     this.#plugins = [
       ...(identity ? [identity] : []),
-      new DefaultProtocolClient(this.app),
       new WindowPlugin(this.app, this.mainWindowDeferred.resolve, { icon: identity?.getWindowIcon() }),
     ];
   }

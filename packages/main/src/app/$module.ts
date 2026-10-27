@@ -21,6 +21,7 @@ import type { BrowserWindow } from 'electron';
 import { ContainerModule } from 'inversify';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { StartupSymbol } from '/@/inject/symbol.js';
@@ -31,9 +32,11 @@ const module = new ContainerModule(options => {
   options.bind<ApiSenderType>(ApiSenderType).toService(ApiSender);
   options.bind<ProtocolLauncher>(ProtocolLauncher).toSelf().inSingletonScope();
   options.bind<SecurityRestrictions>(SecurityRestrictions).toSelf().inSingletonScope();
+  options.bind<DefaultProtocolClient>(DefaultProtocolClient).toSelf().inSingletonScope();
 
   // mark them as startup services
   options.bind(StartupSymbol).toService(SecurityRestrictions);
+  options.bind(StartupSymbol).toService(DefaultProtocolClient);
   options
     .bind<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred)
     .toConstantValue(Promise.withResolvers<BrowserWindow>());

@@ -22,7 +22,6 @@ import { Container } from 'inversify';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { AppPlugin } from '/@/app/app-plugin.js';
-import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { WindowPlugin } from '/@/app/window-plugin.js';
@@ -65,7 +64,11 @@ vi.mock(import('electron-context-menu'), () => ({
 }));
 
 // App Plugin
-vi.mock(import('/@/app/default-protocol-client.js'));
+vi.mock(import('/@/app/default-protocol-client.js'), async importOriginal => {
+  const mod = await importOriginal();
+  mod.DefaultProtocolClient.prototype.init = vi.fn();
+  return mod;
+});
 vi.mock(import('/@/app/window-plugin.js'));
 vi.mock(import('/@product.json'));
 
@@ -324,7 +327,7 @@ describe('ElectronApp#on window-all-closed', () => {
 });
 
 describe('AppPlugin', () => {
-  const plugins: Array<AppPlugin> = [DefaultProtocolClient.prototype, WindowPlugin.prototype];
+  const plugins: Array<AppPlugin> = [WindowPlugin.prototype];
 
   let promiseWithResolvers: PromiseWithResolvers<void>;
 
