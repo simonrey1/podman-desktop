@@ -15,9 +15,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
-import type { IConfigurationRegistry } from '@desktop-framework/api/configuration';
-import type { App as ElectronApp, BrowserWindow, Menu as ElectronMenu } from 'electron';
-import { Menu } from 'electron';
+import type { App as ElectronApp } from 'electron';
 import { Container } from 'inversify';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
@@ -28,9 +26,7 @@ import { restoreWindow } from '/@/system/window/main-window.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 
-import { ApplicationMenuBuilder } from './application-menu-builder.js';
 import { Main } from './main.js';
-import type { Emitter } from './plugin/events/emitter.js';
 import { PluginSystem } from './plugin/index.js';
 
 vi.mock(import('/@/app/app-identity.js'), async importOriginal => {
@@ -51,9 +47,6 @@ vi.mock(import('/@/app/protocol-launcher.js'), async importOriginal => {
 });
 vi.mock(import('./plugin/index.js'));
 vi.mock(import('electron-util/main'), () => ({ aboutMenuItem: vi.fn() }));
-vi.mock(import('./application-menu-builder.js'));
-vi.mock(import('./plugin/zoom-level-handler.js'));
-vi.mock(import('./system/window/window-handler.js'));
 vi.mock(import('./system/startup-install.js'));
 vi.mock(import('./plugin/util/read-tray-setting.js'));
 vi.mock(import('./tray-menu.js'));
@@ -238,26 +231,6 @@ describe('plugin system', () => {
     whenReady = Promise.withResolvers<void>();
     vi.mocked(ELECTRON_APP_MOCK.whenReady).mockReturnValue(whenReady.promise);
     vi.mocked(PluginSystem.prototype.initExtensions).mockResolvedValue({} as ExtensionLoader);
-  });
-
-  test('should set the application menu once the configuration registry and the window are ready', async () => {
-    const main = new Main(ELECTRON_APP_MOCK);
-    main.main([]);
-    whenReady.resolve();
-    await vi.waitFor(() => expect(PluginSystem.prototype.initExtensions).toHaveBeenCalledOnce());
-
-    const menu = {} as ElectronMenu;
-    vi.mocked(ApplicationMenuBuilder.prototype.build).mockReturnValue(menu);
-    const onDidCreateConfigurationRegistry = vi.mocked(PluginSystem.prototype.initExtensions).mock.calls[0]?.[0] as
-      | Emitter<IConfigurationRegistry>
-      | undefined;
-    assert(onDidCreateConfigurationRegistry);
-    onDidCreateConfigurationRegistry.fire({
-      getConfiguration: vi.fn().mockReturnValue({ get: vi.fn() }),
-    } as unknown as IConfigurationRegistry);
-    main.mainWindowDeferred.resolve({} as BrowserWindow);
-
-    await vi.waitFor(() => expect(Menu.setApplicationMenu).toHaveBeenCalledWith(menu));
   });
 
   test('should give the plugin system the application container', async () => {

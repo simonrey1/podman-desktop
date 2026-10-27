@@ -18,20 +18,27 @@
 
 import type { Configuration } from '@desktop-framework/extension-api';
 import type Electron from 'electron';
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, Menu, screen } from 'electron';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { ApplicationMenuBuilder } from '/@/application-menu-builder.js';
 import { DevelopmentModeTracker } from '/@/development-mode-tracker.js';
 import { OpenDevTools } from '/@/open-dev-tools.js';
 import type { ConfigurationRegistry } from '/@/plugin/configuration-registry.js';
+import { ZoomLevelHandler } from '/@/plugin/zoom-level-handler.js';
 import * as util from '/@/util.js';
 
 import { MainWindow } from './main-window.js';
+import { WindowHandler } from './window-handler.js';
 
 vi.mock(import('electron-context-menu'), async () => ({
   default: vi.fn(),
 }));
+vi.mock(import('electron-util/main'), () => ({ aboutMenuItem: vi.fn() }));
+vi.mock(import('/@/application-menu-builder.js'));
+vi.mock(import('/@/plugin/zoom-level-handler.js'));
+vi.mock(import('./window-handler.js'));
 vi.mock(import('/@/development-menu-builder.js'));
 vi.mock(import('/@/development-mode-tracker.js'));
 vi.mock(import('/@/navigation-items-menu-builder.js'));
@@ -312,6 +319,34 @@ describe('createNewWindow', () => {
 
       expect(bwInstance.show).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('window set-up', () => {
+  test('should restore its bounds, set its zoom level and the application menu once the page is loaded', async () => {
+    const menu = {} as Menu;
+    vi.mocked(ApplicationMenuBuilder.prototype.build).mockReturnValue(menu);
+    const { createNewWindow } = await import('./main-window.js');
+
+    const bwInstance = await createNewWindow(configurationRegistry, new ApiSender());
+
+    expect(WindowHandler).toHaveBeenCalledWith(configurationRegistry, bwInstance);
+    expect(WindowHandler.prototype.restore).toHaveBeenCalledWith(expect.objectContaining({ width: 1050, height: 700 }));
+    expect(ZoomLevelHandler).toHaveBeenCalledWith(bwInstance, configurationRegistry);
+    expect(ZoomLevelHandler.prototype.init).toHaveBeenCalled();
+    expect(Menu.setApplicationMenu).toHaveBeenCalledWith(menu);
+  });
+
+  test('should save its bounds when it is moved or resized', async () => {
+    const { createNewWindow } = await import('./main-window.js');
+    await createNewWindow(configurationRegistry, new ApiSender());
+    const bwInstance = vi.mocked(BrowserWindow).mock.results[0]?.value;
+    assert(bwInstance);
+
+    getHandler(bwInstance.on, 'move')();
+    getHandler(bwInstance.on, 'resize')();
+
+    expect(WindowHandler.prototype.savePositionAndSize).toHaveBeenCalledTimes(2);
   });
 });
 
