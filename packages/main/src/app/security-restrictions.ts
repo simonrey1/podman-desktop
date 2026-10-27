@@ -21,7 +21,7 @@ import { URL } from 'node:url';
 import type { App as ElectronApp, Event as ElectronEvent, Session, WebContents } from 'electron';
 import { shell } from 'electron';
 
-import { securityRestrictionCurrentHandler } from './security-restrictions-handler.js';
+import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
 
 type PermissionRequestPermission = Parameters<NonNullable<Parameters<Session['setPermissionRequestHandler']>[0]>>[1];
 

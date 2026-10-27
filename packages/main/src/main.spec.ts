@@ -21,12 +21,13 @@ import { Menu } from 'electron';
 import { Container } from 'inversify';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import type { AppPlugin } from '/@/app/app-plugin.js';
+import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
+import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
+import { SecurityRestrictions } from '/@/app/security-restrictions.js';
+import { WindowPlugin } from '/@/app/window-plugin.js';
 import { restoreWindow } from '/@/mainWindow.js';
-import type { AppPlugin } from '/@/plugin/app-ready/app-plugin.js';
-import { DefaultProtocolClient } from '/@/plugin/app-ready/default-protocol-client.js';
-import { WindowPlugin } from '/@/plugin/app-ready/window-plugin.js';
 import type { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
-import { SecurityRestrictions } from '/@/security-restrictions.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 
@@ -34,13 +35,12 @@ import { ApplicationMenuBuilder } from './application-menu-builder.js';
 import { Main } from './main.js';
 import type { Emitter } from './plugin/events/emitter.js';
 import { PluginSystem } from './plugin/index.js';
-import { ProtocolLauncher } from './protocol-launcher.js';
 
-vi.mock(import('/@/plugin/app-ready/app-identity-plugin.js'));
-vi.mock(import('/@/plugin/app-ready/dev-icon-builder.js'));
+vi.mock(import('/@/app/app-identity-plugin.js'));
+vi.mock(import('/@/app/dev-icon-builder.js'));
 vi.mock(import('/@/util.js'));
 vi.mock(import('/@/mainWindow.js'));
-vi.mock(import('./protocol-launcher.js'));
+vi.mock(import('/@/app/protocol-launcher.js'));
 vi.mock(import('./plugin/index.js'));
 vi.mock(import('electron-util/main'), () => ({ aboutMenuItem: vi.fn() }));
 vi.mock(import('./application-menu-builder.js'));
@@ -49,14 +49,14 @@ vi.mock(import('./system/window/window-handler.js'));
 vi.mock(import('./system/startup-install.js'));
 vi.mock(import('./plugin/util/read-tray-setting.js'));
 vi.mock(import('./tray-menu.js'));
-vi.mock(import('/@/security-restrictions.js'));
+vi.mock(import('/@/app/security-restrictions.js'));
 vi.mock(import('electron-context-menu'), () => ({
   default: vi.fn(),
 }));
 
 // App Plugin
-vi.mock(import('/@/plugin/app-ready/default-protocol-client.js'));
-vi.mock(import('/@/plugin/app-ready/window-plugin.js'));
+vi.mock(import('/@/app/default-protocol-client.js'));
+vi.mock(import('/@/app/window-plugin.js'));
 vi.mock(import('/@product.json'));
 
 const ELECTRON_APP_MOCK: ElectronApp = {

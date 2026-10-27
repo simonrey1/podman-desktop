@@ -18,7 +18,7 @@
 
 import type { App as ElectronApp } from 'electron';
 
-import type { AppPlugin } from '/@/plugin/app-ready/app-plugin.js';
+import type { AppPlugin } from '/@/app/app-plugin.js';
 import { isWindows } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 

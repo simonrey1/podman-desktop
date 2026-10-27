@@ -21,8 +21,8 @@ import { join, resolve } from 'node:path';
 import type { App as ElectronApp, NativeImage } from 'electron';
 import { nativeImage } from 'electron';
 
-import type { AppPlugin } from '/@/plugin/app-ready/app-plugin.js';
-import type { DevIconBuilder } from '/@/plugin/app-ready/dev-icon-builder.js';
+import type { AppPlugin } from '/@/app/app-plugin.js';
+import type { DevIconBuilder } from '/@/app/dev-icon-builder.js';
 import { isMac } from '/@/util.js';
 
 const BASE_ICON_RELATIVE_PATH = 'buildResources/icon.png';
