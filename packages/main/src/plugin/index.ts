@@ -175,8 +175,8 @@ import { Updater } from '/@/plugin/updater.js';
 import { Welcome } from '/@/plugin/welcome.js';
 import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
 import { module as startupModule } from '/@/system/startup/$module.js';
+import { TrayMenu } from '/@/system/tray/tray-menu.js';
 import { module as windowModule } from '/@/system/window/$module.js';
-import { TrayMenu } from '/@/tray-menu.js';
 import { createHash, isMac } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 

@@ -41,8 +41,8 @@ import { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { Updater } from '/@/plugin/updater.js';
 import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
 import { StartupInstall } from '/@/system/startup/startup-install.js';
+import type { TrayMenu } from '/@/system/tray/tray-menu.js';
 import { MainWindow } from '/@/system/window/main-window.js';
-import type { TrayMenu } from '/@/tray-menu.js';
 
 import { CancellationTokenRegistry } from './cancellation-token-registry.js';
 import { ConfigurationRegistry } from './configuration-registry.js';
