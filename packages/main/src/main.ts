@@ -26,8 +26,6 @@ import { restoreWindow } from '/@/system/window/main-window.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 
-import type { ConfigurationRegistry } from './plugin/configuration-registry.js';
-import { Emitter } from './plugin/events/emitter.js';
 import { PluginSystem } from './plugin/index.js';
 
 export type AdditionalData = {
@@ -123,12 +121,10 @@ export class Main {
    * Starts the plugin system, once {@link ElectronApp#whenReady} resolved
    */
   protected async startPluginSystem(): Promise<void> {
-    const _onDidCreatedConfigurationRegistry = new Emitter<ConfigurationRegistry>();
-
     // Start extensions
     const pluginSystem = new PluginSystem(this.#container);
 
-    this.#extensionLoader = await pluginSystem.initExtensions(_onDidCreatedConfigurationRegistry);
+    this.#extensionLoader = await pluginSystem.initExtensions();
   }
 
   /**

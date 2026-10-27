@@ -210,7 +210,6 @@ import { DockerDesktopInstallation } from './docker-extension/docker-desktop-ins
 import { DockerPluginAdapter } from './docker-extension/docker-plugin-adapter.js';
 import { DocumentationService } from './documentation/documentation-service.js';
 import { EditorInit } from './editor-init.js';
-import type { Emitter } from './events/emitter.js';
 import { ExperimentalConfigurationManager } from './experimental-configuration-manager.js';
 import { ExperimentalFeatureFeedbackHandler } from './experimental-feature-feedback-handler.js';
 import { ExploreFeatures } from './explore-features/explore-features.js';
@@ -462,16 +461,14 @@ export class PluginSystem {
   protected async initConfigurationRegistry(
     container: Container,
     notifications: NotificationCardOptions[],
-    configurationRegistryEmitter: Emitter<ConfigurationRegistry>,
   ): Promise<ConfigurationRegistry> {
     const configurationRegistry = container.get<ConfigurationRegistry>(ConfigurationRegistry);
     notifications.push(...(await configurationRegistry.init()));
-    configurationRegistryEmitter.fire(configurationRegistry);
     return configurationRegistry;
   }
 
   // initialize extension loader mechanism
-  async initExtensions(configurationRegistryEmitter: Emitter<ConfigurationRegistry>): Promise<ExtensionLoader> {
+  async initExtensions(): Promise<ExtensionLoader> {
     const notifications: NotificationCardOptions[] = [];
 
     this.isReady = false;
@@ -513,11 +510,7 @@ export class PluginSystem {
     container.bind<ConfigurationRegistry>(ConfigurationRegistry).toSelf().inSingletonScope();
     container.bind<LockedConfiguration>(LockedConfiguration).toSelf().inSingletonScope();
     container.bind<IConfigurationRegistry>(IConfigurationRegistry).toService(ConfigurationRegistry);
-    const configurationRegistry = await this.initConfigurationRegistry(
-      container,
-      notifications,
-      configurationRegistryEmitter,
-    );
+    const configurationRegistry = await this.initConfigurationRegistry(container, notifications);
 
     // instantiate the startup services of this container (e.g. the main window), they need the configuration
     container.getAll(StartupSymbol);
