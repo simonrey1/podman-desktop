@@ -21,10 +21,8 @@ import { Menu } from 'electron';
 import { Container } from 'inversify';
 import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import type { AppPlugin } from '/@/app/app-plugin.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
-import { WindowPlugin } from '/@/app/window-plugin.js';
 import type { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { restoreWindow } from '/@/system/window/main-window.js';
 import { isLinux, isMac, isWindows, stoppedExtensions } from '/@/util.js';
@@ -74,7 +72,6 @@ vi.mock(import('/@/app/default-protocol-client.js'), async importOriginal => {
   mod.DefaultProtocolClient.prototype.init = vi.fn();
   return mod;
 });
-vi.mock(import('/@/app/window-plugin.js'));
 vi.mock(import('/@product.json'));
 
 const ELECTRON_APP_MOCK: ElectronApp = {
@@ -328,59 +325,5 @@ describe('ElectronApp#on window-all-closed', () => {
     listener();
 
     expect(ELECTRON_APP_MOCK.quit).toHaveBeenCalledOnce();
-  });
-});
-
-describe('AppPlugin', () => {
-  const plugins: Array<AppPlugin> = [WindowPlugin.prototype];
-
-  let promiseWithResolvers: PromiseWithResolvers<void>;
-
-  beforeEach(() => {
-    promiseWithResolvers = Promise.withResolvers<void>();
-
-    // mock application as ready
-    vi.mocked(ELECTRON_APP_MOCK.isReady).mockReturnValue(true);
-
-    // mock the whenReady promise
-    vi.mocked(ELECTRON_APP_MOCK.whenReady).mockReturnValue(promiseWithResolvers.promise);
-
-    // start main
-    const code = new Main(ELECTRON_APP_MOCK);
-    code.main([]);
-  });
-
-  test('expect AppPlugin#onReady to be called when ElectronApp#whenReady resolved', async () => {
-    // expect each plugin to have been instantiated
-    plugins.forEach(plugin => {
-      expect(plugin.onReady).not.toHaveBeenCalled();
-    });
-
-    // simulate on ready
-    promiseWithResolvers.resolve();
-
-    await vi.waitFor(() => {
-      // expect each plugin to have been instantiated
-      plugins.forEach(plugin => {
-        expect(plugin.onReady).toHaveBeenCalled();
-      });
-    });
-  });
-
-  test('expect AppPlugin#dispose to be called when ElectronApp#on("before-quit") is emitted ', async () => {
-    // expect each plugin to have been instantiated
-    plugins.forEach(plugin => {
-      expect(plugin.dispose).not.toHaveBeenCalled();
-    });
-
-    const listener = getElectronAppListener('before-quit');
-    listener();
-
-    await vi.waitFor(() => {
-      // expect each plugin to be disposed
-      plugins.forEach(plugin => {
-        expect(plugin.dispose).toHaveBeenCalled();
-      });
-    });
   });
 });
