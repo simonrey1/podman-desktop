@@ -174,6 +174,7 @@ import { Uri } from '/@/plugin/types/uri.js';
 import { Updater } from '/@/plugin/updater.js';
 import { Welcome } from '/@/plugin/welcome.js';
 import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
+import { module as startupModule } from '/@/system/startup/$module.js';
 import { module as windowModule } from '/@/system/window/$module.js';
 import { TrayMenu } from '/@/tray-menu.js';
 import { createHash, isMac } from '/@/util.js';
@@ -492,6 +493,7 @@ export class PluginSystem {
     // child of the application container: it can resolve the application services, not the other way around
     const container = new Container({ parent: this.parentContainer });
     container.load(windowModule);
+    container.load(startupModule);
     const apiSender = container.get<ApiSender>(ApiSender);
     this.apiSender = apiSender;
     container.bind<IPCHandle>(IPCHandle).toConstantValue(this.ipcHandle);

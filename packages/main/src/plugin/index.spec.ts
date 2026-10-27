@@ -40,6 +40,7 @@ import { ElectronApp } from '/@/inject/symbol.js';
 import { ExtensionLoader } from '/@/plugin/extension/extension-loader.js';
 import { Updater } from '/@/plugin/updater.js';
 import { securityRestrictionCurrentHandler } from '/@/security-restrictions-handler.js';
+import { StartupInstall } from '/@/system/startup/startup-install.js';
 import { MainWindow } from '/@/system/window/main-window.js';
 import type { TrayMenu } from '/@/tray-menu.js';
 
@@ -89,6 +90,9 @@ function getHandler<T>(name: string): T {
 vi.mock(import('electron-util/main'), () => ({ aboutMenuItem: vi.fn() }));
 vi.mock(import('electron-context-menu'), () => ({ default: vi.fn() }));
 vi.mock(import('/@/system/window/main-window.js'), importOriginal => mockOriginalClass(importOriginal, 'MainWindow'));
+vi.mock(import('/@/system/startup/startup-install.js'), importOriginal =>
+  mockOriginalClass(importOriginal, 'StartupInstall'),
+);
 vi.mock(import('/@/app/app-identity.js'), importOriginal => mockOriginalClass(importOriginal, 'AppIdentity'));
 vi.mock(import('/@/app/dev-icon-builder.js'));
 vi.mock(import('/@/plugin/updater.js'), importOriginal => mockOriginalClass(importOriginal, 'Updater'));
@@ -215,6 +219,10 @@ test('initExtensions resolves the services of the parent container', async () =>
 
 test('initExtensions creates the main window once the configuration registry is initialized', () => {
   expect(MainWindow.prototype.init).toHaveBeenCalledOnce();
+});
+
+test('initExtensions configures the start on login once the configuration registry is initialized', () => {
+  expect(StartupInstall.prototype.init).toHaveBeenCalledOnce();
 });
 
 test('Check SecurityRestrictions on Links and user accept', async () => {
