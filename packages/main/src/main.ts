@@ -21,9 +21,8 @@ import { ipcMain, Menu, Tray } from 'electron';
 import { Container } from 'inversify';
 
 import { module as appModule } from '/@/app/$module.js';
-import { AppIdentityDevPlugin } from '/@/app/app-identity-plugin.js';
+import { AppIdentity } from '/@/app/app-identity.js';
 import type { AppPlugin } from '/@/app/app-plugin.js';
-import { DevIconBuilder } from '/@/app/dev-icon-builder.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { WindowPlugin } from '/@/app/window-plugin.js';
 import { ElectronApp as ElectronAppSymbol, StartupSymbol } from '/@/inject/symbol.js';
@@ -85,13 +84,9 @@ export class Main implements IDisposable {
     this.#container.load(appModule);
     this.mainWindowDeferred = this.#container.get<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred);
     this.protocolLauncher = this.#container.get<ProtocolLauncher>(ProtocolLauncher);
-    const identity = import.meta.env.DEV
-      ? new AppIdentityDevPlugin(this.app, new DevIconBuilder(this.app.getAppPath()))
-      : undefined;
-    this.#plugins = [
-      ...(identity ? [identity] : []),
-      new WindowPlugin(this.app, this.mainWindowDeferred.resolve, { icon: identity?.getWindowIcon() }),
-    ];
+    // bound in development builds only
+    const identity = this.#container.get<AppIdentity>(AppIdentity, { optional: true });
+    this.#plugins = [new WindowPlugin(this.app, this.mainWindowDeferred.resolve, { icon: identity?.getWindowIcon() })];
   }
 
   main(args: string[]): void {

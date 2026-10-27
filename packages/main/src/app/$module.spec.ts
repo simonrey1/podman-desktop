@@ -18,15 +18,20 @@
 
 import { ApiSenderType } from '@desktop-framework/api/api-sender';
 import { Container } from 'inversify';
-import { expect, test, vi } from 'vitest';
+import { afterEach, expect, test, vi } from 'vitest';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { AppIdentity } from '/@/app/app-identity.js';
 import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
 import { ElectronApp, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 
 import { module } from './$module.js';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 test('should bind a single main window deferred', () => {
   const container = new Container();
@@ -46,6 +51,7 @@ test('should bind the api sender as the ApiSenderType singleton', () => {
 });
 
 test('should instantiate the startup services', () => {
+  vi.stubEnv('DEV', false);
   const app = { on: vi.fn(), whenReady: vi.fn().mockReturnValue(new Promise(() => {})) } as unknown as Electron.App;
   const container = new Container();
   container.bind(ElectronApp).toConstantValue(app);
@@ -56,4 +62,22 @@ test('should instantiate the startup services', () => {
   expect(startupServices).toEqual([expect.any(SecurityRestrictions), expect.any(DefaultProtocolClient)]);
   expect(app.on).toHaveBeenCalledWith('web-contents-created', expect.any(Function));
   expect(app.whenReady).toHaveBeenCalled();
+});
+
+test('should add the app identity as a startup service in development', () => {
+  vi.stubEnv('DEV', true);
+  const app = {
+    on: vi.fn(),
+    whenReady: vi.fn().mockReturnValue(new Promise(() => {})),
+    getAppPath: vi.fn().mockReturnValue('/app'),
+    setPath: vi.fn(),
+  } as unknown as Electron.App;
+  const container = new Container();
+  container.bind(ElectronApp).toConstantValue(app);
+  container.load(module);
+
+  const startupServices = container.getAll(StartupSymbol);
+
+  expect(startupServices).toContainEqual(expect.any(AppIdentity));
+  expect(app.setPath).toHaveBeenCalledWith('userData', expect.stringContaining('.electron-user-data'));
 });

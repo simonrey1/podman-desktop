@@ -17,14 +17,16 @@
  ***********************************************************************/
 
 import { ApiSenderType } from '@desktop-framework/api/api-sender';
-import type { BrowserWindow } from 'electron';
+import type { App as ElectronApp, BrowserWindow } from 'electron';
 import { ContainerModule } from 'inversify';
 
 import { ApiSender } from '/@/app/api-sender.js';
+import { AppIdentity } from '/@/app/app-identity.js';
 import { DefaultProtocolClient } from '/@/app/default-protocol-client.js';
+import { DevIconBuilder } from '/@/app/dev-icon-builder.js';
 import { ProtocolLauncher } from '/@/app/protocol-launcher.js';
 import { SecurityRestrictions } from '/@/app/security-restrictions.js';
-import { StartupSymbol } from '/@/inject/symbol.js';
+import { ElectronApp as ElectronAppSymbol, StartupSymbol } from '/@/inject/symbol.js';
 import { MainWindowDeferred } from '/@/plugin/api.js';
 
 const module = new ContainerModule(options => {
@@ -37,6 +39,16 @@ const module = new ContainerModule(options => {
   // mark them as startup services
   options.bind(StartupSymbol).toService(SecurityRestrictions);
   options.bind(StartupSymbol).toService(DefaultProtocolClient);
+
+  // development builds get their own user data folder and a branch labelled icon
+  if (import.meta.env.DEV) {
+    options
+      .bind<DevIconBuilder>(DevIconBuilder)
+      .toDynamicValue(context => new DevIconBuilder(context.get<ElectronApp>(ElectronAppSymbol).getAppPath()))
+      .inSingletonScope();
+    options.bind<AppIdentity>(AppIdentity).toSelf().inSingletonScope();
+    options.bind(StartupSymbol).toService(AppIdentity);
+  }
   options
     .bind<PromiseWithResolvers<BrowserWindow>>(MainWindowDeferred)
     .toConstantValue(Promise.withResolvers<BrowserWindow>());

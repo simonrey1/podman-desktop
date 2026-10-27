@@ -35,7 +35,12 @@ import { Main } from './main.js';
 import type { Emitter } from './plugin/events/emitter.js';
 import { PluginSystem } from './plugin/index.js';
 
-vi.mock(import('/@/app/app-identity-plugin.js'));
+vi.mock(import('/@/app/app-identity.js'), async importOriginal => {
+  const mod = await importOriginal();
+  mod.AppIdentity.prototype.init = vi.fn();
+  mod.AppIdentity.prototype.getWindowIcon = vi.fn();
+  return mod;
+});
 vi.mock(import('/@/app/dev-icon-builder.js'));
 vi.mock(import('/@/util.js'));
 vi.mock(import('/@/mainWindow.js'));
