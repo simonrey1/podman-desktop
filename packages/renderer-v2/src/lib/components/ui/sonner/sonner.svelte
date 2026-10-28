@@ -10,10 +10,12 @@ import { Toaster as Sonner, type ToasterProps as SonnerProps } from 'svelte-sonn
 let { ...restProps }: SonnerProps = $props();
 </script>
 
-<!-- unstyled: the toasts follow the density of the application (compact card, close button, muted message) -->
+<!-- unstyled: the toasts follow the density of the application (compact card, close button, muted message);
+     dismissed with the close button, not by swiping -->
 <Sonner
 	class="toaster group"
 	closeButton
+	swipeDirections={[]}
 	offset={{ bottom: "2rem", right: "0.75rem" }}
 	toastOptions={{
 		unstyled: true,
