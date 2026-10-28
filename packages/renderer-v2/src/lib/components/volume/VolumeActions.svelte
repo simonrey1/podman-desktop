@@ -1,9 +1,9 @@
 <script lang="ts">
 import type { VolumeInfo } from '@desktop-framework/api';
-import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import ResourceActions from '#lib/components/ResourceActions.svelte';
-import { type ActionTarget, type ResourceAction, resourceKey } from '#lib/stores/actions.svelte.js';
+
+import { volumeActions } from './actions.js';
 
 interface Props {
   volume: VolumeInfo;
@@ -12,20 +12,8 @@ interface Props {
 }
 
 let { volume, placement = 'row' }: Props = $props();
-let used = $derived(!!volume.containersUsage?.length);
-let target: ActionTarget = $derived({ key: resourceKey('volume', volume.engineId, volume.Name), name: volume.Name });
 
-let actions: ResourceAction[] = $derived([
-  {
-    label: 'Delete',
-    progress: 'deleting',
-    icon: Trash2Icon,
-    destructive: true,
-    // a volume used by a container cannot be deleted
-    disabled: used,
-    run: (): Promise<void> => window.removeVolume(volume.engineId, volume.Name),
-  },
-]);
+let set = $derived(volumeActions(volume));
 </script>
 
-<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions target={set.target} actions={set.actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

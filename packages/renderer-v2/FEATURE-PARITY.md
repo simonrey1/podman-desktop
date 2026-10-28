@@ -13,7 +13,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: environment (engine) filter dropdown — v2 scopes lists to the engine selected in the explorer instead                            | ◐                                                  |
 | List pages: configurable column layout                                                                                                       | ☐                                                  |
 | List pages: multi-select (checkbox column, select-all of the rows shown, used resources not selectable)                                      | ✅                                                 |
-| List pages: bulk actions bar ("On N selected items") with bulk delete + confirmation                                                         | ☐                                                  |
+| List pages: bulk actions bar ("N selected", the actions on the selected rows, Clear), one confirmation, one toast for the failures           | ◐ (containers)                                     |
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ☐                                                  |
 | Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button              | ◐ (plain empty states)                             |
 | Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |
@@ -36,7 +36,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Tree grouping: compose projects and Podman pods, expandable, group status/actions                                                   | ☐                          |
 | Row actions: start/stop, restart, delete, logs, terminal                                                                            | ✅                         |
 | Row actions: unpause, open browser, generate kube, export, extension actions                                                        | ☐                          |
-| Bulk: run, stop, delete, create pod from selection                                                                                  | ☐                          |
+| Bulk: run, stop, delete                                                                                                             | ✅                         |
+| Bulk: create pod from selection                                                                                                     | ☐                          |
 | Create: from existing image / from Containerfile                                                                                    | ☐                          |
 | Empty state "Start your first container" (pulls + runs hello)                                                                       | ☐                          |
 | Details header: status, engine, actions; Summary links to the image and the pod                                                     | ✅                         |

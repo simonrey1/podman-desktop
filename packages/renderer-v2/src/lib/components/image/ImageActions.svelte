@@ -1,10 +1,9 @@
 <script lang="ts">
 import type { ImageInfo } from '@desktop-framework/api';
-import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import ResourceActions from '#lib/components/ResourceActions.svelte';
-import { type ActionTarget, type ResourceAction, resourceKey } from '#lib/stores/actions.svelte.js';
-import { imageName } from '#lib/stores/images.svelte.js';
+
+import { imageActions } from './actions.js';
 
 interface Props {
   image: ImageInfo;
@@ -16,19 +15,7 @@ interface Props {
 
 let { image, used, placement = 'row' }: Props = $props();
 
-let target: ActionTarget = $derived({ key: resourceKey('image', image.engineId, image.Id), name: imageName(image) });
-
-let actions: ResourceAction[] = $derived([
-  {
-    label: 'Delete',
-    progress: 'deleting',
-    icon: Trash2Icon,
-    destructive: true,
-    // an image used by a container cannot be deleted
-    disabled: used,
-    run: (): Promise<void> => window.deleteImage(image.engineId, image.Id),
-  },
-]);
+let set = $derived(imageActions(image, used));
 </script>
 
-<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions target={set.target} actions={set.actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

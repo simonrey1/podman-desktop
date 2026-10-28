@@ -51,6 +51,13 @@ export function resourceKey(
   return `${kind}:${engineId}:${id}`;
 }
 
+/** The actions of a resource, and the resource they apply to. */
+export interface ResourceActionSet {
+  target: ActionTarget;
+  /** by priority: the first ones are shown as buttons */
+  actions: ResourceAction[];
+}
+
 /** The resource an action applies to: identifies it, and names it in the messages. */
 export interface ActionTarget {
   /** unique among the resources, e.g. `container:<engine>:<id>` */
@@ -70,6 +77,14 @@ export function errorMessage(error: unknown): string {
     .replace(/^\(HTTP code \d+\) [^-]*- /, '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/** e.g. "a, b, c and 2 more" */
+function listNames(names: string[]): string {
+  if (names.length <= 3) {
+    return names.join(', ');
+  }
+  return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`;
 }
 
 /**
@@ -104,17 +119,67 @@ export class ActionsStore {
         return;
       }
     }
+    const error = await this.#runOne(target, action);
+    if (error !== undefined) {
+      toast.error(`${action.label} ${target.name} failed`, { description: errorMessage(error), duration: 8000 });
+    }
+  }
+
+  /**
+   * Runs an action on several resources (e.g. the selected rows): confirmed once when destructive, run at the same
+   * time, the failures reported in one toast.
+   * @param noun the resources, for the messages: e.g. `containers`
+   * @returns false when nothing ran: nothing runnable, or the confirmation cancelled
+   */
+  async runAll(
+    label: string,
+    items: { target: ActionTarget; action: ResourceAction }[],
+    noun: string,
+  ): Promise<boolean> {
+    const runnable = items.filter(item => !this.#pending.has(item.target.key));
+    if (runnable.length === 0) {
+      return false;
+    }
+    if (runnable.some(item => item.action.destructive)) {
+      const confirmed = await this.#confirmations.ask({
+        title: `${label} ${runnable.length} ${noun}`,
+        message: `${listNames(runnable.map(item => item.target.name))} will be permanently removed. This cannot be undone.`,
+        confirmLabel: label,
+        destructive: true,
+      });
+      if (!confirmed) {
+        return false;
+      }
+    }
+    const errors = await Promise.all(runnable.map(item => this.#runOne(item.target, item.action)));
+    const failed = runnable.flatMap((item, index) =>
+      errors[index] === undefined ? [] : [{ item, error: errors[index] }],
+    );
+    if (failed.length === 1) {
+      const [{ item, error }] = failed;
+      toast.error(`${label} ${item.target.name} failed`, { description: errorMessage(error), duration: 8000 });
+    } else if (failed.length > 1) {
+      toast.error(`${label} failed for ${failed.length} of ${runnable.length} ${noun}`, {
+        description: `${listNames(failed.map(({ item }) => item.target.name))}: ${errorMessage(failed[0].error)}`,
+        duration: 8000,
+      });
+    }
+    return true;
+  }
+
+  /** runs the action, the resource being pending meanwhile; @returns the error, if it failed */
+  async #runOne(target: ActionTarget, action: ResourceAction): Promise<unknown> {
     // the confirmation is asynchronous: another action may have started meanwhile
     if (this.#pending.has(target.key)) {
-      return;
+      return undefined;
     }
     this.#pending.set(target.key, { label: action.label, progress: action.progress });
     try {
       await action.run();
+      return undefined;
     } catch (error: unknown) {
       console.error(`Error running the action ${action.label} on ${target.key}`, error);
-      // longer than the default: an error is read, and often copied
-      toast.error(`${action.label} ${target.name} failed`, { description: errorMessage(error), duration: 8000 });
+      return error ?? new Error('unknown error');
     } finally {
       this.#pending.delete(target.key);
     }
