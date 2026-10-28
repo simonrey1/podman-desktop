@@ -17,12 +17,11 @@
  ***********************************************************************/
 
 import type { NetworkInspectInfo } from '@desktop-framework/api';
-import Trash2Icon from '@lucide/svelte/icons/trash-2';
 import { renderComponent } from '@tanstack/svelte-table';
 
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
-import ResourceActions from '#lib/components/ResourceActions.svelte';
+import NetworkActions from '#lib/components/network/NetworkActions.svelte';
 import { shortId } from '#lib/stores/containers.svelte.js';
 
 const column = columnHelper<NetworkInspectInfo>();
@@ -47,19 +46,7 @@ export const networkColumns = column.columns([
   }),
   column.display({
     id: 'actions',
-    cell: ({ row }) =>
-      renderComponent(ResourceActions, {
-        max: 3,
-        actions: [
-          {
-            label: 'Delete',
-            icon: Trash2Icon,
-            destructive: true,
-            disabled: !!Object.keys(row.original.Containers ?? {}).length,
-            run: (): Promise<void> => window.removeNetwork(row.original.engineId, row.original.Id),
-          },
-        ],
-      }),
+    cell: ({ row }) => renderComponent(NetworkActions, { network: row.original }),
     meta: { width: '5.5rem', actions: true },
   }),
 ]);

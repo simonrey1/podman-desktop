@@ -17,12 +17,11 @@
  ***********************************************************************/
 
 import type { ImageInfo } from '@desktop-framework/api';
-import Trash2Icon from '@lucide/svelte/icons/trash-2';
 import { renderComponent } from '@tanstack/svelte-table';
 
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
-import ResourceActions from '#lib/components/ResourceActions.svelte';
+import ImageActions from '#lib/components/image/ImageActions.svelte';
 import { age, bytes } from '#lib/format.js';
 import { shortId } from '#lib/stores/containers.svelte.js';
 import { imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
@@ -68,19 +67,7 @@ export function imageColumns(isUsed: (image: ImageInfo) => boolean): ReturnType<
     }),
     column.display({
       id: 'actions',
-      cell: ({ row }) =>
-        renderComponent(ResourceActions, {
-          max: 3,
-          actions: [
-            {
-              label: 'Delete',
-              icon: Trash2Icon,
-              destructive: true,
-              disabled: isUsed(row.original),
-              run: (): Promise<void> => window.deleteImage(row.original.engineId, row.original.Id),
-            },
-          ],
-        }),
+      cell: ({ row }) => renderComponent(ImageActions, { image: row.original, used: isUsed(row.original) }),
       meta: { width: '5.5rem', actions: true },
     }),
   ]);

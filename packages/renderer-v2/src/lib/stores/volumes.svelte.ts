@@ -37,4 +37,8 @@ export class VolumesStore extends ListState<VolumeInfo> {
   ofEngine(engineId: string): VolumeInfo[] {
     return this.items.filter(volume => volume.engineId === engineId);
   }
+
+  get(engineId: string, name: string): VolumeInfo | undefined {
+    return this.items.find(volume => volume.engineId === engineId && volume.Name === name);
+  }
 }

@@ -32,4 +32,8 @@ export class NetworksStore extends ListState<NetworkInspectInfo> {
   ofEngine(engineId: string): NetworkInspectInfo[] {
     return this.items.filter(network => network.engineId === engineId);
   }
+
+  get(engineId: string, id: string): NetworkInspectInfo | undefined {
+    return this.items.find(network => network.engineId === engineId && network.Id === id);
+  }
 }

@@ -8,7 +8,13 @@ import Trash2Icon from '@lucide/svelte/icons/trash-2';
 import type { ResourceAction } from '#lib/components/actions.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
 
-let { pod }: { pod: PodInfo } = $props();
+interface Props {
+  pod: PodInfo;
+  /** row: 3 buttons at most, header: 6 */
+  placement?: 'row' | 'header';
+}
+
+let { pod, placement = 'row' }: Props = $props();
 
 let actions: ResourceAction[] = $derived.by((): ResourceAction[] => {
   const { engineId, Id: podId } = pod;
@@ -33,4 +39,4 @@ let actions: ResourceAction[] = $derived.by((): ResourceAction[] => {
 });
 </script>
 
-<ResourceActions {actions} max={3} />
+<ResourceActions {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

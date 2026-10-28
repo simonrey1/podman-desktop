@@ -32,4 +32,8 @@ export class PodsStore extends ListState<PodInfo> {
   ofEngine(engineId: string): PodInfo[] {
     return this.items.filter(pod => pod.engineId === engineId);
   }
+
+  get(engineId: string, id: string): PodInfo | undefined {
+    return this.items.find(pod => pod.engineId === engineId && pod.Id === id);
+  }
 }

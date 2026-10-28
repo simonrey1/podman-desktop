@@ -20,12 +20,21 @@ import { z } from 'zod';
 
 import type { App } from '#lib/app.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
+import { imageName } from '#lib/stores/images.svelte.js';
 
 /** Helpers shared by the definitions of the views (not a view). */
 
 export const engineParams = z.object({ engineId: z.string() });
 
 export const containerParams = z.object({ engineId: z.string(), containerId: z.string() });
+
+export const podParams = z.object({ engineId: z.string(), podId: z.string() });
+
+export const imageParams = z.object({ engineId: z.string(), imageId: z.string() });
+
+export const volumeParams = z.object({ engineId: z.string(), volumeName: z.string() });
+
+export const networkParams = z.object({ engineId: z.string(), networkId: z.string() });
 
 /** the sort of a table, as TanStack Table describes it */
 export const sortSchema = z.array(z.object({ id: z.string(), desc: z.boolean() }));
@@ -45,4 +54,17 @@ export function engineName(params: { engineId: string }, app: App): string {
 export function containerTitle(params: { engineId: string; containerId: string }, app: App): string {
   const container = app.containers.get(params.engineId, params.containerId);
   return container ? containerName(container) : shortId(params.containerId);
+}
+
+export function podTitle(params: { engineId: string; podId: string }, app: App): string {
+  return app.pods.get(params.engineId, params.podId)?.Name ?? shortId(params.podId);
+}
+
+export function imageTitle(params: { engineId: string; imageId: string }, app: App): string {
+  const image = app.images.get(params.engineId, params.imageId);
+  return image ? imageName(image) : shortId(params.imageId);
+}
+
+export function networkTitle(params: { engineId: string; networkId: string }, app: App): string {
+  return app.networks.get(params.engineId, params.networkId)?.Name ?? shortId(params.networkId);
 }

@@ -21,9 +21,8 @@ import { renderComponent } from '@tanstack/svelte-table';
 
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
+import PodActions from '#lib/components/pod/PodActions.svelte';
 import { age } from '#lib/format.js';
-
-import PodActions from './PodActions.svelte';
 
 const column = columnHelper<PodInfo>();
 

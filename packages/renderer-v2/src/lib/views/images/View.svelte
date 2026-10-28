@@ -1,8 +1,10 @@
 <script lang="ts">
+import type { ImageInfo } from '@desktop-framework/api';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
+import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
 import { imageColumns } from './columns.js';
@@ -12,8 +14,12 @@ let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
 
+function open(row: ImageInfo, options: { preview: boolean }): void {
+  view.open(viewRef('image-details', { engineId: row.engineId, imageId: row.Id }), options);
+}
+
 // an image is used when a container was created from it
-const columns = imageColumns(image => app.containers.items.some(container => container.ImageID === image.Id));
+const columns = imageColumns(image => app.containers.ofImage(image.engineId, image.Id).length > 0);
 </script>
 
 <ResourceList
@@ -25,4 +31,5 @@ const columns = imageColumns(image => app.containers.items.some(container => con
   data={app.images.ofEngine(view.params.engineId)}
   {columns}
   getRowId={(image): string => image.Id}
+  onOpen={open}
   loaded={app.images.loaded} />

@@ -27,9 +27,13 @@ import containerTerminal from './container-terminal/view.js';
 import containers from './containers/view.js';
 import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
+import imageDetails from './image-details/view.js';
 import images from './images/view.js';
+import networkDetails from './network-details/view.js';
 import networks from './networks/view.js';
+import podDetails from './pod-details/view.js';
 import pods from './pods/view.js';
+import volumeDetails from './volume-details/view.js';
 import volumes from './volumes/view.js';
 
 /** Every view of the workbench, by id: one folder per view, declared with `defineView`. */
@@ -41,9 +45,13 @@ export const VIEWS = {
   'container-logs': containerLogs,
   'container-terminal': containerTerminal,
   pods,
+  'pod-details': podDetails,
   images,
+  'image-details': imageDetails,
   volumes,
+  'volume-details': volumeDetails,
   networks,
+  'network-details': networkDetails,
 } satisfies Record<string, ViewDefinition<ViewSchema>>;
 
 type Views = typeof VIEWS;

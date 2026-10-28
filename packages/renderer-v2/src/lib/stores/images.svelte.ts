@@ -43,6 +43,10 @@ export class ImagesStore extends ListState<ImageInfo> {
   ofEngine(engineId: string): ImageInfo[] {
     return this.items.filter(image => image.engineId === engineId);
   }
+
+  get(engineId: string, id: string): ImageInfo | undefined {
+    return this.items.find(image => image.engineId === engineId && image.Id === id);
+  }
 }
 
 export function imageName(image: ImageInfo): string {

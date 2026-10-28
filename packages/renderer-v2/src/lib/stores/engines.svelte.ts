@@ -71,6 +71,12 @@ export class EnginesStore {
     return this.all.find(engine => engine.id === id);
   }
 
+  /** e.g. "Podman · podman-machine-default", for the summaries */
+  label(id: string, fallback: string): string {
+    const engine = this.get(id);
+    return engine ? `${engine.providerName} · ${engine.name}` : fallback;
+  }
+
   select(id: string): void {
     this.#selectedId = id;
   }

@@ -46,6 +46,11 @@ export class ContainersStore extends ListState<ContainerInfo> {
     return this.items.filter(container => container.engineId === engineId);
   }
 
+  /** the containers created from an image */
+  ofImage(engineId: string, imageId: string): ContainerInfo[] {
+    return this.items.filter(container => container.engineId === engineId && container.ImageID === imageId);
+  }
+
   get(engineId: string, id: string): ContainerInfo | undefined {
     return this.items.find(container => container.engineId === engineId && container.Id === id);
   }
