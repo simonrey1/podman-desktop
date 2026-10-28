@@ -16,7 +16,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                           | ☐                                                  |
 | Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button | ◐ (plain empty states)                             |
 | Confirmation before destructive actions                                                                                         | ☐                                                  |
-| Transient statuses on actions (STARTING, STOPPING, DELETING, RESTARTING…) and inline action errors                              | ☐                                                  |
+| Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                          | ✅                                                 |
+| Transient statuses on actions (STARTING, STOPPING, DELETING, RESTARTING…)                                                       | ☐                                                  |
 | Extension-contributed actions on rows and details (`ContributionActions`, menu contexts + `when` clauses)                       | ☐                                                  |
 | Details pages: Summary / Logs / Inspect / Kube / Terminal tabs pattern                                                          | ◐ (segmented sections, logs/terminal in the panel) |
 | Inspect = read-only JSON in Monaco                                                                                              | ✅ (containers)                                    |
@@ -194,7 +195,7 @@ providers stay part of the engines and providers domain.
 | Status bar entries contributed by extensions / main                                              | ☐                                    |
 | Status bar: pinned provider widgets, task indicator                                              | ☐                                    |
 | Task manager (running / completed tasks, view, cancel, clear)                                    | ☐                                    |
-| Toasts (success / error / warning / info, task toasts)                                           | ☐                                    |
+| Toasts (success / error / warning / info, task toasts)                                           | ◐ (failures of the actions)          |
 | Dialogs requested by extensions / main: message box, input box, quick pick, custom pick          | ☐                                    |
 | Markdown rendering with directives (buttons running commands, links, warnings, expandable)       | ☐                                    |
 | Troubleshooting (engine checks and reconnect, repair/cleanup, console logs, gather logs, stores) | ☐                                    |

@@ -2,8 +2,9 @@
 import type { ImageInfo } from '@desktop-framework/api';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import type { ResourceAction } from '#lib/components/actions.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
+import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
+import { imageName } from '#lib/stores/images.svelte.js';
 
 interface Props {
   image: ImageInfo;
@@ -14,6 +15,8 @@ interface Props {
 }
 
 let { image, used, placement = 'row' }: Props = $props();
+
+let target: ActionTarget = $derived({ key: `image:${image.engineId}:${image.Id}`, name: imageName(image) });
 
 let actions: ResourceAction[] = $derived([
   {
@@ -27,4 +30,4 @@ let actions: ResourceAction[] = $derived([
 ]);
 </script>
 
-<ResourceActions {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

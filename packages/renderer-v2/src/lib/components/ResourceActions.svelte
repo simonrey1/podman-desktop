@@ -1,13 +1,15 @@
 <script lang="ts">
 import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
 
+import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
-
-import { type ResourceAction, runAction } from './actions.js';
+import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
 
 interface Props {
+  /** the resource the actions apply to */
+  target: ActionTarget;
   /** by priority: the first ones are shown as buttons */
   actions: ResourceAction[];
   /** the number of buttons: above, the last button opens a menu with the other actions */
@@ -15,7 +17,13 @@ interface Props {
   size?: 'icon' | 'icon-sm';
 }
 
-let { actions, max, size = 'icon-sm' }: Props = $props();
+let { target, actions, max, size = 'icon-sm' }: Props = $props();
+
+const app = getApp();
+
+function run(action: ResourceAction): void {
+  app.actions.run(target, action).catch((error: unknown) => console.error('Error running an action', error));
+}
 
 let inline = $derived(actions.length > max ? actions.slice(0, max - 1) : actions);
 let overflow = $derived(actions.length > max ? actions.slice(max - 1) : []);
@@ -35,7 +43,7 @@ function stop(event: Event): void {
       label={action.label}
       filled={action.filled}
       disabled={action.disabled}
-      onclick={(): void => runAction(action)} />
+      onclick={(): void => run(action)} />
   {/each}
   {#if overflow.length}
     <DropdownMenu.Root>
@@ -51,7 +59,7 @@ function stop(event: Event): void {
           <DropdownMenu.Item
             variant={action.destructive ? 'destructive' : 'default'}
             disabled={action.disabled}
-            onSelect={(): void => runAction(action)}>
+            onSelect={(): void => run(action)}>
             <action.icon fill={action.filled ? 'currentColor' : 'none'} />
             {action.label}
           </DropdownMenu.Item>

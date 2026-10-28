@@ -19,6 +19,7 @@
 import { createContext } from 'svelte';
 
 import { whenExtensionsStarted } from '#lib/api/events.js';
+import { ActionsStore } from '#lib/stores/actions.svelte.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
@@ -40,6 +41,7 @@ export class App {
   readonly images = new ImagesStore();
   readonly volumes = new VolumesStore();
   readonly networks = new NetworksStore();
+  readonly actions = new ActionsStore();
 
   readonly workbench = new Workbench({
     // the explorer shows the engine of the active view

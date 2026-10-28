@@ -8,8 +8,9 @@ import TextAlignStartIcon from '@lucide/svelte/icons/text-align-start';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import { getApp } from '#lib/app.svelte.js';
-import type { ResourceAction } from '#lib/components/actions.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
+import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
+import { containerName } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
 interface Props {
@@ -21,6 +22,11 @@ interface Props {
 let { container, placement = 'row' }: Props = $props();
 
 const app = getApp();
+
+let target: ActionTarget = $derived({
+  key: `container:${container.engineId}:${container.Id}`,
+  name: containerName(container),
+});
 
 let actions: ResourceAction[] = $derived.by((): ResourceAction[] => {
   const { engineId, Id: containerId } = container;
@@ -67,4 +73,4 @@ let actions: ResourceAction[] = $derived.by((): ResourceAction[] => {
 });
 </script>
 
-<ResourceActions {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

@@ -8,6 +8,7 @@ import ActionButton from '#lib/components/ActionButton.svelte';
 import * as Empty from '#lib/components/ui/empty/index.js';
 import * as Resizable from '#lib/components/ui/resizable/index.js';
 import * as Sidebar from '#lib/components/ui/sidebar/index.js';
+import { Toaster } from '#lib/components/ui/sonner/index.js';
 import TabGroupView from '#lib/workbench/TabGroupView.svelte';
 
 import Explorer from './Explorer.svelte';
@@ -131,3 +132,6 @@ function onkeydown(event: KeyboardEvent): void {
     <StatusBar />
   </div>
 </Sidebar.Provider>
+
+<!-- the results of the actions, e.g. their failures -->
+<Toaster theme={app.theme.isDark ? 'dark' : 'light'} position="bottom-right" />

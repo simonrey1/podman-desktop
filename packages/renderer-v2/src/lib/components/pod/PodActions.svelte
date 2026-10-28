@@ -5,8 +5,8 @@ import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import type { ResourceAction } from '#lib/components/actions.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
+import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
 
 interface Props {
   pod: PodInfo;
@@ -15,6 +15,8 @@ interface Props {
 }
 
 let { pod, placement = 'row' }: Props = $props();
+
+let target: ActionTarget = $derived({ key: `pod:${pod.engineId}:${pod.Id}`, name: pod.Name });
 
 let actions: ResourceAction[] = $derived.by((): ResourceAction[] => {
   const { engineId, Id: podId } = pod;
@@ -39,4 +41,4 @@ let actions: ResourceAction[] = $derived.by((): ResourceAction[] => {
 });
 </script>
 
-<ResourceActions {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

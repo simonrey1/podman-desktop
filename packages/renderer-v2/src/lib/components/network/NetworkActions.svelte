@@ -2,8 +2,8 @@
 import type { NetworkInspectInfo } from '@desktop-framework/api';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import type { ResourceAction } from '#lib/components/actions.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
+import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
 
 interface Props {
   network: NetworkInspectInfo;
@@ -13,6 +13,8 @@ interface Props {
 
 let { network, placement = 'row' }: Props = $props();
 let used = $derived(Object.keys(network.Containers ?? {}).length > 0);
+let target: ActionTarget = $derived({ key: `network:${network.engineId}:${network.Id}`, name: network.Name });
+
 let actions: ResourceAction[] = $derived([
   {
     label: 'Delete',
@@ -25,4 +27,4 @@ let actions: ResourceAction[] = $derived([
 ]);
 </script>
 
-<ResourceActions {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

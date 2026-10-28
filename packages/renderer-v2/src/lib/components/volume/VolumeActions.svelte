@@ -2,8 +2,8 @@
 import type { VolumeInfo } from '@desktop-framework/api';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import type { ResourceAction } from '#lib/components/actions.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
+import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
 
 interface Props {
   volume: VolumeInfo;
@@ -13,6 +13,8 @@ interface Props {
 
 let { volume, placement = 'row' }: Props = $props();
 let used = $derived(!!volume.containersUsage?.length);
+let target: ActionTarget = $derived({ key: `volume:${volume.engineId}:${volume.Name}`, name: volume.Name });
+
 let actions: ResourceAction[] = $derived([
   {
     label: 'Delete',
@@ -25,4 +27,4 @@ let actions: ResourceAction[] = $derived([
 ]);
 </script>
 
-<ResourceActions {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />
+<ResourceActions {target} {actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

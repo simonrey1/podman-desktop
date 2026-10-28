@@ -17,6 +17,7 @@
  ***********************************************************************/
 
 import type { LucideIcon } from '@lucide/svelte';
+import { toast } from 'svelte-sonner';
 
 /** An action on a resource, e.g. Stop or Delete. */
 export interface ResourceAction {
@@ -30,9 +31,30 @@ export interface ResourceAction {
   destructive?: boolean;
 }
 
-/** runs an action, logging its failure */
-export function runAction(action: ResourceAction): void {
-  Promise.resolve()
-    .then(() => action.run())
-    .catch((error: unknown) => console.error(`Error running the action ${action.label}`, error));
+/** The resource an action applies to: identifies it, and names it in the messages. */
+export interface ActionTarget {
+  /** unique among the resources, e.g. `container:<engine>:<id>` */
+  key: string;
+  /** e.g. the name of the container */
+  name: string;
+}
+
+/** the message of an error coming from the main process, without the IPC wrapping */
+export function errorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+}
+
+/**
+ * Runs the actions on the resources, and reports their failures in a toast: an action never fails silently.
+ */
+export class ActionsStore {
+  async run(target: ActionTarget, action: ResourceAction): Promise<void> {
+    try {
+      await action.run();
+    } catch (error: unknown) {
+      console.error(`Error running the action ${action.label} on ${target.key}`, error);
+      toast.error(`${action.label} ${target.name} failed`, { description: errorMessage(error) });
+    }
+  }
 }
