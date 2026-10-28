@@ -31,21 +31,23 @@ export function podActions(pod: PodInfo): ResourceActionSet {
   return {
     target: { key: resourceKey('pod', engineId, podId), name: pod.Name },
     actions: [
-      running
-        ? {
-            label: 'Stop',
-            progress: 'stopping',
-            icon: SquareIcon,
-            filled: true,
-            run: (): Promise<void> => window.stopPod(engineId, podId),
-          }
-        : {
-            label: 'Start',
-            progress: 'starting',
-            icon: PlayIcon,
-            filled: true,
-            run: (): Promise<void> => window.startPod(engineId, podId),
-          },
+      // one of them is shown: Stop when running, Start otherwise
+      {
+        label: 'Stop',
+        progress: 'stopping',
+        icon: SquareIcon,
+        filled: true,
+        hidden: !running,
+        run: (): Promise<void> => window.stopPod(engineId, podId),
+      },
+      {
+        label: 'Start',
+        progress: 'starting',
+        icon: PlayIcon,
+        filled: true,
+        hidden: running,
+        run: (): Promise<void> => window.startPod(engineId, podId),
+      },
       {
         label: 'Delete',
         progress: 'deleting',

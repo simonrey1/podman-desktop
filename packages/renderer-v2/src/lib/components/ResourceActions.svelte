@@ -28,8 +28,9 @@ function run(action: ResourceAction): void {
 // while an action runs on the resource, its actions are disabled (the running one shows a spinner)
 let pending = $derived(app.actions.pending(target.key));
 
-let inline = $derived(actions.length > max ? actions.slice(0, max - 1) : actions);
-let overflow = $derived(actions.length > max ? actions.slice(max - 1) : []);
+let shown = $derived(actions.filter(action => !action.hidden));
+let inline = $derived(shown.length > max ? shown.slice(0, max - 1) : shown);
+let overflow = $derived(shown.length > max ? shown.slice(max - 1) : []);
 
 function stop(event: Event): void {
   // the actions are in clickable rows: do not open the row

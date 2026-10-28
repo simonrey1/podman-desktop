@@ -4,6 +4,8 @@ import HardDriveIcon from '@lucide/svelte/icons/hard-drive';
 
 import { getApp } from '#lib/app.svelte.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
+import { volumeActions } from '#lib/components/volume/actions.js';
+import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -24,6 +26,8 @@ function open(row: VolumeInfo, options: { preview: boolean }): void {
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   canSelect={(volume): boolean => !volume.containersUsage?.length}
+  actionsOf={(volume): ResourceActionSet => volumeActions(volume)}
+  bulk={['Delete']}
   icon={HardDriveIcon}
   title="Volumes"
   noun="volumes"

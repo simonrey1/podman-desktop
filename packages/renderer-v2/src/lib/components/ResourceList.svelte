@@ -69,15 +69,17 @@ let bulkActions: BulkAction[] = $derived.by(() => {
   }
   const actionsOfRow = actionsOf;
   const sets = selected.map(actionsOfRow);
-  // the look of each bulk action, taken from the listed rows: the buttons do not come and go with the selection
-  const samples = [...sets, ...data.map(actionsOfRow)].flatMap(set => set.actions);
+  // the look of each bulk action, the hidden ones included: the buttons do not come and go with the selection
+  const samples = sets.flatMap(set => set.actions);
   return bulk.flatMap(label => {
     const sample = samples.find(action => action.label === label);
     if (!sample) {
       return [];
     }
     const items = sets.flatMap(set => {
-      const action = set.actions.find(candidate => candidate.label === label && !candidate.disabled);
+      const action = set.actions.find(
+        candidate => candidate.label === label && !candidate.disabled && !candidate.hidden,
+      );
       return action ? [{ target: set.target, action }] : [];
     });
     return [

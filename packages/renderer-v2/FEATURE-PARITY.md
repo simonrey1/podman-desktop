@@ -13,7 +13,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: environment (engine) filter dropdown — v2 scopes lists to the engine selected in the explorer instead                            | ◐                                                  |
 | List pages: configurable column layout                                                                                                       | ☐                                                  |
 | List pages: multi-select (checkbox column, select-all of the rows shown, used resources not selectable)                                      | ✅                                                 |
-| List pages: bulk actions bar ("N selected", the actions on the selected rows, Clear), one confirmation, one toast for the failures           | ◐ (containers)                                     |
+| List pages: bulk actions bar ("N selected", the actions on the selected rows, Clear), one confirmation, one toast for the failures           | ✅                                                 |
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ☐                                                  |
 | Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button              | ◐ (plain empty states)                             |
 | Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |
@@ -69,6 +69,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List columns: short id, environment, per-container status dots linking to the filtered containers list | ☐   |
 | All / Running / Stopped filter                                                                         | ☐   |
 | Row actions: start, stop, restart, delete                                                              | ✅  |
+| Bulk: start, stop, delete                                                                              | ✅  |
 | Row actions: generate kube, open exposed port(s), extension actions                                    | ☐   |
 | Podman kube play (file or from-scratch YAML, build/replace options, cancel)                            | ☐   |
 | Empty state "Start your first pod"                                                                     | ☐   |
@@ -87,7 +88,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Row actions: run, push (modal), edit/retag (modal), history, save, update (re-pull), extension actions                                                                                                                                                                                                 | ☐   |
 | Manifest actions: delete, push                                                                                                                                                                                                                                                                         | ☐   |
 | Header actions: prune (unused / untagged), load, import, pull, build                                                                                                                                                                                                                                   | ☐   |
-| Bulk: delete, save                                                                                                                                                                                                                                                                                     | ☐   |
+| Bulk: delete                                                                                                                                                                                                                                                                                           | ✅  |
+| Bulk: save                                                                                                                                                                                                                                                                                             | ☐   |
 | Details: Summary (used by, tags, labels, platform), History, Inspect                                                                                                                                                                                                                                   | ✅  |
 | Details: manifest sub-images                                                                                                                                                                                                                                                                           | ☐   |
 | Details: Check tab (image-checker extensions), Files tab (layers and filesystem tree)                                                                                                                                                                                                                  | ☐   |
@@ -99,16 +101,17 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 
 ## Volumes, networks, secrets
 
-| Feature                                                                                                                                  | v2  |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| Volumes list: status (in use), name, driver, age, delete                                                                                 | ✅  |
-| Volumes list: environment, size + "gather sizes", prune, bulk delete, extension actions                                                  | ☐   |
-| Volume details (Summary with containers using it, Inspect)                                                                               | ✅  |
-| Create volume                                                                                                                            | ☐   |
-| Networks list: status (in use), name, driver, id, delete                                                                                 | ✅  |
-| Network details (Summary with addressing and containers, Inspect)                                                                        | ✅  |
-| Networks: create (basic: engine, name, driver, subnet; advanced: IPv6, internal, IP range, gateway, DNS), update DNS dialog, bulk delete | ☐   |
-| Secrets: list, create (name + data), details (Summary, Inspect), delete, bulk delete                                                     | ☐   |
+| Feature                                                                                                                     | v2  |
+| --------------------------------------------------------------------------------------------------------------------------- | --- |
+| Volumes list: status (in use), name, driver, age, delete                                                                    | ✅  |
+| Volumes list: bulk delete                                                                                                   | ✅  |
+| Volumes list: environment, size + "gather sizes", prune, extension actions                                                  | ☐   |
+| Volume details (Summary with containers using it, Inspect)                                                                  | ✅  |
+| Create volume                                                                                                               | ☐   |
+| Networks list: status (in use), name, driver, id, delete, bulk delete                                                       | ✅  |
+| Network details (Summary with addressing and containers, Inspect)                                                           | ✅  |
+| Networks: create (basic: engine, name, driver, subnet; advanced: IPv6, internal, IP range, gateway, DNS), update DNS dialog | ☐   |
+| Secrets: list, create (name + data), details (Summary, Inspect), delete, bulk delete                                        | ☐   |
 
 ## Engines and providers (`lib/preferences` Resources, `lib/dashboard` providers)
 

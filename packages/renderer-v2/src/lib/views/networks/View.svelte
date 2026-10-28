@@ -3,7 +3,9 @@ import type { NetworkInspectInfo } from '@desktop-framework/api';
 import NetworkIcon from '@lucide/svelte/icons/network';
 
 import { getApp } from '#lib/app.svelte.js';
+import { networkActions } from '#lib/components/network/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
+import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -24,6 +26,8 @@ function open(row: NetworkInspectInfo, options: { preview: boolean }): void {
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   canSelect={(network): boolean => Object.keys(network.Containers ?? {}).length === 0}
+  actionsOf={(network): ResourceActionSet => networkActions(network)}
+  bulk={['Delete']}
   icon={NetworkIcon}
   title="Networks"
   noun="networks"

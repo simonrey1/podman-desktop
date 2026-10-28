@@ -34,6 +34,8 @@ export interface ResourceAction {
   destructive?: boolean;
   /** what happens to the resource while the action runs, shown on it: e.g. `stopping` */
   progress?: string;
+  /** not shown on the resource, but known to the bulk actions: e.g. Start of a running container */
+  hidden?: boolean;
 }
 
 /** An action running on a resource. */

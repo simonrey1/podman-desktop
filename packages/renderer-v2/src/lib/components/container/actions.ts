@@ -36,21 +36,23 @@ export function containerActions(container: ContainerInfo, app: App): ResourceAc
   return {
     target: { key: resourceKey('container', engineId, containerId), name: containerName(container) },
     actions: [
-      running
-        ? {
-            label: 'Stop',
-            progress: 'stopping',
-            icon: SquareIcon,
-            filled: true,
-            run: (): Promise<void> => window.stopContainer(engineId, containerId),
-          }
-        : {
-            label: 'Start',
-            progress: 'starting',
-            icon: PlayIcon,
-            filled: true,
-            run: (): Promise<void> => window.startContainer(engineId, containerId),
-          },
+      // one of them is shown: Stop when running, Start otherwise
+      {
+        label: 'Stop',
+        progress: 'stopping',
+        icon: SquareIcon,
+        filled: true,
+        hidden: !running,
+        run: (): Promise<void> => window.stopContainer(engineId, containerId),
+      },
+      {
+        label: 'Start',
+        progress: 'starting',
+        icon: PlayIcon,
+        filled: true,
+        hidden: running,
+        run: (): Promise<void> => window.startContainer(engineId, containerId),
+      },
       {
         label: 'Delete',
         progress: 'deleting',

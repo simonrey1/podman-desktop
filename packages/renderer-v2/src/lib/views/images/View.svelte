@@ -3,7 +3,9 @@ import type { ImageInfo } from '@desktop-framework/api';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
+import { imageActions } from '#lib/components/image/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
+import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -19,14 +21,20 @@ function open(row: ImageInfo, options: { preview: boolean }): void {
 }
 
 // an image is used when a container was created from it
-const columns = imageColumns(image => app.containers.ofImage(image.engineId, image.Id).length > 0);
+function used(image: ImageInfo): boolean {
+  return app.containers.ofImage(image.engineId, image.Id).length > 0;
+}
+
+const columns = imageColumns(used);
 </script>
 
 <ResourceList
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
-  canSelect={(image): boolean => app.containers.ofImage(image.engineId, image.Id).length === 0}
+  canSelect={(image): boolean => !used(image)}
+  actionsOf={(image): ResourceActionSet => imageActions(image, used(image))}
+  bulk={['Delete']}
   icon={LayersIcon}
   title="Images"
   noun="images"
