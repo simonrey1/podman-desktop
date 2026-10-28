@@ -83,6 +83,11 @@
   --color-destructive-border: var(--pd-button-danger-border, var(--destructive));
   --color-destructive-hover: var(--pd-button-danger-hover-bg, var(--destructive));
 
+  /* the colors of the states (e.g. the icon of an error toast) */
+  --color-state-error: var(--pd-state-error, oklch(0.65 0.2 25));
+  --color-state-warning: var(--pd-state-warning, oklch(0.75 0.15 85));
+  --color-state-success: var(--pd-state-success, oklch(0.7 0.17 150));
+
   /* dialogs: the modal colors of the theme */
   --color-modal: var(--pd-modal-bg, oklch(0.22 0 0));
   --color-modal-foreground: var(--pd-modal-text, oklch(0.9 0 0));

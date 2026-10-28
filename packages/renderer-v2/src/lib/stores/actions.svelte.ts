@@ -59,10 +59,17 @@ export interface ActionTarget {
   name: string;
 }
 
-/** the message of an error coming from the main process, without the IPC wrapping */
+/**
+ * The message of an error coming from the main process, for the user: without the IPC wrapping
+ * (`Error invoking remote method …: Error:`) and the HTTP wrapping of the engine (`(HTTP code 500) server error -`).
+ */
 export function errorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error);
-  return message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '');
+  return message
+    .replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+    .replace(/^\(HTTP code \d+\) [^-]*- /, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
@@ -106,7 +113,8 @@ export class ActionsStore {
       await action.run();
     } catch (error: unknown) {
       console.error(`Error running the action ${action.label} on ${target.key}`, error);
-      toast.error(`${action.label} ${target.name} failed`, { description: errorMessage(error) });
+      // longer than the default: an error is read, and often copied
+      toast.error(`${action.label} ${target.name} failed`, { description: errorMessage(error), duration: 8000 });
     } finally {
       this.#pending.delete(target.key);
     }
