@@ -15,7 +15,6 @@
       "!**/packages/api-mocks-vitest/src/product.json",
       "!**/packages/api-mocks-vitest/src/@podman-desktop/**",
       "!**/packages/ui/.svelte-kit/**",
-      "!**/packages/renderer-v2/.svelte-kit/**",
       "!**/exposedIn*.d.ts",
       "!**/website/.docusaurus/**",
       "!**/website/api/**",
