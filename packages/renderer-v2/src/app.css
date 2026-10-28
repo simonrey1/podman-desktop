@@ -28,6 +28,7 @@
   --accent: color-mix(in oklab, var(--foreground) 9%, transparent);
   --accent-foreground: var(--pd-table-body-text-highlight, oklch(0.985 0 0));
   --destructive: var(--pd-button-danger-bg, oklch(0.704 0.191 22.216));
+  --destructive-foreground: var(--pd-button-danger-text, oklch(0.985 0 0));
   --input: var(--pd-input-field-stroke, oklch(1 0 0 / 15%));
   --ring: var(--pd-button-primary-bg, oklch(0.6 0.2 293));
   /* hairlines: derived from the text color, so they stay discreet in every theme */
@@ -78,6 +79,16 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-border: var(--pd-button-danger-border, var(--destructive));
+  --color-destructive-hover: var(--pd-button-danger-hover-bg, var(--destructive));
+
+  /* dialogs: the modal colors of the theme */
+  --color-modal: var(--pd-modal-bg, oklch(0.22 0 0));
+  --color-modal-foreground: var(--pd-modal-text, oklch(0.9 0 0));
+  --color-modal-header-foreground: var(--pd-modal-header-text, oklch(0.985 0 0));
+  --color-modal-border: var(--pd-modal-border, oklch(1 0 0 / 10%));
+  --color-modal-fade: var(--pd-modal-fade, oklch(0 0 0));
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);

@@ -9,6 +9,6 @@ let { ref = $bindable(null), class: className, ...restProps }: AlertDialogPrimit
 <AlertDialogPrimitive.Title
 	bind:ref
 	data-slot="alert-dialog-title"
-	class={cn("text-lg font-medium sm:group-data-[size=default]/alert-dialog-content:group-has-data-[slot=alert-dialog-media]/alert-dialog-content:col-start-2", className)}
+	class={cn("min-w-0 flex-1 truncate text-xl font-semibold text-modal-header-foreground", className)}
 	{...restProps}
 />

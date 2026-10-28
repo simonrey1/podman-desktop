@@ -61,8 +61,8 @@ export class ActionsStore {
   async run(target: ActionTarget, action: ResourceAction): Promise<void> {
     if (action.destructive) {
       const confirmed = await this.#confirmations.ask({
-        title: `${action.label} ${target.name}?`,
-        message: 'This cannot be undone.',
+        title: `${action.label} ${target.name}`,
+        message: `${target.name} will be permanently removed. This cannot be undone.`,
         confirmLabel: action.label,
         destructive: true,
       });
