@@ -50,6 +50,11 @@ export function imageColumns(isUsed: (image: ImageInfo) => boolean): ReturnType<
       header: 'Tag',
       meta: { width: '10rem', class: 'text-muted-foreground' },
     }),
+    column.accessor(image => image.Arch ?? '', {
+      id: 'arch',
+      header: 'Arch',
+      meta: { width: '5.5rem', class: 'text-muted-foreground' },
+    }),
     column.accessor('Created', {
       header: 'Age',
       cell: ({ getValue }) => age(getValue()),

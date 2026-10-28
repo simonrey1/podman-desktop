@@ -36,7 +36,10 @@ export interface ResourceAction {
   progress?: string;
   /** not shown on the resource, but known to the bulk actions: e.g. Start of a running container */
   hidden?: boolean;
-  /** the question asked before a destructive action, instead of "<label> <name>" / "<name> will be permanently removed" */
+  /**
+   * the question asked before the action: a destructive action asks "<label> <name>" / "<name> will be permanently
+   * removed" when not given
+   */
   confirmation?: { title: string; message: string };
 }
 
@@ -117,12 +120,12 @@ export class ActionsStore {
     if (this.#pending.has(target.key)) {
       return;
     }
-    if (action.destructive) {
+    if (action.destructive || action.confirmation) {
       const confirmed = await this.#confirmations.ask({
         title: action.confirmation?.title ?? `${action.label} ${target.name}`,
         message: action.confirmation?.message ?? `${target.name} will be permanently removed. This cannot be undone.`,
         confirmLabel: action.label,
-        destructive: true,
+        destructive: action.destructive,
       });
       if (!confirmed) {
         return;

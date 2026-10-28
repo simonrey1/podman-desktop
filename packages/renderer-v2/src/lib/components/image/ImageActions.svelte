@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { ImageInfo } from '@desktop-framework/api';
 
+import { getApp } from '#lib/app.svelte.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
 
 import { imageActions } from './actions.js';
@@ -15,7 +16,9 @@ interface Props {
 
 let { image, used, placement = 'row' }: Props = $props();
 
-let set = $derived(imageActions(image, used));
+const app = getApp();
+
+let set = $derived(imageActions(image, used, app));
 </script>
 
 <ResourceActions target={set.target} actions={set.actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

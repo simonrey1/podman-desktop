@@ -33,7 +33,7 @@ const columns = imageColumns(used);
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   canSelect={(image): boolean => !used(image)}
-  actionsOf={(image): ResourceActionSet => imageActions(image, used(image))}
+  actionsOf={(image): ResourceActionSet => imageActions(image, used(image), app)}
   prune={imagePrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Delete']}
   icon={LayersIcon}
