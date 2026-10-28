@@ -60,7 +60,7 @@ export class EnginesStore {
 
   #selectedId: string | undefined = $state();
 
-  /** the selected engine, or the first started one */
+  /** the selected engine, else the first started one (then kept, see start) */
   readonly selected: Engine | undefined = $derived(
     this.all.find(engine => engine.id === this.#selectedId) ??
       this.all.find(engine => engine.status === 'started') ??
@@ -82,6 +82,20 @@ export class EnginesStore {
   }
 
   start(): () => void {
-    return this.#providers.start();
+    const stopProviders = this.#providers.start();
+    // the engine shown by default is kept once shown: it does not change when the state of the engines changes
+    // (e.g. another engine becoming the first started one), only when it disappears
+    const stopKeeping = $effect.root(() => {
+      $effect(() => {
+        const shown = this.selected;
+        if (shown && shown.id !== this.#selectedId) {
+          this.#selectedId = shown.id;
+        }
+      });
+    });
+    return (): void => {
+      stopKeeping();
+      stopProviders();
+    };
   }
 }
