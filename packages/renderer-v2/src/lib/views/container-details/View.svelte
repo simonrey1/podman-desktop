@@ -13,6 +13,7 @@ import Page from '#lib/components/Page.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
@@ -95,7 +96,7 @@ let environment: KeyValue[] = $derived(
   body={view.state.section === 'summary' ? 'scroll' : 'fill'}>
   {#snippet meta()}
     {#if container}
-      <StatusBadge status={container.State} />
+      <StatusBadge status={container.State} actionKey={resourceKey('container', container.engineId, container.Id)} />
       <EngineBadge engineId={view.params.engineId} />
     {/if}
   {/snippet}

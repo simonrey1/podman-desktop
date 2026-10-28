@@ -14,6 +14,7 @@ import ResourceLinksCard, { type ResourceLink } from '#lib/components/ResourceLi
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { shortId } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
@@ -69,7 +70,7 @@ let labels: KeyValue[] = $derived(Object.entries(pod?.Labels ?? {}).map(([label,
   body={view.state.section === 'summary' ? 'scroll' : 'fill'}>
   {#snippet meta()}
     {#if pod}
-      <StatusBadge status={pod.Status} />
+      <StatusBadge status={pod.Status} actionKey={resourceKey('pod', pod.engineId, pod.Id)} />
       <EngineBadge engineId={view.params.engineId} />
     {/if}
   {/snippet}

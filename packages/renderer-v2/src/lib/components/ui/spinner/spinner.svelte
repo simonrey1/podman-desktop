@@ -14,8 +14,14 @@ let {
   stroke,
   className: legacyClassName,
   'aria-label': ariaLabel = 'Loading',
+  size = 'md',
   ...restProps
-}: SVGAttributes<SVGSVGElement> = $props();
+}: SVGAttributes<SVGSVGElement> & {
+  /** sm: 12px (status dots), md: 14px (inline icons), lg: 16px (primary icons) */
+  size?: 'sm' | 'md' | 'lg';
+} = $props();
+
+const SIZES = { sm: 'size-3', md: 'size-3.5', lg: 'size-4' };
 </script>
 
-<Loader2Icon {role} {...name != null ? { name } : {}} {...color != null ? { color } : {}} {...stroke != null ? { stroke } : {}} {...legacyClassName != null ? { className: legacyClassName } : {}} aria-label={ariaLabel} class={cn("size-4 animate-spin", className)} {...restProps} />
+<Loader2Icon {role} {...name != null ? { name } : {}} {...color != null ? { color } : {}} {...stroke != null ? { stroke } : {}} {...legacyClassName != null ? { className: legacyClassName } : {}} aria-label={ariaLabel} class={cn("shrink-0 animate-spin", SIZES[size], className)} {...restProps} />

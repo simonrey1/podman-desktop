@@ -23,6 +23,7 @@ import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import ImageActions from '#lib/components/image/ImageActions.svelte';
 import { age, bytes } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { shortId } from '#lib/stores/containers.svelte.js';
 import { imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
 
@@ -38,6 +39,7 @@ export function imageColumns(isUsed: (image: ImageInfo) => boolean): ReturnType<
         const used = isUsed(row.original);
         return renderComponent(NameCell, {
           name: getValue(),
+          actionKey: resourceKey('image', row.original.engineId, row.original.Id),
           status: used ? 'used' : 'unused',
           statusLabel: used ? 'In use' : 'Unused',
         });

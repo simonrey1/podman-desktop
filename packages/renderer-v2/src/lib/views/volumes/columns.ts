@@ -23,6 +23,7 @@ import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import VolumeActions from '#lib/components/volume/VolumeActions.svelte';
 import { age } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 
 const column = columnHelper<VolumeInfo>();
 
@@ -33,6 +34,7 @@ export const volumeColumns = column.columns([
       const users = row.original.containersUsage?.length ?? 0;
       return renderComponent(NameCell, {
         name: row.original.Name,
+        actionKey: resourceKey('volume', row.original.engineId, row.original.Name),
         status: users ? 'used' : 'unused',
         statusLabel: users ? `Used by ${users} container${users > 1 ? 's' : ''}` : 'Unused',
       });

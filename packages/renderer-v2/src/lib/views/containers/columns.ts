@@ -23,6 +23,7 @@ import ContainerActions from '#lib/components/container/ContainerActions.svelte'
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import { age } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName, containerPorts } from '#lib/stores/containers.svelte.js';
 
 const column = columnHelper<ContainerInfo>();
@@ -34,6 +35,7 @@ export const containerColumns = column.columns([
     cell: ({ row }) =>
       renderComponent(NameCell, {
         name: containerName(row.original),
+        actionKey: resourceKey('container', row.original.engineId, row.original.Id),
         status: row.original.State,
         detail: containerPorts(row.original),
       }),

@@ -25,6 +25,9 @@ function run(action: ResourceAction): void {
   app.actions.run(target, action).catch((error: unknown) => console.error('Error running an action', error));
 }
 
+// while an action runs on the resource, its actions are disabled (the running one shows a spinner)
+let pending = $derived(app.actions.pending(target.key));
+
 let inline = $derived(actions.length > max ? actions.slice(0, max - 1) : actions);
 let overflow = $derived(actions.length > max ? actions.slice(max - 1) : []);
 
@@ -42,14 +45,15 @@ function stop(event: Event): void {
       icon={action.icon}
       label={action.label}
       filled={action.filled}
-      disabled={action.disabled}
+      disabled={!!pending || action.disabled}
+      busy={pending?.label === action.label}
       onclick={(): void => run(action)} />
   {/each}
   {#if overflow.length}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger>
         {#snippet child({ props })}
-          <Button {...props} variant="ghost" {size} aria-label="More actions">
+          <Button {...props} variant="ghost" {size} aria-label="More actions" disabled={!!pending}>
             <EllipsisVerticalIcon class={size === 'icon' ? 'size-4' : 'size-3.5'} />
           </Button>
         {/snippet}

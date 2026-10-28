@@ -4,6 +4,7 @@ import BoxIcon from '@lucide/svelte/icons/box';
 import { getApp } from '#lib/app.svelte.js';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
@@ -25,7 +26,7 @@ let container = $derived(app.containers.get(engineId, containerId));
     <span class="truncate">{container ? containerName(container) : shortId(containerId)}</span>
   </button>
   {#if container}
-    <StatusBadge status={container.State} />
+    <StatusBadge status={container.State} actionKey={resourceKey('container', container.engineId, container.Id)} />
   {/if}
   <EngineBadge {engineId} />
 </div>

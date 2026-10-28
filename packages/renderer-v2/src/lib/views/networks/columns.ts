@@ -22,6 +22,7 @@ import { renderComponent } from '@tanstack/svelte-table';
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import NetworkActions from '#lib/components/network/NetworkActions.svelte';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { shortId } from '#lib/stores/containers.svelte.js';
 
 const column = columnHelper<NetworkInspectInfo>();
@@ -33,6 +34,7 @@ export const networkColumns = column.columns([
       const users = Object.keys(row.original.Containers ?? {}).length;
       return renderComponent(NameCell, {
         name: row.original.Name,
+        actionKey: resourceKey('network', row.original.engineId, row.original.Id),
         status: users ? 'used' : 'unused',
         statusLabel: users ? `Used by ${users} container${users > 1 ? 's' : ''}` : 'Unused',
       });

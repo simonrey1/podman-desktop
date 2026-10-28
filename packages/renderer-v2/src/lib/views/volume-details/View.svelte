@@ -14,6 +14,7 @@ import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import VolumeActions from '#lib/components/volume/VolumeActions.svelte';
 import { age } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -61,7 +62,9 @@ let labels: KeyValue[] = $derived(Object.entries(volume?.Labels ?? {}).map(([lab
 <Page icon={HardDriveIcon} title={view.params.volumeName} body={view.state.section === 'summary' ? 'scroll' : 'fill'}>
   {#snippet meta()}
     {#if volume}
-      <StatusBadge status={users.length ? 'used' : 'unused'} />
+      <StatusBadge
+        status={users.length ? 'used' : 'unused'}
+        actionKey={resourceKey('volume', volume.engineId, volume.Name)} />
       <EngineBadge engineId={view.params.engineId} />
     {/if}
   {/snippet}

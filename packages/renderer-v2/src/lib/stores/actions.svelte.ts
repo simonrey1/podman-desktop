@@ -17,6 +17,7 @@
  ***********************************************************************/
 
 import type { LucideIcon } from '@lucide/svelte';
+import { SvelteMap } from 'svelte/reactivity';
 import { toast } from 'svelte-sonner';
 
 import type { ConfirmationsStore } from './confirmations.svelte.js';
@@ -31,6 +32,23 @@ export interface ResourceAction {
   filled?: boolean;
   /** destructive actions are red in the menus, and ask for a confirmation before running */
   destructive?: boolean;
+  /** what happens to the resource while the action runs, shown on it: e.g. `stopping` */
+  progress?: string;
+}
+
+/** An action running on a resource. */
+export interface PendingAction {
+  label: string;
+  progress?: string;
+}
+
+/** the key of a resource, for its actions: e.g. `container:podman.Podman:<id>` */
+export function resourceKey(
+  kind: 'container' | 'pod' | 'image' | 'volume' | 'network',
+  engineId: string,
+  id: string,
+): string {
+  return `${kind}:${engineId}:${id}`;
 }
 
 /** The resource an action applies to: identifies it, and names it in the messages. */
@@ -48,17 +66,26 @@ export function errorMessage(error: unknown): string {
 }
 
 /**
- * Runs the actions on the resources: the destructive ones are confirmed first, and the failures are reported in a
- * toast (an action never fails silently).
+ * Runs the actions on the resources: the destructive ones are confirmed first, one action at a time per resource
+ * (the running one is pending), and the failures are reported in a toast (an action never fails silently).
  */
 export class ActionsStore {
   readonly #confirmations: ConfirmationsStore;
+  readonly #pending = new SvelteMap<string, PendingAction>();
 
   constructor(confirmations: ConfirmationsStore) {
     this.#confirmations = confirmations;
   }
 
+  /** the action running on the resource, if any */
+  pending(key: string): PendingAction | undefined {
+    return this.#pending.get(key);
+  }
+
   async run(target: ActionTarget, action: ResourceAction): Promise<void> {
+    if (this.#pending.has(target.key)) {
+      return;
+    }
     if (action.destructive) {
       const confirmed = await this.#confirmations.ask({
         title: `${action.label} ${target.name}`,
@@ -70,11 +97,18 @@ export class ActionsStore {
         return;
       }
     }
+    // the confirmation is asynchronous: another action may have started meanwhile
+    if (this.#pending.has(target.key)) {
+      return;
+    }
+    this.#pending.set(target.key, { label: action.label, progress: action.progress });
     try {
       await action.run();
     } catch (error: unknown) {
       console.error(`Error running the action ${action.label} on ${target.key}`, error);
       toast.error(`${action.label} ${target.name} failed`, { description: errorMessage(error) });
+    } finally {
+      this.#pending.delete(target.key);
     }
   }
 }

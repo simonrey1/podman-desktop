@@ -3,7 +3,7 @@ import type { NetworkInspectInfo } from '@desktop-framework/api';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import ResourceActions from '#lib/components/ResourceActions.svelte';
-import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
+import { type ActionTarget, type ResourceAction, resourceKey } from '#lib/stores/actions.svelte.js';
 
 interface Props {
   network: NetworkInspectInfo;
@@ -13,11 +13,12 @@ interface Props {
 
 let { network, placement = 'row' }: Props = $props();
 let used = $derived(Object.keys(network.Containers ?? {}).length > 0);
-let target: ActionTarget = $derived({ key: `network:${network.engineId}:${network.Id}`, name: network.Name });
+let target: ActionTarget = $derived({ key: resourceKey('network', network.engineId, network.Id), name: network.Name });
 
 let actions: ResourceAction[] = $derived([
   {
     label: 'Delete',
+    progress: 'deleting',
     icon: Trash2Icon,
     destructive: true,
     // a network used by a container cannot be deleted

@@ -7,23 +7,23 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 
 ## Cross-cutting patterns (used by most domains)
 
-| Feature                                                                                                                         | v2                                                 |
-| ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| List pages: free-text search, sortable columns, default sort                                                                    | ✅                                                 |
-| List pages: environment (engine) filter dropdown — v2 scopes lists to the engine selected in the explorer instead               | ◐                                                  |
-| List pages: configurable column layout                                                                                          | ☐                                                  |
-| List pages: multi-select + bulk actions bar ("On N selected items") with bulk delete + confirmation                             | ☐                                                  |
-| List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                           | ☐                                                  |
-| Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button | ◐ (plain empty states)                             |
-| Confirmation before destructive actions (delete)                                                                                | ✅                                                 |
-| Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                          | ✅                                                 |
-| Transient statuses on actions (STARTING, STOPPING, DELETING, RESTARTING…)                                                       | ☐                                                  |
-| Extension-contributed actions on rows and details (`ContributionActions`, menu contexts + `when` clauses)                       | ☐                                                  |
-| Details pages: Summary / Logs / Inspect / Kube / Terminal tabs pattern                                                          | ◐ (segmented sections, logs/terminal in the panel) |
-| Inspect = read-only JSON in Monaco                                                                                              | ✅ (containers)                                    |
-| Open exposed ports in the browser                                                                                               | ☐                                                  |
-| Terminal settings (font size, line height, scrollback) applied to terminals                                                     | ☐                                                  |
-| Telemetry events                                                                                                                | ☐                                                  |
+| Feature                                                                                                                                      | v2                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| List pages: free-text search, sortable columns, default sort                                                                                 | ✅                                                 |
+| List pages: environment (engine) filter dropdown — v2 scopes lists to the engine selected in the explorer instead                            | ◐                                                  |
+| List pages: configurable column layout                                                                                                       | ☐                                                  |
+| List pages: multi-select + bulk actions bar ("On N selected items") with bulk delete + confirmation                                          | ☐                                                  |
+| List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ☐                                                  |
+| Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button              | ◐ (plain empty states)                             |
+| Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |
+| Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                                       | ✅                                                 |
+| Transient statuses on actions (starting, stopping, deleting, restarting… on the row and the details header; buttons disabled with a spinner) | ✅                                                 |
+| Extension-contributed actions on rows and details (`ContributionActions`, menu contexts + `when` clauses)                                    | ☐                                                  |
+| Details pages: Summary / Logs / Inspect / Kube / Terminal tabs pattern                                                                       | ◐ (segmented sections, logs/terminal in the panel) |
+| Inspect = read-only JSON in Monaco                                                                                                           | ✅ (containers)                                    |
+| Open exposed ports in the browser                                                                                                            | ☐                                                  |
+| Terminal settings (font size, line height, scrollback) applied to terminals                                                                  | ☐                                                  |
+| Telemetry events                                                                                                                             | ☐                                                  |
 
 ## Containers (`lib/container`)
 

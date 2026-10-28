@@ -23,13 +23,19 @@ import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import PodActions from '#lib/components/pod/PodActions.svelte';
 import { age } from '#lib/format.js';
+import { resourceKey } from '#lib/stores/actions.svelte.js';
 
 const column = columnHelper<PodInfo>();
 
 export const podColumns = column.columns([
   column.accessor('Name', {
     header: 'Name',
-    cell: ({ row }) => renderComponent(NameCell, { name: row.original.Name, status: row.original.Status }),
+    cell: ({ row }) =>
+      renderComponent(NameCell, {
+        name: row.original.Name,
+        status: row.original.Status,
+        actionKey: resourceKey('pod', row.original.engineId, row.original.Id),
+      }),
   }),
   column.accessor(pod => pod.Containers.length, {
     id: 'containers',
