@@ -169,7 +169,7 @@ function onkeydown(event: KeyboardEvent, row: T): void {
               <div
                 class={[
                   meta?.actions
-                    ? 'flex justify-end opacity-0 group-hover/row:opacity-100 group-focus-within/row:opacity-100'
+                    ? 'flex justify-end opacity-0 group-hover/row:opacity-100 group-has-focus-visible/row:opacity-100'
                     : 'truncate',
                   meta?.class,
                   meta?.cellClass,

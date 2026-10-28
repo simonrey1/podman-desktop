@@ -30,7 +30,7 @@ interface Props {
 let { selected, actions, onClear }: Props = $props();
 </script>
 
-<div class="flex h-9 shrink-0 items-center gap-1 border-b bg-primary/10 px-3" role="toolbar" aria-label="Selection">
+<div class="flex h-9 shrink-0 items-center gap-0.5 border-b bg-primary/10 px-3" role="toolbar" aria-label="Selection">
   <span class="pr-2 font-medium">{selected} selected</span>
   {#each actions as action (action.label)}
     <Button
@@ -38,7 +38,7 @@ let { selected, actions, onClear }: Props = $props();
       size="sm"
       disabled={action.count === 0}
       onclick={action.run}>
-      <action.icon fill={action.filled ? 'currentColor' : 'none'} />
+      <action.icon data-icon="inline-start" fill={action.filled ? 'currentColor' : 'none'} />
       {action.label}
       {#if action.count > 0 && action.count < selected}
         <span class="text-muted-foreground">({action.count})</span>
@@ -47,7 +47,7 @@ let { selected, actions, onClear }: Props = $props();
   {/each}
   <div class="ms-auto">
     <Button variant="ghost" size="sm" onclick={onClear}>
-      <XIcon />
+      <XIcon data-icon="inline-start" />
       Clear
     </Button>
   </div>
