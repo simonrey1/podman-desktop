@@ -26,9 +26,11 @@ export const CONTAINER_EVENTS = [
   'container-die-event',
   'container-init-event',
   'container-kill-event',
+  'container-paused-event',
   'container-removed-event',
   'container-started-event',
   'container-stopped-event',
+  'container-unpaused-event',
   ...PROVIDER_EVENTS,
 ] as const;
 

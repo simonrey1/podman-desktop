@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import { parseViewRef, viewDefinition, type ViewRef, viewRef } from '#lib/views/index.js';
+import { parseViewRef, viewDefinition, type ViewId, type ViewRef, viewRef, type ViewState } from '#lib/views/index.js';
 
 import { type Tab, TabGroup } from './tab-group.svelte.js';
 
@@ -44,7 +44,10 @@ export class Workbench {
    * @param options.from what opens it: opening a view from the content of a tab pins that tab (using a preview
    * tab keeps it), only the explorer replaces the preview tab
    */
-  open(ref: ViewRef, options: { preview?: boolean; from?: 'explorer' | 'view' } = {}): void {
+  open<Id extends ViewId>(
+    ref: ViewRef<Id>,
+    options: { preview?: boolean; from?: 'explorer' | 'view'; state?: Partial<ViewState<Id>> } = {},
+  ): void {
     if (options.from !== 'explorer' && this.editor.activeKey) {
       this.editor.pin(this.editor.activeKey);
     }

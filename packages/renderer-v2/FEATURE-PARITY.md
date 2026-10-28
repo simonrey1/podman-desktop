@@ -36,7 +36,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | All / Running / Stopped filter                                                                                                      | ✅                         |
 | Tree grouping: compose projects and Podman pods, expandable, group status/actions                                                   | ☐                          |
 | Row actions: start/stop, restart, delete, logs, terminal                                                                            | ✅                         |
-| Row actions: unpause, open browser, generate kube, export, extension actions                                                        | ☐                          |
+| Row actions: unpause, open in the browser, generate kube, export                                                                    | ✅                         |
+| Row actions: extension actions (phase 9)                                                                                            | ☐                          |
 | Bulk: run, stop, delete                                                                                                             | ✅                         |
 | Bulk: create pod from selection                                                                                                     | ☐                          |
 | Create: from existing image / from Containerfile                                                                                    | ☐                          |
@@ -50,7 +51,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Terminal: interactive shell                                                                                                         | ✅ (panel, multi-instance) |
 | Terminal: auto-reconnect, "not running" state, hidden for infra containers                                                          | ☐                          |
 | TTY attach tab (Tty + OpenStdin containers)                                                                                         | ☐                          |
-| Export container to a `.tar`                                                                                                        | ☐                          |
+| Export container to a `.tar`                                                                                                        | ✅                         |
 | Create container from existing image (typeahead on local/registry images and tags, short-name resolution, FQN option, pull-and-run) | ☐                          |
 | Recommended registry sign-in hint                                                                                                   | ☐                          |
 

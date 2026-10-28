@@ -71,7 +71,8 @@ export class TabGroup {
     return key !== this.#fixedKey;
   }
 
-  open(ref: ViewRef, options: { preview?: boolean } = {}): void {
+  /** @param options.state a part of the state of the view, e.g. the section to show (in a new or an existing tab) */
+  open(ref: ViewRef, options: { preview?: boolean; state?: Record<string, unknown> } = {}): void {
     const preview = options.preview ?? false;
     const { key, instance } = this.#instanceOf(ref);
     const existing = this.tabs.find(tab => tab.key === key);
@@ -79,8 +80,11 @@ export class TabGroup {
       if (!preview) {
         existing.preview = false;
       }
+      if (options.state) {
+        Object.assign(existing.state, viewState(ref, { ...$state.snapshot(existing.state), ...options.state }));
+      }
     } else {
-      const tab: Tab = { key, ref, instance, preview, state: viewState(ref) };
+      const tab: Tab = { key, ref, instance, preview, state: viewState(ref, options.state) };
       const previewIndex = preview ? this.tabs.findIndex(tab => tab.preview) : -1;
       if (previewIndex >= 0) {
         this.tabs[previewIndex] = tab;

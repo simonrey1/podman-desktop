@@ -16,7 +16,13 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import type { ViewRef } from '#lib/views/index.js';
+import type { ViewId, ViewRef, ViewState } from '#lib/views/index.js';
+
+/** how a view opens another view: as a preview, with a part of its state (e.g. a section) */
+export interface OpenOptions<Id extends ViewId = ViewId> {
+  preview?: boolean;
+  state?: Partial<ViewState<Id>>;
+}
 
 /**
  * What a view receives: its params, its state, and how to act on the workbench from the view.
@@ -25,16 +31,16 @@ import type { ViewRef } from '#lib/views/index.js';
 export class ViewHandle<Params, State> {
   readonly params: Params;
   readonly state: State;
-  readonly #open: (ref: ViewRef, options: { preview?: boolean }) => void;
+  readonly #open: (ref: ViewRef, options: OpenOptions) => void;
 
-  constructor(params: Params, state: State, open: (ref: ViewRef, options: { preview?: boolean }) => void) {
+  constructor(params: Params, state: State, open: (ref: ViewRef, options: OpenOptions) => void) {
     this.params = params;
     this.state = state;
     this.#open = open;
   }
 
   /** opens another view: the tab of this view is kept (pinned), see {@link Workbench.open} */
-  open(ref: ViewRef, options: { preview?: boolean } = {}): void {
-    this.#open(ref, options);
+  open<Id extends ViewId>(ref: ViewRef<Id>, options: OpenOptions<Id> = {}): void {
+    this.#open(ref as ViewRef, options as OpenOptions);
   }
 }
