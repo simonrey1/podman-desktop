@@ -15,7 +15,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: multi-select + bulk actions bar ("On N selected items") with bulk delete + confirmation                             | ☐                                                  |
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                           | ☐                                                  |
 | Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button | ◐ (plain empty states)                             |
-| Confirmation before destructive actions                                                                                         | ☐                                                  |
+| Confirmation before destructive actions (delete)                                                                                | ✅                                                 |
 | Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                          | ✅                                                 |
 | Transient statuses on actions (STARTING, STOPPING, DELETING, RESTARTING…)                                                       | ☐                                                  |
 | Extension-contributed actions on rows and details (`ContributionActions`, menu contexts + `when` clauses)                       | ☐                                                  |

@@ -11,6 +11,7 @@ import * as Sidebar from '#lib/components/ui/sidebar/index.js';
 import { Toaster } from '#lib/components/ui/sonner/index.js';
 import TabGroupView from '#lib/workbench/TabGroupView.svelte';
 
+import ConfirmationDialog from './ConfirmationDialog.svelte';
 import Explorer from './Explorer.svelte';
 import StatusBar from './StatusBar.svelte';
 import TitleBar from './TitleBar.svelte';
@@ -132,6 +133,8 @@ function onkeydown(event: KeyboardEvent): void {
     <StatusBar />
   </div>
 </Sidebar.Provider>
+
+<ConfirmationDialog />
 
 <!-- the results of the actions, e.g. their failures -->
 <Toaster theme={app.theme.isDark ? 'dark' : 'light'} position="bottom-right" />

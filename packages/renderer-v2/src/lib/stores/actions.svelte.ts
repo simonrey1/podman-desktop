@@ -19,6 +19,8 @@
 import type { LucideIcon } from '@lucide/svelte';
 import { toast } from 'svelte-sonner';
 
+import type { ConfirmationsStore } from './confirmations.svelte.js';
+
 /** An action on a resource, e.g. Stop or Delete. */
 export interface ResourceAction {
   label: string;
@@ -27,7 +29,7 @@ export interface ResourceAction {
   disabled?: boolean;
   /** fills the icon, e.g. the square of Stop */
   filled?: boolean;
-  /** destructive actions are red in the menus */
+  /** destructive actions are red in the menus, and ask for a confirmation before running */
   destructive?: boolean;
 }
 
@@ -46,10 +48,28 @@ export function errorMessage(error: unknown): string {
 }
 
 /**
- * Runs the actions on the resources, and reports their failures in a toast: an action never fails silently.
+ * Runs the actions on the resources: the destructive ones are confirmed first, and the failures are reported in a
+ * toast (an action never fails silently).
  */
 export class ActionsStore {
+  readonly #confirmations: ConfirmationsStore;
+
+  constructor(confirmations: ConfirmationsStore) {
+    this.#confirmations = confirmations;
+  }
+
   async run(target: ActionTarget, action: ResourceAction): Promise<void> {
+    if (action.destructive) {
+      const confirmed = await this.#confirmations.ask({
+        title: `${action.label} ${target.name}?`,
+        message: 'This cannot be undone.',
+        confirmLabel: action.label,
+        destructive: true,
+      });
+      if (!confirmed) {
+        return;
+      }
+    }
     try {
       await action.run();
     } catch (error: unknown) {
