@@ -36,6 +36,8 @@ export interface ResourceAction {
   progress?: string;
   /** not shown on the resource, but known to the bulk actions: e.g. Start of a running container */
   hidden?: boolean;
+  /** the question asked before a destructive action, instead of "<label> <name>" / "<name> will be permanently removed" */
+  confirmation?: { title: string; message: string };
 }
 
 /** An action running on a resource. */
@@ -51,6 +53,11 @@ export function resourceKey(
   id: string,
 ): string {
   return `${kind}:${engineId}:${id}`;
+}
+
+/** the key of the prune of a kind of resources on an engine: one prune at a time */
+export function pruneKey(kind: 'containers' | 'pods' | 'images' | 'volumes', engineId: string): string {
+  return `prune:${kind}:${engineId}`;
 }
 
 /** The actions of a resource, and the resource they apply to. */
@@ -112,8 +119,8 @@ export class ActionsStore {
     }
     if (action.destructive) {
       const confirmed = await this.#confirmations.ask({
-        title: `${action.label} ${target.name}`,
-        message: `${target.name} will be permanently removed. This cannot be undone.`,
+        title: action.confirmation?.title ?? `${action.label} ${target.name}`,
+        message: action.confirmation?.message ?? `${target.name} will be permanently removed. This cannot be undone.`,
         confirmLabel: action.label,
         destructive: true,
       });

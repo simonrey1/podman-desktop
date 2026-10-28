@@ -3,7 +3,7 @@ import type { PodInfo } from '@desktop-framework/api';
 import BoxesIcon from '@lucide/svelte/icons/boxes';
 
 import { getApp } from '#lib/app.svelte.js';
-import { podActions } from '#lib/components/pod/actions.js';
+import { podActions, podPrune } from '#lib/components/pod/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -26,6 +26,7 @@ function open(row: PodInfo, options: { preview: boolean }): void {
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   actionsOf={(pod): ResourceActionSet => podActions(pod)}
+  prune={podPrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Start', 'Stop', 'Delete']}
   icon={BoxesIcon}
   title="Pods"

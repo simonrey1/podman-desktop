@@ -3,7 +3,7 @@ import type { ImageInfo } from '@desktop-framework/api';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
-import { imageActions } from '#lib/components/image/actions.js';
+import { imageActions, imagePrune } from '#lib/components/image/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -34,6 +34,7 @@ const columns = imageColumns(used);
   bind:selection={view.state.selection}
   canSelect={(image): boolean => !used(image)}
   actionsOf={(image): ResourceActionSet => imageActions(image, used(image))}
+  prune={imagePrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Delete']}
   icon={LayersIcon}
   title="Images"

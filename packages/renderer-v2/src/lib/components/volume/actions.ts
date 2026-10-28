@@ -17,9 +17,10 @@
  ***********************************************************************/
 
 import type { VolumeInfo } from '@desktop-framework/api';
+import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
+import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
 /** The actions of a volume: in its row, in the header of its details, and in the bulk actions. */
 export function volumeActions(volume: VolumeInfo): ResourceActionSet {
@@ -34,6 +35,26 @@ export function volumeActions(volume: VolumeInfo): ResourceActionSet {
         // a volume used by a container cannot be deleted
         disabled: !!volume.containersUsage?.length,
         run: (): Promise<void> => window.removeVolume(volume.engineId, volume.Name),
+      },
+    ],
+  };
+}
+
+/** The prune of the volumes of an engine, in the header of the list, removing the volumes not used by a container. */
+export function volumePrune(engineId: string, engineLabel: string): ResourceActionSet {
+  return {
+    target: { key: pruneKey('volumes', engineId), name: 'volumes' },
+    actions: [
+      {
+        label: 'Prune',
+        progress: 'pruning',
+        icon: BrushCleaningIcon,
+        destructive: true,
+        confirmation: {
+          title: 'Prune volumes',
+          message: `The volumes of ${engineLabel} not used by a container will be permanently removed. This cannot be undone.`,
+        },
+        run: (): Promise<unknown> => window.pruneVolumes(engineId),
       },
     ],
   };

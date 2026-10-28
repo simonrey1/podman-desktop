@@ -14,7 +14,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: configurable column layout                                                                                                       | ☐                                                  |
 | List pages: multi-select (checkbox column, select-all of the rows shown, used resources not selectable)                                      | ✅                                                 |
 | List pages: bulk actions bar ("N selected", the actions on the selected rows, Clear), one confirmation, one toast for the failures           | ✅                                                 |
-| List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ☐                                                  |
+| List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ✅                                                 |
 | Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button              | ◐ (plain empty states)                             |
 | Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |
 | Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                                       | ✅                                                 |
@@ -105,7 +105,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | --------------------------------------------------------------------------------------------------------------------------- | --- |
 | Volumes list: status (in use), name, driver, age, delete                                                                    | ✅  |
 | Volumes list: bulk delete                                                                                                   | ✅  |
-| Volumes list: environment, size + "gather sizes", prune, extension actions                                                  | ☐   |
+| Volumes list: environment, size + "gather sizes", extension actions                                                         | ☐   |
 | Volume details (Summary with containers using it, Inspect)                                                                  | ✅  |
 | Create volume                                                                                                               | ☐   |
 | Networks list: status (in use), name, driver, id, delete, bulk delete                                                       | ✅  |

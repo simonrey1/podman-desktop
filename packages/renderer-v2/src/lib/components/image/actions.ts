@@ -17,9 +17,10 @@
  ***********************************************************************/
 
 import type { ImageInfo } from '@desktop-framework/api';
+import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
+import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { imageName } from '#lib/stores/images.svelte.js';
 
 /**
@@ -37,6 +38,37 @@ export function imageActions(image: ImageInfo, used: boolean): ResourceActionSet
         destructive: true,
         disabled: used,
         run: (): Promise<void> => window.deleteImage(image.engineId, image.Id),
+      },
+    ],
+  };
+}
+
+/** The prunes of the images of an engine, in the header of the list: the unused images, or the untagged ones only. */
+export function imagePrune(engineId: string, engineLabel: string): ResourceActionSet {
+  return {
+    target: { key: pruneKey('images', engineId), name: 'images' },
+    actions: [
+      {
+        label: 'Prune unused',
+        progress: 'pruning',
+        icon: BrushCleaningIcon,
+        destructive: true,
+        confirmation: {
+          title: 'Prune unused images',
+          message: `The images of ${engineLabel} not used by a container will be permanently removed. This cannot be undone.`,
+        },
+        run: (): Promise<unknown> => window.pruneImages(engineId, true),
+      },
+      {
+        label: 'Prune untagged',
+        progress: 'pruning',
+        icon: BrushCleaningIcon,
+        destructive: true,
+        confirmation: {
+          title: 'Prune untagged images',
+          message: `The untagged images of ${engineLabel} not used by a container will be permanently removed. This cannot be undone.`,
+        },
+        run: (): Promise<unknown> => window.pruneImages(engineId, false),
       },
     ],
   };

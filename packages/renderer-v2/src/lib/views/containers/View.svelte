@@ -3,7 +3,7 @@ import type { ContainerInfo } from '@desktop-framework/api';
 import BoxIcon from '@lucide/svelte/icons/box';
 
 import { getApp } from '#lib/app.svelte.js';
-import { containerActions } from '#lib/components/container/actions.js';
+import { containerActions, containerPrune } from '#lib/components/container/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
@@ -35,6 +35,7 @@ function open(container: ContainerInfo, options: { preview: boolean }): void {
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   actionsOf={(container): ResourceActionSet => containerActions(container, app)}
+  prune={containerPrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Start', 'Stop', 'Delete']}
   icon={BoxIcon}
   title="Containers"

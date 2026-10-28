@@ -8,6 +8,7 @@ import type { DataTableFeatures } from '#lib/components/data-table/data-table.js
 import DataTable from '#lib/components/data-table/DataTable.svelte';
 import FilterInput from '#lib/components/FilterInput.svelte';
 import Page from '#lib/components/Page.svelte';
+import PruneButton from '#lib/components/PruneButton.svelte';
 import SelectionBar, { type BulkAction } from '#lib/components/SelectionBar.svelte';
 import * as Empty from '#lib/components/ui/empty/index.js';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
@@ -35,6 +36,8 @@ interface Props {
   actionsOf?: (row: T) => ResourceActionSet;
   /** the labels of the row actions offered on the selected rows, in order: e.g. Start, Stop, Delete */
   bulk?: string[];
+  /** the prune of the unused resources of the engine, in the header */
+  prune?: ResourceActionSet;
   loaded: boolean;
 }
 
@@ -55,6 +58,7 @@ let {
   canSelect,
   actionsOf,
   bulk = [],
+  prune,
 }: Props = $props();
 
 const app = getApp();
@@ -113,6 +117,9 @@ let bulkActions: BulkAction[] = $derived.by(() => {
     {/if}
   {/snippet}
   {#snippet actions()}
+    {#if prune}
+      <PruneButton {prune} />
+    {/if}
     {@render filters?.()}
     <FilterInput bind:value={filter} placeholder="Filter {noun}" />
   {/snippet}

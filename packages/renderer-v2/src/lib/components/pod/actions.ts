@@ -17,12 +17,13 @@
  ***********************************************************************/
 
 import type { PodInfo } from '@desktop-framework/api';
+import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
-import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
+import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
 /** The actions of a pod: in its row, in the header of its details, and in the bulk actions. */
 export function podActions(pod: PodInfo): ResourceActionSet {
@@ -61,6 +62,26 @@ export function podActions(pod: PodInfo): ResourceActionSet {
         icon: RotateCwIcon,
         disabled: !running,
         run: (): Promise<void> => window.restartPod(engineId, podId),
+      },
+    ],
+  };
+}
+
+/** The prune of the pods of an engine, in the header of the list, removing the stopped pods. */
+export function podPrune(engineId: string, engineLabel: string): ResourceActionSet {
+  return {
+    target: { key: pruneKey('pods', engineId), name: 'pods' },
+    actions: [
+      {
+        label: 'Prune',
+        progress: 'pruning',
+        icon: BrushCleaningIcon,
+        destructive: true,
+        confirmation: {
+          title: 'Prune pods',
+          message: `The stopped pods of ${engineLabel} will be permanently removed. This cannot be undone.`,
+        },
+        run: (): Promise<unknown> => window.prunePods(engineId),
       },
     ],
   };

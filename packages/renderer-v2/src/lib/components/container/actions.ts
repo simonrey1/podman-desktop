@@ -17,6 +17,7 @@
  ***********************************************************************/
 
 import type { ContainerInfo } from '@desktop-framework/api';
+import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
@@ -25,7 +26,7 @@ import TextAlignStartIcon from '@lucide/svelte/icons/text-align-start';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
-import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
+import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
@@ -78,6 +79,26 @@ export function containerActions(container: ContainerInfo, app: App): ResourceAc
         icon: TerminalIcon,
         disabled: !running,
         run: (): void => app.workbench.open(viewRef('container-terminal', { engineId, containerId })),
+      },
+    ],
+  };
+}
+
+/** The prune of the containers of an engine, in the header of the list, removing the stopped containers. */
+export function containerPrune(engineId: string, engineLabel: string): ResourceActionSet {
+  return {
+    target: { key: pruneKey('containers', engineId), name: 'containers' },
+    actions: [
+      {
+        label: 'Prune',
+        progress: 'pruning',
+        icon: BrushCleaningIcon,
+        destructive: true,
+        confirmation: {
+          title: 'Prune containers',
+          message: `The stopped containers of ${engineLabel} will be permanently removed. This cannot be undone.`,
+        },
+        run: (): Promise<unknown> => window.pruneContainers(engineId),
       },
     ],
   };
