@@ -26,7 +26,12 @@ import { ListState } from '#lib/stores/list.svelte.js';
  */
 export class VolumesStore extends ListState<VolumeInfo> {
   constructor() {
-    super(async () => (await window.listVolumes()).flatMap(list => list.Volumes), ['volume-event', ...PROVIDER_EVENTS]);
+    super(
+      // without the usage (sizes): the preload asks for it by default, and computing it fails for the whole engine
+      // when one of its containers is broken
+      async () => (await window.listVolumes(false)).flatMap(list => list.Volumes),
+      ['volume-event', ...PROVIDER_EVENTS],
+    );
   }
 
   ofEngine(engineId: string): VolumeInfo[] {
