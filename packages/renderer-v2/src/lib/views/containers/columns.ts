@@ -41,6 +41,17 @@ export const containerColumns = column.columns([
       }),
   }),
   column.accessor('Image', { header: 'Image', meta: { width: '18rem', class: 'text-right text-muted-foreground' } }),
+  // how long a running container has been running (empty when stopped, sorted before the shortest uptime)
+  column.accessor(
+    container => (container.State === 'running' ? Date.now() - new Date(container.StartedAt).getTime() : -1),
+    {
+      id: 'uptime',
+      header: 'Uptime',
+      cell: ({ row }) => (row.original.State === 'running' ? age(row.original.StartedAt) : ''),
+      sortFn: 'basic',
+      meta: { width: '6rem', class: 'text-right text-muted-foreground' },
+    },
+  ),
   column.accessor('Created', {
     header: 'Age',
     cell: ({ getValue }) => age(getValue()),

@@ -16,6 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import { clock } from '#lib/clock.js';
+
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['year', 31_536_000],
   ['month', 2_592_000],
@@ -25,13 +27,13 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['minute', 60],
 ];
 
-/** "3 hours", "2 weeks"... from a date, or a timestamp in seconds */
+/** "3 hours", "2 weeks"... from a date, or a timestamp in seconds; kept up to date in a template */
 export function age(date: Date | string | number | undefined): string {
   if (date === undefined) {
     return '';
   }
   const time = typeof date === 'number' ? date * 1000 : new Date(date).getTime();
-  const seconds = Math.max(0, (Date.now() - time) / 1000);
+  const seconds = Math.max(0, (clock.now - time) / 1000);
   if (Number.isNaN(seconds)) {
     return '';
   }
