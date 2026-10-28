@@ -20,9 +20,9 @@ import BoxesIcon from '@lucide/svelte/icons/boxes';
 
 import { defineView } from '#lib/workbench/define-view.js';
 
-import { engineName, engineParams, listState } from '../shared.js';
+import { engineName, engineParams, listState, showSchema } from '../shared.js';
 
-export const schema = { params: engineParams, state: listState };
+export const schema = { params: engineParams, state: listState.extend({ show: showSchema }) };
 
 export default defineView({
   schema,

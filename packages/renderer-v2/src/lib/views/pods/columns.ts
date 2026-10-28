@@ -22,8 +22,10 @@ import { renderComponent } from '@tanstack/svelte-table';
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import PodActions from '#lib/components/pod/PodActions.svelte';
+import PodContainersCell from '#lib/components/pod/PodContainersCell.svelte';
 import { age } from '#lib/format.js';
 import { resourceKey } from '#lib/stores/actions.svelte.js';
+import { shortId } from '#lib/stores/containers.svelte.js';
 
 const column = columnHelper<PodInfo>();
 
@@ -40,8 +42,14 @@ export const podColumns = column.columns([
   column.accessor(pod => pod.Containers.length, {
     id: 'containers',
     header: 'Containers',
+    cell: ({ row }) => renderComponent(PodContainersCell, { pod: row.original }),
     sortFn: 'basic',
-    meta: { width: '7rem', class: 'text-right tabular-nums text-muted-foreground' },
+    meta: { width: '7rem', class: 'text-right' },
+  }),
+  column.accessor(pod => shortId(pod.Id), {
+    id: 'id',
+    header: 'ID',
+    meta: { width: '8rem', class: 'text-right text-muted-foreground', cellClass: 'font-mono' },
   }),
   column.accessor('Created', {
     header: 'Age',

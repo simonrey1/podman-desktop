@@ -39,6 +39,13 @@ export const networkParams = z.object({ engineId: z.string(), networkId: z.strin
 /** the sort of a table, as TanStack Table describes it */
 export const sortSchema = z.array(z.object({ id: z.string(), desc: z.boolean() }));
 
+/** the resources shown by a list: all of them, the running ones, or the others */
+export const showSchema = z.enum(['all', 'running', 'stopped']).default('all');
+
+export function isShown(show: z.infer<typeof showSchema>, running: boolean): boolean {
+  return show === 'all' || (show === 'running') === running;
+}
+
 /** the selected rows of a table, by id */
 export const selectionSchema = z.record(z.string(), z.literal(true));
 

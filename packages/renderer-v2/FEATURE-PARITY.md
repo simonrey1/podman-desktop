@@ -65,19 +65,21 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 
 ## Pods — Podman (`lib/pod`)
 
-| Feature                                                                                                | v2  |
-| ------------------------------------------------------------------------------------------------------ | --- |
-| List columns: status, name, containers count, age                                                      | ✅  |
-| List columns: short id, environment, per-container status dots linking to the filtered containers list | ☐   |
-| All / Running / Stopped filter                                                                         | ☐   |
-| Row actions: start, stop, restart, delete                                                              | ✅  |
-| Bulk: start, stop, delete                                                                              | ✅  |
-| Row actions: generate kube, open exposed port(s), extension actions                                    | ☐   |
-| Podman kube play (file or from-scratch YAML, build/replace options, cancel)                            | ☐   |
-| Empty state "Start your first pod"                                                                     | ☐   |
-| Details: Summary (containers linked), Inspect, Kube                                                    | ✅  |
-| Details: merged logs of the containers                                                                 | ☐   |
-| Create pod from containers (name, ports to expose, engine; replicates containers)                      | ☐   |
+| Feature                                                                                           | v2  |
+| ------------------------------------------------------------------------------------------------- | --- |
+| List columns: status, name, containers count, age                                                 | ✅  |
+| List columns: short id, per-container status dots (name and status in their tooltip)              | ✅  |
+| List columns: environment (v2: the engine of the explorer); status dots linking to the containers | ☐   |
+| All / Running / Stopped filter                                                                    | ☐   |
+| Row actions: start, stop, restart, delete                                                         | ✅  |
+| Bulk: start, stop, delete                                                                         | ✅  |
+| Row actions: generate kube, open the exposed port in the browser                                  | ✅  |
+| Row actions: extension actions (phase 9)                                                          | ☐   |
+| Podman kube play (file or from-scratch YAML, build/replace options, cancel)                       | ☐   |
+| Empty state "Start your first pod"                                                                | ☐   |
+| Details: Summary (containers linked), Inspect, Kube                                               | ✅  |
+| Details: merged logs of the containers                                                            | ☐   |
+| Create pod from containers (name, ports to expose, engine; replicates containers)                 | ☐   |
 
 ## Images (`lib/image`) and manifests (`lib/manifest`)
 

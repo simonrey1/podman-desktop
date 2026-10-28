@@ -18,17 +18,30 @@
 
 import type { PodInfo } from '@desktop-framework/api';
 import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
+import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
+import FileCodeIcon from '@lucide/svelte/icons/file-code';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
+import type { App } from '#lib/app.svelte.js';
 import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
+import { viewRef } from '#lib/views/index.js';
+
+/** the address of the first port published by the containers of the pod, e.g. `http://localhost:8080` */
+function browserUrl(pod: PodInfo, app: App): string | undefined {
+  const port = pod.Containers.flatMap(({ Id }) => app.containers.get(pod.engineId, Id)?.Ports ?? []).find(
+    port => port.PublicPort,
+  )?.PublicPort;
+  return port ? `http://localhost:${port}` : undefined;
+}
 
 /** The actions of a pod: in its row, in the header of its details, and in the bulk actions. */
-export function podActions(pod: PodInfo): ResourceActionSet {
+export function podActions(pod: PodInfo, app: App): ResourceActionSet {
   const { engineId, Id: podId } = pod;
   const running = pod.Status.toLowerCase() === 'running';
+  const url = browserUrl(pod, app);
   return {
     target: { key: resourceKey('pod', engineId, podId), name: pod.Name },
     actions: [
@@ -62,6 +75,20 @@ export function podActions(pod: PodInfo): ResourceActionSet {
         icon: RotateCwIcon,
         disabled: !running,
         run: (): Promise<void> => window.restartPod(engineId, podId),
+      },
+      {
+        label: 'Open in browser',
+        icon: ExternalLinkIcon,
+        // only for the pods publishing a port
+        hidden: !url,
+        disabled: !running,
+        run: (): Promise<void> | undefined => (url ? window.openExternal(url) : undefined),
+      },
+      {
+        label: 'Generate Kube',
+        icon: FileCodeIcon,
+        run: (): void =>
+          app.workbench.open(viewRef('pod-details', { engineId, podId }), { state: { section: 'kube' } }),
       },
     ],
   };

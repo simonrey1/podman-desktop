@@ -17,16 +17,15 @@
  ***********************************************************************/
 
 import BoxIcon from '@lucide/svelte/icons/box';
-import { z } from 'zod';
 
 import { defineView } from '#lib/workbench/define-view.js';
 
-import { engineName, engineParams, listState } from '../shared.js';
+import { engineName, engineParams, listState, showSchema } from '../shared.js';
 
 export const schema = {
   params: engineParams,
   state: listState.extend({
-    show: z.enum(['all', 'running', 'stopped']).default('all'),
+    show: showSchema,
   }),
 };
 

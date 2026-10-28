@@ -5,9 +5,10 @@ import BoxIcon from '@lucide/svelte/icons/box';
 import { getApp } from '#lib/app.svelte.js';
 import { containerActions, containerPrune } from '#lib/components/container/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
-import SegmentedControl from '#lib/components/SegmentedControl.svelte';
+import StateFilter from '#lib/components/StateFilter.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
+import { isShown } from '#lib/views/shared.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
 import { containerColumns } from './columns.js';
@@ -20,9 +21,7 @@ const app = getApp();
 let containers = $derived(
   app.containers
     .ofEngine(view.params.engineId)
-    .filter(
-      container => view.state.show === 'all' || (view.state.show === 'running') === (container.State === 'running'),
-    ),
+    .filter(container => isShown(view.state.show, container.State === 'running')),
 );
 
 function open(container: ContainerInfo, options: { preview: boolean }): void {
@@ -46,13 +45,6 @@ function open(container: ContainerInfo, options: { preview: boolean }): void {
   onOpen={open}
   loaded={app.containers.loaded}>
   {#snippet filters()}
-    <SegmentedControl
-      label="State"
-      bind:value={view.state.show}
-      options={[
-        { value: 'all', label: 'All' },
-        { value: 'running', label: 'Running' },
-        { value: 'stopped', label: 'Stopped' },
-      ]} />
+    <StateFilter bind:value={view.state.show} />
   {/snippet}
 </ResourceList>
