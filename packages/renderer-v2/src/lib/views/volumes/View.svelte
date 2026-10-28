@@ -22,6 +22,8 @@ function open(row: VolumeInfo, options: { preview: boolean }): void {
 <ResourceList
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
+  bind:selection={view.state.selection}
+  canSelect={(volume): boolean => !volume.containersUsage?.length}
   icon={HardDriveIcon}
   title="Volumes"
   noun="volumes"

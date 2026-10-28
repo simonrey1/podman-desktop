@@ -22,6 +22,8 @@ function open(row: NetworkInspectInfo, options: { preview: boolean }): void {
 <ResourceList
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
+  bind:selection={view.state.selection}
+  canSelect={(network): boolean => Object.keys(network.Containers ?? {}).length === 0}
   icon={NetworkIcon}
   title="Networks"
   noun="networks"

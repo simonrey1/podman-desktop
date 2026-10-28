@@ -12,7 +12,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: free-text search, sortable columns, default sort                                                                                 | ✅                                                 |
 | List pages: environment (engine) filter dropdown — v2 scopes lists to the engine selected in the explorer instead                            | ◐                                                  |
 | List pages: configurable column layout                                                                                                       | ☐                                                  |
-| List pages: multi-select + bulk actions bar ("On N selected items") with bulk delete + confirmation                                          | ☐                                                  |
+| List pages: multi-select (checkbox column, select-all of the rows shown, used resources not selectable)                                      | ✅                                                 |
+| List pages: bulk actions bar ("On N selected items") with bulk delete + confirmation                                                         | ☐                                                  |
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ☐                                                  |
 | Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button              | ◐ (plain empty states)                             |
 | Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |

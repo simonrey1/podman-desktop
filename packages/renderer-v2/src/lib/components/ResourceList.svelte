@@ -24,6 +24,10 @@ interface Props {
   filter?: string;
   /** bindable: the sort of the table */
   sort?: SortingState;
+  /** bindable: the ids of the selected rows (no selection column when not given) */
+  selection?: Record<string, true>;
+  /** whether a row can be selected */
+  canSelect?: (row: T) => boolean;
   loaded: boolean;
 }
 
@@ -40,6 +44,8 @@ let {
   loaded,
   filter = $bindable(''),
   sort = $bindable([]),
+  selection = $bindable(),
+  canSelect,
 }: Props = $props();
 </script>
 
@@ -48,7 +54,7 @@ let {
     {@render filters?.()}
     <FilterInput bind:value={filter} placeholder="Filter {noun}" />
   {/snippet}
-  <DataTable {data} {columns} {getRowId} {filter} bind:sort {onOpen}>
+  <DataTable {data} {columns} {getRowId} {filter} bind:sort bind:selection {canSelect} {onOpen}>
     {#snippet empty()}
       {#if loaded}
         {@const Icon = icon}

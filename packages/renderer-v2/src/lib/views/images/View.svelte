@@ -25,6 +25,8 @@ const columns = imageColumns(image => app.containers.ofImage(image.engineId, ima
 <ResourceList
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
+  bind:selection={view.state.selection}
+  canSelect={(image): boolean => app.containers.ofImage(image.engineId, image.Id).length === 0}
   icon={LayersIcon}
   title="Images"
   noun="images"

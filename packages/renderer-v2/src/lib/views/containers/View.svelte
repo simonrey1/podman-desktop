@@ -31,6 +31,7 @@ function open(container: ContainerInfo, options: { preview: boolean }): void {
 <ResourceList
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
+  bind:selection={view.state.selection}
   icon={BoxIcon}
   title="Containers"
   noun="containers"

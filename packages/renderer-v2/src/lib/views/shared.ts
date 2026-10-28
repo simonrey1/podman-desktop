@@ -39,10 +39,14 @@ export const networkParams = z.object({ engineId: z.string(), networkId: z.strin
 /** the sort of a table, as TanStack Table describes it */
 export const sortSchema = z.array(z.object({ id: z.string(), desc: z.boolean() }));
 
+/** the selected rows of a table, by id */
+export const selectionSchema = z.record(z.string(), z.literal(true));
+
 /** the state of the views listing resources */
 export const listState = z.object({
   filter: z.string().default(''),
   sort: sortSchema.default([]),
+  selection: selectionSchema.default({}),
 });
 
 export const noState = z.object({});
