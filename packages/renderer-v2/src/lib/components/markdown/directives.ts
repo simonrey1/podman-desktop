@@ -39,7 +39,53 @@ function image(this: CompileContext, directive: Directive): boolean {
   return true;
 }
 
-/** the directives not handled yet (e.g. the buttons running a command): their label, or their content */
+/** the attribute of an element, if the directive has it */
+function attribute(this: CompileContext, name: string, value: string | null | undefined): void {
+  if (value) {
+    this.tag(` ${name}="${this.encode(value)}"`);
+  }
+}
+
+/**
+ * `:button[label]{command=... args=...}`: a button running a command of the main process or of an extension;
+ * `:button[label]{href=...}`: a link looking like a button.
+ */
+function button(this: CompileContext, directive: Directive): boolean {
+  const { command, args, href, title } = directive.attributes ?? {};
+  if (directive.type !== 'textDirective' || (!command && !href)) {
+    return false;
+  }
+  if (command) {
+    this.tag('<button type="button" class="markdown-button"');
+    attribute.call(this, 'data-command', command);
+    attribute.call(this, 'data-args', args);
+  } else {
+    this.tag('<a class="markdown-button"');
+    attribute.call(this, 'href', href);
+  }
+  attribute.call(this, 'title', title);
+  this.tag('>');
+  this.raw(directive.label ?? '');
+  this.tag(command ? '</button>' : '</a>');
+  return true;
+}
+
+/** `:link[label]{command=...}`: a link running a command; `:link[label]{href=...}`: a link */
+function link(this: CompileContext, directive: Directive): boolean {
+  const { command, href, title } = directive.attributes ?? {};
+  if (directive.type !== 'textDirective' || (!command && !href)) {
+    return false;
+  }
+  this.tag('<a');
+  attribute.call(this, command ? 'data-command' : 'href', command ?? href);
+  attribute.call(this, 'title', title);
+  this.tag('>');
+  this.raw(directive.label ?? '');
+  this.tag('</a>');
+  return true;
+}
+
+/** the directives not handled yet (e.g. the warnings of an onboarding): their label, or their content */
 function fallback(this: CompileContext, directive: Directive): boolean {
   this.raw(directive.label ?? '');
   this.raw(directive.content ?? '');
@@ -47,4 +93,4 @@ function fallback(this: CompileContext, directive: Directive): boolean {
 }
 
 /** The directives of the markdown of Podman Desktop and of its extensions. */
-export const directiveHandlers: HtmlOptions = { image, '*': fallback };
+export const directiveHandlers: HtmlOptions = { button, image, link, '*': fallback };

@@ -218,7 +218,8 @@ providers stay part of the engines and providers domain.
 | Dialogs requested by extensions / main: input box (validation, password, multiline, selection), quick pick (filter, details, pick many, highlight callback) | ✅                                   |
 | Dialogs requested by extensions / main: custom pick (cards with markdown and details, one or several selected)                                              | ✅                                   |
 | Markdown rendering: links opened in the browser, image directive                                                                                            | ✅                                   |
-| Markdown directives: buttons running commands, command links, warnings, expandable                                                                          | ☐                                    |
+| Markdown directives: buttons and links running commands (busy while running, failures in a toast), button links                                             | ✅                                   |
+| Markdown directives: warnings, expandable sections (onboarding, phase 8)                                                                                    | ☐                                    |
 | Troubleshooting (engine checks and reconnect, repair/cleanup, console logs, gather logs, stores)                                                            | ☐                                    |
 | Help menu, feedback (direct and GitHub issue)                                                                                                               | ☐                                    |
 | Accounts menu (sign in / out)                                                                                                                               | ☐                                    |
