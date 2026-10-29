@@ -157,19 +157,20 @@ providers stay part of the engines and providers domain.
 
 ## Settings (`lib/preferences`)
 
-| Feature                                                                                                                                                                  | v2                                           |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| Settings shell: navigation with static pages + one entry per configuration section, conditional entries                                                                  | ☐                                            |
-| Configuration properties rendering by type (boolean, number/slider, string, enum, file/folder, password, markdown), reset to default, managed/locked, validation, search | ☐                                            |
-| Proxy (disabled / manual / system, HTTP/HTTPS/no-proxy)                                                                                                                  | ☐                                            |
-| Docker compatibility (socket mapping status, extension toggles)                                                                                                          | ☐                                            |
-| Registries (list, login, edit, remove, suggested registries, add with credential check)                                                                                  | ☐                                            |
-| Recommended registry sign-in hint (on pull and in the images, once the registries are in the settings)                                                                   | ☐                                            |
-| Authentication providers (accounts, sign in/out, pending session requests)                                                                                               | ☐                                            |
-| CLI tools (install/update to a version, uninstall, progress)                                                                                                             | ☐                                            |
-| Experimental features (master toggle + properties)                                                                                                                       | ☐                                            |
-| Theme (light / dark / system) applied                                                                                                                                    | ✅ (follows the setting; no settings UI yet) |
-| Renderer v2 itself is switched by the experimental `rendererV2.enabled` setting                                                                                          | ✅                                           |
+| Feature                                                                                                                                                                                                                 | v2                                           |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Settings shell: a Settings tab (from the explorer), its pages: one per configuration section and node, the pages of their own, search in every section                                                                  | ✅                                           |
+| Settings: the settings with a `when` clause (they need the context keys, phase 9)                                                                                                                                       | ☐                                            |
+| Configuration properties rendering by type (boolean switch, number, string, enum, file/folder, password, markdown), reset to default, managed/locked, number validation, search, written as changed and kept up to date | ✅                                           |
+| Proxy (disabled / manual / system, HTTP/HTTPS/no-proxy)                                                                                                                                                                 | ☐                                            |
+| Docker compatibility (socket mapping status, extension toggles)                                                                                                                                                         | ☐                                            |
+| Registries (list, login, edit, remove, suggested registries, add with credential check)                                                                                                                                 | ☐                                            |
+| Recommended registry sign-in hint (on pull and in the images, once the registries are in the settings)                                                                                                                  | ☐                                            |
+| Authentication providers (accounts, sign in/out, pending session requests)                                                                                                                                              | ☐                                            |
+| CLI tools (install/update to a version, uninstall, progress)                                                                                                                                                            | ☐                                            |
+| Experimental features (master switch + properties, share feedback)                                                                                                                                                      | ✅                                           |
+| Theme (light / dark / system) applied                                                                                                                                                                                   | ✅ (follows the setting; no settings UI yet) |
+| Renderer v2 itself is switched by the experimental `rendererV2.enabled` setting                                                                                                                                         | ✅                                           |
 
 ## Onboarding and welcome
 

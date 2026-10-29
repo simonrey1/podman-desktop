@@ -42,6 +42,7 @@ import podDetails from './pod-details/view.js';
 import pods from './pods/view.js';
 import secretDetails from './secret-details/view.js';
 import secrets from './secrets/view.js';
+import settings from './settings/view.js';
 import tasks from './tasks/view.js';
 import volumeDetails from './volume-details/view.js';
 import volumes from './volumes/view.js';
@@ -71,6 +72,7 @@ export const VIEWS = {
   'network-details': networkDetails,
   secrets,
   'secret-details': secretDetails,
+  settings,
   tasks,
 } satisfies Record<string, ViewDefinition<ViewSchema>>;
 

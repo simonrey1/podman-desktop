@@ -1,9 +1,11 @@
 <script lang="ts">
+import SettingsIcon from '@lucide/svelte/icons/settings';
+
 import { getApp } from '#lib/app.svelte.js';
 import FilterInput from '#lib/components/FilterInput.svelte';
 import { ScrollArea } from '#lib/components/ui/scroll-area/index.js';
 import * as Sidebar from '#lib/components/ui/sidebar/index.js';
-import { viewKey, type ViewRef } from '#lib/views/index.js';
+import { viewKey, type ViewRef, viewRef } from '#lib/views/index.js';
 
 import EngineSwitcher from './EngineSwitcher.svelte';
 import { explorerEntries } from './explorer.js';
@@ -73,4 +75,18 @@ function onkeydown(event: KeyboardEvent, ref: ViewRef): void {
       {/if}
     </ScrollArea>
   </Sidebar.Content>
+  <!-- what is not about the engine: the settings -->
+  <Sidebar.Footer>
+    <Sidebar.Menu>
+      <Sidebar.MenuItem>
+        <Sidebar.MenuButton
+          size="sm"
+          isActive={isActive(viewRef('settings', {}))}
+          onclick={(): void => keep(viewRef('settings', {}))}>
+          <SettingsIcon />
+          <span>Settings</span>
+        </Sidebar.MenuButton>
+      </Sidebar.MenuItem>
+    </Sidebar.Menu>
+  </Sidebar.Footer>
 </Sidebar.Root>

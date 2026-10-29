@@ -21,6 +21,7 @@ import { createContext } from 'svelte';
 import { whenExtensionsStarted } from '#lib/api/events.js';
 import { ActionsStore } from '#lib/stores/actions.svelte.js';
 import { BuildsStore } from '#lib/stores/builds.svelte.js';
+import { ConfigurationStore } from '#lib/stores/configuration.svelte.js';
 import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
@@ -44,6 +45,7 @@ import { Workbench } from '#lib/workbench/workbench.svelte.js';
  */
 export class App {
   readonly theme = new ThemeStore();
+  readonly configuration = new ConfigurationStore();
   readonly engines = new EnginesStore();
   readonly containers = new ContainersStore();
   readonly pods = new PodsStore();
@@ -86,6 +88,7 @@ export class App {
 
     const stops = [
       this.theme,
+      this.configuration,
       this.messageBoxes,
       this.pickers,
       this.tasks,
