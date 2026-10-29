@@ -31,17 +31,42 @@ let { view }: ViewProps<typeof schema> = $props();
 // the settings of Podman Desktop and of its extensions: a page per configuration section, and the pages of their own
 const app = getApp();
 
-// the pages of their own, after the sections
+// the pages of their own, before the sections; their keywords for the search (what they are about)
 const PAGES = [
-  { id: 'proxy', label: 'Proxy', icon: GlobeIcon, component: ProxySettings },
-  { id: 'registries', label: 'Registries', icon: ServerIcon, component: RegistriesSettings },
-  { id: 'authentication', label: 'Authentication', icon: KeyRoundIcon, component: AuthenticationSettings },
-  { id: 'cli-tools', label: 'CLI tools', icon: TerminalIcon, component: CliToolsSettings },
+  {
+    id: 'proxy',
+    label: 'Proxy',
+    icon: GlobeIcon,
+    component: ProxySettings,
+    keywords: ['http', 'https', 'network', 'no proxy'],
+  },
+  {
+    id: 'registries',
+    label: 'Registries',
+    icon: ServerIcon,
+    component: RegistriesSettings,
+    keywords: ['credentials', 'login', 'sign in', 'password', 'docker hub', 'quay', 'short names'],
+  },
+  {
+    id: 'authentication',
+    label: 'Authentication',
+    icon: KeyRoundIcon,
+    component: AuthenticationSettings,
+    keywords: ['account', 'sign in', 'sign out', 'login'],
+  },
+  {
+    id: 'cli-tools',
+    label: 'CLI tools',
+    icon: TerminalIcon,
+    component: CliToolsSettings,
+    keywords: ['command line', 'install', 'update', 'version', 'kubectl', 'kind', 'compose'],
+  },
   {
     id: 'docker-compatibility',
     label: 'Docker compatibility',
     icon: ContainerIcon,
     component: DockerCompatibilitySettings,
+    keywords: ['docker', 'socket'],
     // a page once enabled in the preferences
     setting: 'dockerCompatibility.enabled',
   },
@@ -53,6 +78,10 @@ let sections = $derived(app.configuration.sections);
 let experimental = $derived(app.configuration.experimental);
 let page = $derived(view.state.page || (sections[0] ? `section:${sections[0].id}` : ''));
 let query = $derived(view.state.query.trim());
+// the pages of their own matching the search, by their name or what they are about
+let matchingPages = $derived(
+  pages.filter(own => [own.label, ...own.keywords].some(text => text.toLowerCase().includes(query.toLowerCase()))),
+);
 
 // the settings of the page shown, or the ones matching the search in every section
 let settings = $derived.by(() => {
@@ -116,16 +145,21 @@ function show(next: string): void {
 {/snippet}
 
 <Page icon={SettingsIcon} title="Settings" body="fill">
-  {#snippet actions()}
-    <FilterInput bind:value={view.state.query} placeholder="Search the settings" />
-  {/snippet}
   <div class="flex h-full min-h-0">
-    <nav class="w-56 shrink-0 border-e" aria-label="Settings pages">
+    <nav class="flex w-56 shrink-0 flex-col border-e" aria-label="Settings pages">
+      <!-- the search of every page: the settings, and the pages of their own -->
+      <div class="p-2 pb-0">
+        <FilterInput bind:value={view.state.query} placeholder="Search the settings" />
+      </div>
+      <div class="min-h-0 flex-1">
       <ScrollArea>
         <div class="flex flex-col gap-0.5 p-2">
           {#each pages as own (own.id)}
             {@render entry(own.id, own.label, own.icon)}
           {/each}
+          {#if experimental.length}
+            {@render entry('experimental', 'Experimental', FlaskConicalIcon)}
+          {/if}
           <div class="my-1 border-t"></div>
           {#each sections as section (section.id)}
             {@render entry(`section:${section.id}`, section.title, SlidersHorizontalIcon)}
@@ -135,17 +169,28 @@ function show(next: string): void {
               {/each}
             {/if}
           {/each}
-          {#if experimental.length}
-            <div class="my-1 border-t"></div>
-            {@render entry('experimental', 'Experimental', FlaskConicalIcon)}
-          {/if}
         </div>
       </ScrollArea>
+      </div>
     </nav>
     <div class="min-w-0 flex-1">
       <ScrollArea>
         <div class="mx-auto flex w-full max-w-3xl flex-col gap-3 p-3">
           {#if query}
+            {#if matchingPages.length}
+              <h2 class="px-1 text-lg font-semibold">Pages matching “{query}”</h2>
+              <div class="flex flex-col gap-0.5 rounded-lg bg-card p-2">
+                {#each matchingPages as own (own.id)}
+                  <button
+                    type="button"
+                    class="flex h-8 items-center gap-2 rounded-md px-2 text-left outline-none hover:bg-muted/50 focus-visible:ring-1 focus-visible:ring-ring"
+                    onclick={(): void => show(own.id)}>
+                    <own.icon class="size-4 text-muted-foreground" />
+                    {own.label}
+                  </button>
+                {/each}
+              </div>
+            {/if}
             <h2 class="px-1 text-lg font-semibold">Settings matching “{query}”</h2>
             <SettingsList {settings} empty="No settings match “{query}”" />
           {:else if page === 'experimental'}
