@@ -6,6 +6,7 @@ import CircleStopIcon from '@lucide/svelte/icons/circle-stop';
 import CircleXIcon from '@lucide/svelte/icons/circle-x';
 import FileCodeIcon from '@lucide/svelte/icons/file-code';
 import FolderOpenIcon from '@lucide/svelte/icons/folder-open';
+import PencilLineIcon from '@lucide/svelte/icons/pencil-line';
 import PlayIcon from '@lucide/svelte/icons/play';
 
 import { getApp } from '#lib/app.svelte.js';
@@ -13,7 +14,6 @@ import Card from '#lib/components/Card.svelte';
 import CodeEditor from '#lib/components/editor/CodeEditor.svelte';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import Page from '#lib/components/Page.svelte';
-import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
@@ -34,7 +34,12 @@ const app = getApp();
 
 let engine = $derived(app.engines.get(view.params.engineId));
 
-let source: 'file' | 'content' = $state('file');
+const SOURCES = [
+  { value: 'file', label: 'From a file', description: 'A YAML file on this computer.', icon: FolderOpenIcon },
+  { value: 'content', label: 'Write the YAML', description: 'Typed or pasted in an editor.', icon: PencilLineIcon },
+] as const;
+
+let source: (typeof SOURCES)[number]['value'] = $state('file');
 let path = $state('');
 let content = $state('');
 let build = $state(false);
@@ -183,13 +188,21 @@ function podLabel(podId: string): string {
       </div>
     {/if}
     <Card title="YAML">
-      <SegmentedControl
-        bind:value={source}
-        label="Source of the YAML"
-        options={[
-          { value: 'file', label: 'A file' },
-          { value: 'content', label: 'Written here' },
-        ]} />
+      <!-- where the YAML comes from: two choices, the one chosen highlighted -->
+      <div class="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Source of the YAML">
+        {#each SOURCES as option (option.value)}
+          {@const Icon = option.icon}
+          <label
+            class="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 has-checked:border-primary has-checked:bg-primary/5 has-focus-visible:ring-1 has-focus-visible:ring-ring">
+            <input type="radio" class="sr-only" name="kube-play-source" value={option.value} bind:group={source} />
+            <Icon class={['mt-0.5 size-4 shrink-0', source === option.value ? 'text-primary' : 'text-muted-foreground']} />
+            <span class="flex flex-col gap-0.5">
+              <span class="font-medium">{option.label}</span>
+              <span class="text-sm text-muted-foreground">{option.description}</span>
+            </span>
+          </label>
+        {/each}
+      </div>
       {#if source === 'file'}
         <Field.Field>
           <Field.Label for="kube-play-file">File</Field.Label>
