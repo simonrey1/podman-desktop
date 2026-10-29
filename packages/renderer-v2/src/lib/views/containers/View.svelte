@@ -1,8 +1,10 @@
 <script lang="ts">
 import BoxIcon from '@lucide/svelte/icons/box';
+import BoxesIcon from '@lucide/svelte/icons/boxes';
 
 import { getApp } from '#lib/app.svelte.js';
 import { containerPrune } from '#lib/components/container/actions.js';
+import CreatePodDialog from '#lib/components/pod/CreatePodDialog.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import StateFilter from '#lib/components/StateFilter.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
@@ -54,6 +56,21 @@ function open(row: ContainerRow, options: { preview: boolean }): void {
   getSubRows={(row): ContainerRow[] | undefined => row.children}
   prune={containerPrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Start', 'Stop', 'Delete']}
+  selectionActions={app.engines.get(view.params.engineId)?.connection.type === 'podman'
+    ? [
+        {
+          label: 'Create pod',
+          icon: BoxesIcon,
+          // the containers not in a pod yet
+          applies: (row): boolean => !!row.container && !row.container.pod,
+          run: (rows): void =>
+            app.modals.open(CreatePodDialog, {
+              engineId: view.params.engineId,
+              containers: rows.flatMap(row => (row.container ? [row.container] : [])),
+            }),
+        },
+      ]
+    : []}
   icon={BoxIcon}
   title="Containers"
   noun="containers"

@@ -41,7 +41,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Row actions: unpause, open in the browser, generate kube, export                                                                    | ✅                         |
 | Row actions: extension actions (phase 9)                                                                                            | ☐                          |
 | Bulk: run, stop, delete                                                                                                             | ✅                         |
-| Bulk: create pod from selection                                                                                                     | ☐                          |
+| Bulk: create pod from selection (Podman, the containers not in a pod)                                                               | ✅                         |
 | Create: from existing image / from Containerfile                                                                                    | ☐                          |
 | Empty state "Start your first container" (pulls + runs hello)                                                                       | ☐                          |
 | Details header: status, engine, actions; Summary links to the image and the pod                                                     | ✅                         |
@@ -82,7 +82,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Empty state "Start your first pod"                                                                | ☐   |
 | Details: Summary (containers linked), Inspect, Kube                                               | ✅  |
 | Details: merged logs of the containers                                                            | ☐   |
-| Create pod from containers (name, ports to expose, engine; replicates containers)                 | ☐   |
+| Create pod from containers (name, ports to expose; copies the containers)                         | ✅  |
 
 ## Images (`lib/image`) and manifests (`lib/manifest`)
 

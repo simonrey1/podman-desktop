@@ -53,6 +53,14 @@ interface Props {
   prune?: ResourceActionSet;
   /** creates a resource, e.g. opens its form: a Create button in the header */
   onCreate?: () => void;
+  /** actions on the selected rows together (e.g. a pod of the selected containers), after the bulk actions */
+  selectionActions?: {
+    label: string;
+    icon: LucideIcon;
+    /** the selected rows it applies to (e.g. the containers not in a pod yet) */
+    applies?: (row: T) => boolean;
+    run: (rows: T[]) => void;
+  }[];
   loaded: boolean;
 }
 
@@ -80,6 +88,7 @@ let {
   bulk = [],
   prune,
   onCreate,
+  selectionActions = [],
 }: Props = $props();
 
 const app = getApp();
@@ -150,7 +159,16 @@ let bulkActions: BulkAction[] = $derived.by(() => {
   {/snippet}
   {#snippet toolbar()}
     {#if selected.length > 0}
-      <SelectionBar selected={selected.length} actions={bulkActions} onClear={(): unknown => (selection = {})} />
+      <SelectionBar
+        selected={selected.length}
+        actions={[
+          ...bulkActions,
+          ...selectionActions.map(action => {
+            const rows = selected.filter(row => action.applies?.(row) ?? true);
+            return { label: action.label, icon: action.icon, count: rows.length, run: (): void => action.run(rows) };
+          }),
+        ]}
+        onClear={(): unknown => (selection = {})} />
     {/if}
   {/snippet}
   {#snippet actions()}
