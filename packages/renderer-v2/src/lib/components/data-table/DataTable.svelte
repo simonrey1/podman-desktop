@@ -3,6 +3,7 @@ import ArrowDownIcon from '@lucide/svelte/icons/arrow-down';
 import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 import { type ColumnDef, createTable, FlexRender, type RowData, type SortingState } from '@tanstack/svelte-table';
 import type { Snippet } from 'svelte';
+import type { Attachment } from 'svelte/attachments';
 
 import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Table from '#lib/components/ui/table/index.js';
@@ -111,6 +112,58 @@ const table = createTable({
 
 let rows = $derived(table.getRowModel().rows);
 
+// only the rows in the scrolling viewport are rendered (and some around, to scroll without a blank): a list of
+// hundreds of rows renders as fast as a short one; spacers keep the height of the rows not rendered
+const ROW_HEIGHT = 35;
+const OVERSCAN = 6;
+let rowHeight = $state(ROW_HEIGHT);
+let range = $state({ start: 0, end: 25 });
+// fewer rows (e.g. filtered) than the start of the range: the last rows
+let start = $derived(Math.min(range.start, Math.max(0, rows.length - (range.end - range.start))));
+let end = $derived(Math.min(rows.length, start + (range.end - range.start)));
+let shown = $derived(rows.slice(start, end));
+let columnCount = $derived(columns.length + (selection ? 1 : 0));
+
+const windowed: Attachment<HTMLElement> = body => {
+  const viewport = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+  if (!viewport) {
+    // not in a scrolling page: every row
+    range = { start: 0, end: Number.POSITIVE_INFINITY };
+    return;
+  }
+  let frame = 0;
+  const update = (): void => {
+    frame = 0;
+    // the top of the rows in the viewport: negative once scrolled past it
+    const top = body.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
+    const start = Math.max(0, Math.floor(-top / rowHeight) - OVERSCAN);
+    const end = Math.ceil((viewport.clientHeight - top) / rowHeight) + OVERSCAN;
+    if (start !== range.start || end !== range.end) {
+      range = { start, end };
+    }
+  };
+  const schedule = (): void => {
+    frame ||= requestAnimationFrame(update);
+  };
+  const resized = new ResizeObserver(() => {
+    // the height of a rendered row (the density of the theme may change it)
+    const row = body.querySelector('tr[data-row]');
+    const height = row?.getBoundingClientRect().height;
+    if (height) {
+      rowHeight = height;
+    }
+    schedule();
+  });
+  resized.observe(viewport);
+  viewport.addEventListener('scroll', schedule, { passive: true });
+  update();
+  return (): void => {
+    cancelAnimationFrame(frame);
+    resized.disconnect();
+    viewport.removeEventListener('scroll', schedule);
+  };
+};
+
 // the columns without a width keep at least 12rem (e.g. the names): narrower, the table scrolls horizontally
 let minWidth = $derived(
   `calc(${[...(selection ? ['2.25rem'] : []), ...columns.map(column => column.meta?.width ?? '12rem')].join(' + ')})`,
@@ -148,7 +201,7 @@ function onkeydown(event: KeyboardEvent, row: T): void {
   {@render empty()}
 {:else}
   <div class="contents" style:--table-min-width={minWidth}>
-    <Table.Root>
+    <Table.Root aria-rowcount={rows.length + 1}>
       <Table.Header>
         {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
           <Table.Row>
@@ -191,9 +244,16 @@ function onkeydown(event: KeyboardEvent, row: T): void {
           </Table.Row>
         {/each}
       </Table.Header>
-      <Table.Body>
-        {#each rows as row (row.id)}
+      <Table.Body {@attach windowed}>
+        {#if start > 0}
+          <tr aria-hidden="true">
+            <td class="h-(--spacer) p-0" colspan={columnCount} style:--spacer="{start * rowHeight}px"></td>
+          </tr>
+        {/if}
+        {#each shown as row, index (row.id)}
           <Table.Row
+            data-row
+            aria-rowindex={start + index + 2}
             tabindex={onOpen ? 0 : undefined}
             data-interactive={onOpen ? true : undefined}
             onclick={(): void => onOpen?.(row.original, { preview: true })}
@@ -231,7 +291,7 @@ function onkeydown(event: KeyboardEvent, row: T): void {
           </Table.Row>
         {:else}
           <Table.Row>
-            <Table.Cell colspan={columns.length + (selection ? 1 : 0)}>
+            <Table.Cell colspan={columnCount}>
               {#if noMatch}
                 {@render noMatch()}
               {:else}
@@ -240,6 +300,11 @@ function onkeydown(event: KeyboardEvent, row: T): void {
             </Table.Cell>
           </Table.Row>
         {/each}
+        {#if end < rows.length}
+          <tr aria-hidden="true">
+            <td class="h-(--spacer) p-0" colspan={columnCount} style:--spacer="{(rows.length - end) * rowHeight}px"></td>
+          </tr>
+        {/if}
       </Table.Body>
     </Table.Root>
   </div>
