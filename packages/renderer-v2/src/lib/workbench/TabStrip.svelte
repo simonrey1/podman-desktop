@@ -13,6 +13,15 @@ let { group, label }: { group: TabGroup; label: string } = $props();
 
 const app = getApp();
 
+// how many tabs of the group have each title: tabs of the same title show their context (e.g. their engine)
+let titleCounts = $derived(
+  group.tabs.reduce<Record<string, number>>((counts, tab) => {
+    const { title } = describeView(tab.ref, app);
+    counts[title] = (counts[title] ?? 0) + 1;
+    return counts;
+  }, {}),
+);
+
 // a notch of the wheel (about 100px) scrolls the strip by about 40px, a part of a tab
 const WHEEL_SPEED = 0.4;
 
@@ -46,6 +55,7 @@ const wheelScroll: Attachment<HTMLElement> = element =>
             {...props}
             icon={view.icon}
             {title}
+            context={(titleCounts[view.title] ?? 0) > 1 ? view.context : undefined}
             tooltip={view.context ? `${title} · ${view.context}` : title}
             active={tab.key === group.activeKey}
             preview={tab.preview}

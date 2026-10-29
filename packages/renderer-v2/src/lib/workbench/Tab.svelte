@@ -7,6 +7,8 @@ import type { HTMLAttributes } from 'svelte/elements';
 interface Props extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
   icon: LucideIcon;
   title: string;
+  /** muted, after the title: tells two tabs of the same title apart (e.g. the engine of two container lists) */
+  context?: string;
   tooltip?: string;
   active: boolean;
   /** a preview tab has an italic title */
@@ -21,6 +23,7 @@ interface Props extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
 let {
   icon: Icon,
   title,
+  context,
   tooltip,
   active,
   preview = false,
@@ -61,7 +64,9 @@ function onkeydown(event: KeyboardEvent): void {
   aria-selected={active}
   title={tooltip ?? title}
   class={[
-    'group/tab relative flex h-full max-w-50 shrink-0 cursor-pointer items-center gap-1.5 pr-1.5 pl-3 outline-none focus-visible:bg-muted',
+    'group/tab relative flex h-full shrink-0 cursor-pointer items-center gap-1.5 pr-1.5 pl-3 outline-none focus-visible:bg-muted',
+    // wider with a context: the title is kept, the context is truncated
+    context ? 'max-w-72' : 'max-w-50',
     active ? 'text-tab-active-foreground' : 'text-tab-foreground hover:bg-muted hover:text-tab-active-foreground',
   ]}
   onclick={onSelect}
@@ -69,7 +74,10 @@ function onkeydown(event: KeyboardEvent): void {
   {onauxclick}
   {onkeydown}>
   <Icon class="size-4 shrink-0" />
-  <span class={['truncate', preview && 'italic']}>{title}</span>
+  <span class={['truncate', preview && 'italic', context && 'shrink-0']}>{title}</span>
+  {#if context}
+    <span class="truncate text-muted-foreground">{context}</span>
+  {/if}
   {#if closable}
     <button
       tabindex="-1"

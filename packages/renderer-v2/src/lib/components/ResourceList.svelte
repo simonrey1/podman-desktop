@@ -6,6 +6,7 @@ import type { Snippet } from 'svelte';
 import { getApp } from '#lib/app.svelte.js';
 import type { DataTableFeatures } from '#lib/components/data-table/data-table.js';
 import DataTable from '#lib/components/data-table/DataTable.svelte';
+import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import FilterInput from '#lib/components/FilterInput.svelte';
 import ListActionButton from '#lib/components/ListActionButton.svelte';
 import Page from '#lib/components/Page.svelte';
@@ -140,6 +141,9 @@ let bulkActions: BulkAction[] = $derived.by(() => {
 </script>
 
 <Page {icon} {title}>
+  {#snippet meta()}
+    <EngineBadge {engineId} />
+  {/snippet}
   {#snippet toolbar()}
     {#if selected.length > 0}
       <SelectionBar selected={selected.length} actions={bulkActions} onClear={(): unknown => (selection = {})} />
