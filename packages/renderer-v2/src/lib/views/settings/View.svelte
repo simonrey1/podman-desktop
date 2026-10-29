@@ -1,4 +1,5 @@
 <script lang="ts">
+import ContainerIcon from '@lucide/svelte/icons/container';
 import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 import GlobeIcon from '@lucide/svelte/icons/globe';
 import KeyRoundIcon from '@lucide/svelte/icons/key-round';
@@ -12,6 +13,7 @@ import FilterInput from '#lib/components/FilterInput.svelte';
 import Page from '#lib/components/Page.svelte';
 import AuthenticationSettings from '#lib/components/settings/pages/AuthenticationSettings.svelte';
 import CliToolsSettings from '#lib/components/settings/pages/CliToolsSettings.svelte';
+import DockerCompatibilitySettings from '#lib/components/settings/pages/DockerCompatibilitySettings.svelte';
 import ProxySettings from '#lib/components/settings/pages/ProxySettings.svelte';
 import RegistriesSettings from '#lib/components/settings/pages/RegistriesSettings.svelte';
 import { matchesSetting } from '#lib/components/settings/settings.js';
@@ -35,8 +37,18 @@ const PAGES = [
   { id: 'registries', label: 'Registries', icon: ServerIcon, component: RegistriesSettings },
   { id: 'authentication', label: 'Authentication', icon: KeyRoundIcon, component: AuthenticationSettings },
   { id: 'cli-tools', label: 'CLI tools', icon: TerminalIcon, component: CliToolsSettings },
+  {
+    id: 'docker-compatibility',
+    label: 'Docker compatibility',
+    icon: ContainerIcon,
+    component: DockerCompatibilitySettings,
+    // a page once enabled in the preferences
+    setting: 'dockerCompatibility.enabled',
+  },
 ];
 
+// the pages shown: a page of a setting once it is enabled
+let pages = $derived(PAGES.filter(own => !own.setting || !!app.configuration.value(own.setting)));
 let sections = $derived(app.configuration.sections);
 let experimental = $derived(app.configuration.experimental);
 let page = $derived(view.state.page || (sections[0] ? `section:${sections[0].id}` : ''));
@@ -111,7 +123,7 @@ function show(next: string): void {
     <nav class="w-56 shrink-0 border-e" aria-label="Settings pages">
       <ScrollArea>
         <div class="flex flex-col gap-0.5 p-2">
-          {#each PAGES as own (own.id)}
+          {#each pages as own (own.id)}
             {@render entry(own.id, own.label, own.icon)}
           {/each}
           <div class="my-1 border-t"></div>
