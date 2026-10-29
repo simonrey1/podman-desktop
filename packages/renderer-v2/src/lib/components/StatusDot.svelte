@@ -1,5 +1,5 @@
 <script lang="ts">
-import * as Tooltip from '#lib/components/ui/tooltip/index.js';
+import { tooltip } from '#lib/components/tooltip/tooltip.svelte.js';
 
 import { STATUS_GLYPHS, UNKNOWN_GLYPH } from './status-glyphs.js';
 
@@ -33,27 +33,12 @@ let color = $derived(glyph in STATUS_GLYPHS ? `var(--pd-status-${glyph})` : 'var
 let text = $derived(label ?? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase());
 </script>
 
-{#snippet dot(props: Record<string, unknown>)}
-  <svg
-    {...props}
-    class={['shrink-0', size === 'sm' ? 'size-2.5!' : 'size-3!']}
-    viewBox="0 0 12 12"
-    role={decorative ? undefined : 'img'}
-    aria-label={decorative ? undefined : text}
-    aria-hidden={decorative ? true : undefined}>
-    <path fill={color} d={path} />
-  </svg>
-{/snippet}
-
-{#if decorative}
-  {@render dot({})}
-{:else}
-  <Tooltip.Root>
-    <Tooltip.Trigger>
-      {#snippet child({ props })}
-        {@render dot(props)}
-      {/snippet}
-    </Tooltip.Trigger>
-    <Tooltip.Content>{text}</Tooltip.Content>
-  </Tooltip.Root>
-{/if}
+<svg
+  class={['shrink-0', size === 'sm' ? 'size-2.5!' : 'size-3!']}
+  viewBox="0 0 12 12"
+  role={decorative ? undefined : 'img'}
+  aria-label={decorative ? undefined : text}
+  aria-hidden={decorative ? true : undefined}
+  {@attach tooltip(decorative ? undefined : text)}>
+  <path fill={color} d={path} />
+</svg>

@@ -3,6 +3,7 @@ import EllipsisVerticalIcon from '@lucide/svelte/icons/ellipsis-vertical';
 
 import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
+import { tooltip } from '#lib/components/tooltip/tooltip.svelte.js';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 import type { ActionTarget, ResourceAction } from '#lib/stores/actions.svelte.js';
@@ -32,6 +33,10 @@ let shown = $derived(actions.filter(action => !action.hidden));
 let inline = $derived(shown.length > max ? shown.slice(0, max - 1) : shown);
 let overflow = $derived(shown.length > max ? shown.slice(max - 1) : []);
 
+// the menu is created when first opened, not with each row of a list
+let menuCreated = $state(false);
+let menuOpen = $state(false);
+
 function stop(event: Event): void {
   // the actions are in clickable rows: do not open the row
   event.stopPropagation();
@@ -50,11 +55,25 @@ function stop(event: Event): void {
       busy={pending?.label === action.label}
       onclick={(): void => run(action)} />
   {/each}
-  {#if overflow.length}
-    <DropdownMenu.Root>
+  {#if overflow.length && !menuCreated}
+    <Button
+      variant="ghost"
+      {size}
+      aria-label="More actions"
+      aria-haspopup="menu"
+      disabled={!!pending}
+      {@attach tooltip('More actions')}
+      onclick={(): void => {
+        menuCreated = true;
+        menuOpen = true;
+      }}>
+      <EllipsisVerticalIcon class={size === 'icon' ? 'size-4' : 'size-3.5'} />
+    </Button>
+  {:else if overflow.length}
+    <DropdownMenu.Root bind:open={menuOpen}>
       <DropdownMenu.Trigger>
         {#snippet child({ props })}
-          <Button {...props} variant="ghost" {size} aria-label="More actions" disabled={!!pending}>
+          <Button {...props} variant="ghost" {size} aria-label="More actions" disabled={!!pending} {@attach tooltip('More actions')}>
             <EllipsisVerticalIcon class={size === 'icon' ? 'size-4' : 'size-3.5'} />
           </Button>
         {/snippet}

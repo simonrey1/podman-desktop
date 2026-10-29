@@ -1,9 +1,9 @@
 <script lang="ts">
 import type { LucideIcon } from '@lucide/svelte';
 
+import { tooltip } from '#lib/components/tooltip/tooltip.svelte.js';
 import { Button } from '#lib/components/ui/button/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
-import * as Tooltip from '#lib/components/ui/tooltip/index.js';
 
 interface Props {
   icon: LucideIcon;
@@ -23,17 +23,11 @@ interface Props {
 let { icon: Icon, label, size = 'icon-sm', filled = false, disabled = false, busy = false, onclick }: Props = $props();
 </script>
 
-<Tooltip.Root>
-  <Tooltip.Trigger>
-    {#snippet child({ props })}
-      <Button {...props} variant="ghost" {size} {disabled} aria-label={label} {onclick}>
-        {#if busy}
-          <Spinner size={size === 'icon' ? 'lg' : 'md'} />
-        {:else}
-          <Icon class={size === 'icon' ? 'size-4' : 'size-3.5'} fill={filled ? 'currentColor' : 'none'} />
-        {/if}
-      </Button>
-    {/snippet}
-  </Tooltip.Trigger>
-  <Tooltip.Content>{label}</Tooltip.Content>
-</Tooltip.Root>
+<!-- the tooltip of the application, not a tooltip component per button: lists show hundreds of them -->
+<Button variant="ghost" {size} {disabled} aria-label={label} {onclick} {@attach tooltip(label)}>
+  {#if busy}
+    <Spinner size={size === 'icon' ? 'lg' : 'md'} />
+  {:else}
+    <Icon class={size === 'icon' ? 'size-4' : 'size-3.5'} fill={filled ? 'currentColor' : 'none'} />
+  {/if}
+</Button>

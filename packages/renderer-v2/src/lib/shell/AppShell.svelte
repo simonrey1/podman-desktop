@@ -17,6 +17,7 @@ import ModalHost from './ModalHost.svelte';
 import PickerDialog from './pickers/PickerDialog.svelte';
 import StatusBar from './StatusBar.svelte';
 import TitleBar from './TitleBar.svelte';
+import TooltipHost from './TooltipHost.svelte';
 
 const app = getApp();
 const workbench = app.workbench;
@@ -129,6 +130,7 @@ function onkeydown(event: KeyboardEvent): void {
 <MessageBoxDialog />
 <PickerDialog />
 <ModalHost />
+<TooltipHost />
 
 <!-- the results of the actions, e.g. their failures -->
 <Toaster theme={app.theme.isDark ? 'dark' : 'light'} position="bottom-right" />
