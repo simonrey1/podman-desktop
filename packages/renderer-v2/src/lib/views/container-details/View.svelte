@@ -27,11 +27,15 @@ const app = getApp();
 
 let container = $derived(app.containers.get(view.params.engineId, view.params.containerId));
 
-// the networks, the mounts and the environment are only in the inspect data: reloaded when the state changes
+// the networks, the mounts and the environment are only in the inspect data: reloaded when the state changes (not
+// each time the list of the containers is reloaded)
+let state = $derived(container?.State);
 const inspectData = new AsyncValue<ContainerInspectInfo>(() =>
-  container?.State ? window.getContainerInspect(view.params.engineId, view.params.containerId) : undefined,
+  state ? window.getContainerInspect(view.params.engineId, view.params.containerId) : undefined,
 );
 let inspect = $derived(inspectData.value);
+// started with a terminal and an open input: its TTY can be attached
+let tty = $derived(!!inspect?.Config.Tty && !!inspect.Config.OpenStdin);
 
 // the Kubernetes YAML is generated each time the Kube section is shown
 const kube = new AsyncValue<string>(() =>
@@ -144,7 +148,7 @@ let environment: KeyValue[] = $derived(
           { value: 'inspect', label: 'Inspect' },
           { value: 'kube', label: 'Kube' },
         ]} />
-      <ContainerActions {container} placement="header" />
+      <ContainerActions {container} placement="header" {tty} />
     {/if}
   {/snippet}
   {#if container}

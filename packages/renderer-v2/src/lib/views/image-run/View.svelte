@@ -186,6 +186,10 @@ async function create(start: boolean): Promise<void> {
     const options = { ...createOptions(reference, { ...$state.snapshot(form), network, container }), start };
     const { id } = await window.createAndStartContainer(view.params.engineId, options);
     result = { status: 'created', start, id };
+    // a container started with a terminal and an open input: its TTY, as v1 does
+    if (start && options.Tty && options.OpenStdin) {
+      app.workbench.open(viewRef('container-tty', { engineId: view.params.engineId, containerId: id }));
+    }
   } catch (error: unknown) {
     result = { status: 'failed', start, error: errorMessage(error) };
   }

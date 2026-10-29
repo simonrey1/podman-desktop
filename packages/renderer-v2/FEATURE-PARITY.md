@@ -52,10 +52,10 @@ Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (no
 | Logs: search, clear logs (since-timestamp), re-fetch on restart                                                                     | ✅                         |
 | Terminal: interactive shell                                                                                                         | ✅ (panel, multi-instance) |
 | Terminal: auto-reconnect, "not running" state, hidden for infra containers                                                          | ✅                         |
-| TTY attach tab (Tty + OpenStdin containers)                                                                                         | ☐                          |
+| TTY attach (panel session from Attach in the details of a Tty + OpenStdin container, attached again on each start)                  | ✅                         |
 | Export container to a `.tar`                                                                                                        | ✅                         |
 | Create container from existing image (typeahead on local/registry images and tags, short-name resolution, FQN option, pull-and-run) | ✕                          |
-| TTY attach tab: Run opens it after starting a Tty + OpenStdin container                                                             | ☐                          |
+| TTY attach: Run opens it after starting a Tty + OpenStdin container                                                                 | ✅                         |
 
 ## Compose (`lib/compose`)
 

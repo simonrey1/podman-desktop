@@ -22,6 +22,7 @@ import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import ExternalLinkIcon from '@lucide/svelte/icons/external-link';
 import FileCodeIcon from '@lucide/svelte/icons/file-code';
 import PlayIcon from '@lucide/svelte/icons/play';
+import PlugIcon from '@lucide/svelte/icons/plug';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
 import TerminalIcon from '@lucide/svelte/icons/terminal';
@@ -55,8 +56,11 @@ async function exportContainer(container: ContainerInfo): Promise<void> {
   toast.success(`${name} exported`, { description: target.fsPath });
 }
 
-/** The actions of a container: in its row, in the header of its details, and in the bulk actions. */
-export function containerActions(container: ContainerInfo, app: App): ResourceActionSet {
+/**
+ * The actions of a container: in its row, in the header of its details, and in the bulk actions.
+ * @param tty whether the container has a TTY to attach to (known from its inspect data, in its details)
+ */
+export function containerActions(container: ContainerInfo, app: App, tty = false): ResourceActionSet {
   const { engineId, Id: containerId } = container;
   const running = container.State === 'running';
   const paused = container.State === 'paused';
@@ -118,6 +122,14 @@ export function containerActions(container: ContainerInfo, app: App): ResourceAc
         hidden: !!container.IsInfra,
         disabled: !running,
         run: (): void => app.workbench.open(viewRef('container-terminal', { engineId, containerId })),
+      },
+      {
+        label: 'Attach',
+        icon: PlugIcon,
+        // a container started with a terminal and an open input: known from its inspect data, not from the list
+        hidden: !tty,
+        disabled: !running,
+        run: (): void => app.workbench.open(viewRef('container-tty', { engineId, containerId })),
       },
       {
         label: 'Generate Kube',

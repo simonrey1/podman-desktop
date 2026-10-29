@@ -25,6 +25,7 @@ import buildOutput from './build-output/view.js';
 import containerDetails from './container-details/view.js';
 import containerLogs from './container-logs/view.js';
 import containerTerminal from './container-terminal/view.js';
+import containerTty from './container-tty/view.js';
 import containers from './containers/view.js';
 import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
@@ -51,6 +52,7 @@ export const VIEWS = {
   'container-details': containerDetails,
   'container-logs': containerLogs,
   'container-terminal': containerTerminal,
+  'container-tty': containerTty,
   pods,
   'pod-details': podDetails,
   'kube-play': kubePlay,
