@@ -30,5 +30,7 @@ export default defineView({
   title: () => 'Pods',
   context: engineName,
   location: 'editor',
+  // a list opened again is shown at once, as it was left (scrolled, selected)
+  keepAlive: true,
   component: () => import('./View.svelte'),
 });

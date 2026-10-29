@@ -172,6 +172,11 @@
 }
 
 /* strips scrolling horizontally (tabs) */
+/* a view kept alive but not shown: its state is kept, its rendering (style, layout, paint) is skipped */
+@utility content-hidden {
+  content-visibility: hidden;
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
 }

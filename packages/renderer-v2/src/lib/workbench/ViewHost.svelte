@@ -38,7 +38,7 @@ let mounted = $derived(group.tabs.filter(tab => tab.key === group.activeKey || v
 
 <div class="relative min-h-0 flex-1">
   {#each mounted as tab (tab.key)}
-    <div class={['absolute inset-0', tab.key !== group.activeKey && 'invisible']}>
+    <div class={['absolute inset-0', tab.key !== group.activeKey && 'invisible content-hidden']}>
       {#await loadViewComponent(tab.ref.view) then View}
         <View
           view={new ViewHandle(tab.ref.params, tab.state, (ref, options) =>
