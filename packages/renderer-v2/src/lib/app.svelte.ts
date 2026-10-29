@@ -27,6 +27,7 @@ import { ImagesStore } from '#lib/stores/images.svelte.js';
 import { MessageBoxesStore } from '#lib/stores/message-boxes.svelte.js';
 import { ModalsStore } from '#lib/stores/modals.svelte.js';
 import { NetworksStore } from '#lib/stores/networks.svelte.js';
+import { NotificationsStore } from '#lib/stores/notifications.svelte.js';
 import { PickersStore } from '#lib/stores/pickers.svelte.js';
 import { PodsStore } from '#lib/stores/pods.svelte.js';
 import { TasksStore } from '#lib/stores/tasks.svelte.js';
@@ -52,6 +53,7 @@ export class App {
   readonly pickers = new PickersStore();
   readonly modals = new ModalsStore();
   readonly tasks = new TasksStore(this.confirmations);
+  readonly notifications = new NotificationsStore();
 
   readonly workbench = new Workbench({
     // the explorer shows the engine of the active view
@@ -81,6 +83,7 @@ export class App {
       this.messageBoxes,
       this.pickers,
       this.tasks,
+      this.notifications,
       this.engines,
       this.containers,
       this.pods,

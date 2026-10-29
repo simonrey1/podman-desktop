@@ -4,6 +4,7 @@ import LayoutDashboardIcon from '@lucide/svelte/icons/layout-dashboard';
 import ServerIcon from '@lucide/svelte/icons/server';
 
 import { getApp } from '#lib/app.svelte.js';
+import NotificationCard from '#lib/components/notification/NotificationCard.svelte';
 import Page from '#lib/components/Page.svelte';
 import StatCard from '#lib/components/StatCard.svelte';
 import StatusDot from '#lib/components/StatusDot.svelte';
@@ -24,6 +25,14 @@ function openEngine(engineId: string): void {
 
 <Page icon={LayoutDashboardIcon} title="Dashboard">
   <div class="flex flex-col gap-3 p-3">
+    {#if app.notifications.highlighted.length}
+      <!-- the three first notifications: the next ones show as these are dismissed -->
+      <section class="flex flex-col gap-3" aria-label="Notifications">
+        {#each app.notifications.highlighted.slice(0, 3) as notification (notification.id)}
+          <NotificationCard {notification} onDismiss={(): void => app.notifications.dismiss(notification)} />
+        {/each}
+      </section>
+    {/if}
     <section class="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <StatCard
         icon={BoxIcon}

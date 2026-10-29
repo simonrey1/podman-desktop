@@ -191,7 +191,7 @@ providers stay part of the engines and providers domain.
 | ------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | Dashboard with containers / engines counts and engines                                                                                | ✅ (basic) |
 | Reorderable / hideable sections                                                                                                       | ☐          |
-| Notifications box (markdown, actions, dismiss)                                                                                        | ☐          |
+| Notifications box (markdown, actions, dismiss)                                                                                        | ✅         |
 | Release notes banner (dismiss, learn more, update)                                                                                    | ☐          |
 | Learning center (guides carousel)                                                                                                     | ☐          |
 | Providers section per provider state (not installed, installed, starting, configured, ready, stopped; install / initialize with logs) | ☐          |
