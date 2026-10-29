@@ -19,6 +19,7 @@
 import { getContext, setContext } from 'svelte';
 
 import { whenExtensionsStarted } from '#lib/api/events.js';
+import { AuthenticationStore, CliToolsStore } from '#lib/stores/accessories.svelte.js';
 import { ActionsStore } from '#lib/stores/actions.svelte.js';
 import { BuildsStore } from '#lib/stores/builds.svelte.js';
 import { ConfigurationStore } from '#lib/stores/configuration.svelte.js';
@@ -55,6 +56,8 @@ export class App {
   readonly volumes = new VolumesStore();
   readonly secrets = new SecretsStore();
   readonly registries = new RegistriesStore();
+  readonly authentication = new AuthenticationStore();
+  readonly cliTools = new CliToolsStore();
   readonly networks = new NetworksStore();
   readonly confirmations = new ConfirmationsStore();
   readonly actions = new ActionsStore(this.confirmations);
@@ -103,6 +106,8 @@ export class App {
       this.volumes,
       this.secrets,
       this.registries,
+      this.authentication,
+      this.cliTools,
       this.networks,
     ].map(store => store.start());
     return (): void => {

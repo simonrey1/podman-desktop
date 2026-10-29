@@ -1,13 +1,17 @@
 <script lang="ts">
 import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 import GlobeIcon from '@lucide/svelte/icons/globe';
+import KeyRoundIcon from '@lucide/svelte/icons/key-round';
 import ServerIcon from '@lucide/svelte/icons/server';
 import SettingsIcon from '@lucide/svelte/icons/settings';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
+import TerminalIcon from '@lucide/svelte/icons/terminal';
 
 import { getApp } from '#lib/app.svelte.js';
 import FilterInput from '#lib/components/FilterInput.svelte';
 import Page from '#lib/components/Page.svelte';
+import AuthenticationSettings from '#lib/components/settings/pages/AuthenticationSettings.svelte';
+import CliToolsSettings from '#lib/components/settings/pages/CliToolsSettings.svelte';
 import ProxySettings from '#lib/components/settings/pages/ProxySettings.svelte';
 import RegistriesSettings from '#lib/components/settings/pages/RegistriesSettings.svelte';
 import { matchesSetting } from '#lib/components/settings/settings.js';
@@ -29,6 +33,8 @@ const app = getApp();
 const PAGES = [
   { id: 'proxy', label: 'Proxy', icon: GlobeIcon, component: ProxySettings },
   { id: 'registries', label: 'Registries', icon: ServerIcon, component: RegistriesSettings },
+  { id: 'authentication', label: 'Authentication', icon: KeyRoundIcon, component: AuthenticationSettings },
+  { id: 'cli-tools', label: 'CLI tools', icon: TerminalIcon, component: CliToolsSettings },
 ];
 
 let sections = $derived(app.configuration.sections);
