@@ -3,6 +3,8 @@ import type * as Monaco from 'monaco-editor';
 import type { Attachment } from 'svelte/attachments';
 
 import { getApp } from '#lib/app.svelte.js';
+import { editorSearch } from '#lib/components/search/editor-search.js';
+import type { SearchTarget } from '#lib/components/search/search.js';
 
 import { applyMonacoTheme, loadMonaco, MONACO_THEME } from './monaco.js';
 
@@ -11,10 +13,13 @@ interface Props {
   /** a Monaco language, e.g. `json` or `yaml` */
   language: string;
   readOnly?: boolean;
+  /** bindable: the search of the text, for a search field (undefined while the editor loads) */
+  search?: SearchTarget;
 }
 
 // a Monaco editor filling its parent, following the theme of Podman Desktop
-let { value, language, readOnly = true }: Props = $props();
+// eslint-disable-next-line no-useless-assignment -- a bindable prop, written when the editor is created and disposed
+let { value, language, readOnly = true, search = $bindable() }: Props = $props();
 
 const app = getApp();
 let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state.raw();
@@ -44,12 +49,14 @@ const monaco: Attachment<HTMLElement> = element => {
         scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6, useShadows: false },
       });
       editor = instance;
+      search = editorSearch(api, instance);
     })
     .catch((error: unknown) => console.error('Error loading the editor', error));
   return (): void => {
     disposed = true;
     instance?.dispose();
     editor = undefined;
+    search = undefined;
   };
 };
 

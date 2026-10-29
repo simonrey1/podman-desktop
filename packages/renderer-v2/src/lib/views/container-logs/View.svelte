@@ -1,8 +1,5 @@
 <script lang="ts">
-import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-import ChevronUpIcon from '@lucide/svelte/icons/chevron-up';
 import EraserIcon from '@lucide/svelte/icons/eraser';
-import { SearchAddon } from '@xterm/addon-search';
 import type { Terminal } from '@xterm/xterm';
 import type { Attachment } from 'svelte/attachments';
 
@@ -10,7 +7,9 @@ import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
 import SessionHeader from '#lib/components/container/SessionHeader.svelte';
 import { openTerminal, terminalTheme } from '#lib/components/container/terminal.js';
-import FilterInput from '#lib/components/FilterInput.svelte';
+import type { SearchTarget } from '#lib/components/search/search.js';
+import SearchField from '#lib/components/search/SearchField.svelte';
+import { terminalSearch } from '#lib/components/search/terminal-search.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
 import type { schema } from './view.js';
@@ -22,8 +21,7 @@ const app = getApp();
 
 let container = $derived(app.containers.get(view.params.engineId, view.params.containerId));
 let terminal: Terminal | undefined = $state.raw();
-let searchAddon: SearchAddon | undefined;
-let search = $state('');
+let search: SearchTarget | undefined = $state.raw();
 
 // keep the colors of the terminal in sync with the theme
 $effect(() => {
@@ -34,11 +32,11 @@ $effect(() => {
 
 const logs: Attachment<HTMLElement> = element => {
   const opened = openTerminal(element, { disableStdin: true });
-  searchAddon = new SearchAddon();
-  opened.terminal.loadAddon(searchAddon);
+  search = terminalSearch(opened.terminal);
   terminal = opened.terminal;
   return (): void => {
     terminal = undefined;
+    search = undefined;
     opened.dispose();
   };
 };
@@ -87,35 +85,12 @@ $effect(() => {
   target.reset();
   return stream(target, since);
 });
-
-// the search highlights the next match as it is typed
-$effect(() => {
-  if (search) {
-    searchAddon?.findNext(search, { incremental: true });
-  } else {
-    searchAddon?.clearDecorations();
-  }
-});
 </script>
 
 <div class="flex h-full flex-col bg-terminal">
   <SessionHeader engineId={view.params.engineId} containerId={view.params.containerId}>
     {#snippet actions()}
-      <div class="w-56">
-        <FilterInput bind:value={search} placeholder="Search the logs" />
-      </div>
-      <ActionButton
-        icon={ChevronUpIcon}
-        label="Previous match"
-        size="icon-xs"
-        disabled={!search}
-        onclick={(): boolean | undefined => searchAddon?.findPrevious(search)} />
-      <ActionButton
-        icon={ChevronDownIcon}
-        label="Next match"
-        size="icon-xs"
-        disabled={!search}
-        onclick={(): boolean | undefined => searchAddon?.findNext(search)} />
+      <SearchField target={search} placeholder="Search the logs" />
       <ActionButton
         icon={EraserIcon}
         label="Clear the logs"

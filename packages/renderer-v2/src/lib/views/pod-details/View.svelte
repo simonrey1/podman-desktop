@@ -11,6 +11,8 @@ import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
 import PodActions from '#lib/components/pod/PodActions.svelte';
 import ResourceLinksCard, { type ResourceLink } from '#lib/components/ResourceLinksCard.svelte';
+import type { SearchTarget } from '#lib/components/search/search.js';
+import SearchField from '#lib/components/search/SearchField.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age } from '#lib/format.js';
@@ -24,6 +26,9 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
+
+// the search of the editor of the Inspect / Kube sections, while one is shown
+let search: SearchTarget | undefined = $state.raw();
 
 let pod = $derived(app.pods.get(view.params.engineId, view.params.podId));
 
@@ -76,6 +81,9 @@ let labels: KeyValue[] = $derived(Object.entries(pod?.Labels ?? {}).map(([label,
   {/snippet}
   {#snippet actions()}
     {#if pod}
+      {#if search}
+        <SearchField target={search} />
+      {/if}
       <SegmentedControl
         label="Section"
         bind:value={view.state.section}
@@ -99,9 +107,10 @@ let labels: KeyValue[] = $derived(Object.entries(pod?.Labels ?? {}).map(([label,
         <KeyValueCard title="Labels ({labels.length})" rows={labels} empty="No labels" />
       </div>
     {:else if view.state.section === 'inspect'}
-      <CodeEditor language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
+      <CodeEditor bind:search language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
     {:else}
       <CodeEditor
+        bind:search
         language="yaml"
         value={kube.error ? `# Error generating the Kubernetes YAML: ${kube.error}` : (kube.value ?? '')} />
     {/if}

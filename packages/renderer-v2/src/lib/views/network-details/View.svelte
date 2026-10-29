@@ -11,6 +11,8 @@ import NetworkActions from '#lib/components/network/NetworkActions.svelte';
 import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
 import ResourceLinksCard, { type ResourceLink } from '#lib/components/ResourceLinksCard.svelte';
+import type { SearchTarget } from '#lib/components/search/search.js';
+import SearchField from '#lib/components/search/SearchField.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age } from '#lib/format.js';
@@ -24,6 +26,9 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
+
+// the search of the editor of the Inspect / Kube sections, while one is shown
+let search: SearchTarget | undefined = $state.raw();
 
 let network = $derived(app.networks.get(view.params.engineId, view.params.networkId));
 let members = $derived(Object.entries(network?.Containers ?? {}));
@@ -85,6 +90,9 @@ let labels: KeyValue[] = $derived(Object.entries(network?.Labels ?? {}).map(([la
   {/snippet}
   {#snippet actions()}
     {#if network}
+      {#if search}
+        <SearchField target={search} />
+      {/if}
       <SegmentedControl
         label="Section"
         bind:value={view.state.section}
@@ -108,7 +116,7 @@ let labels: KeyValue[] = $derived(Object.entries(network?.Labels ?? {}).map(([la
         <KeyValueCard title="Labels ({labels.length})" rows={labels} empty="No labels" />
       </div>
     {:else}
-      <CodeEditor language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
+      <CodeEditor bind:search language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
     {/if}
   {:else if app.networks.loaded}
     <NotFound noun="Network" />

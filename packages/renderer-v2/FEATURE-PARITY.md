@@ -23,6 +23,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Extension-contributed actions on rows and details (`ContributionActions`, menu contexts + `when` clauses)                                    | ☐                                                  |
 | Details pages: Summary / Logs / Inspect / Kube / Terminal tabs pattern                                                                       | ◐ (segmented sections, logs/terminal in the panel) |
 | Inspect = read-only JSON in Monaco                                                                                                           | ✅ (containers)                                    |
+| Search in the logs and the editors (Inspect, Kube): one search field, Ctrl/Cmd+F                                                             | ✅                                                 |
 | Open exposed ports in the browser                                                                                                            | ☐                                                  |
 | Terminal settings (font size, line height, scrollback) applied to terminals                                                                  | ☐                                                  |
 | Telemetry events                                                                                                                             | ☐                                                  |

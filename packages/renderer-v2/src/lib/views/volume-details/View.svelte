@@ -10,6 +10,8 @@ import KeyValueCard, { type KeyValue } from '#lib/components/KeyValueCard.svelte
 import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
 import ResourceLinksCard, { type ResourceLink } from '#lib/components/ResourceLinksCard.svelte';
+import type { SearchTarget } from '#lib/components/search/search.js';
+import SearchField from '#lib/components/search/SearchField.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import VolumeActions from '#lib/components/volume/VolumeActions.svelte';
@@ -23,6 +25,9 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
+
+// the search of the editor of the Inspect / Kube sections, while one is shown
+let search: SearchTarget | undefined = $state.raw();
 
 let volume = $derived(app.volumes.get(view.params.engineId, view.params.volumeName));
 let users = $derived(volume?.containersUsage ?? []);
@@ -70,6 +75,9 @@ let labels: KeyValue[] = $derived(Object.entries(volume?.Labels ?? {}).map(([lab
   {/snippet}
   {#snippet actions()}
     {#if volume}
+      {#if search}
+        <SearchField target={search} />
+      {/if}
       <SegmentedControl
         label="Section"
         bind:value={view.state.section}
@@ -92,7 +100,7 @@ let labels: KeyValue[] = $derived(Object.entries(volume?.Labels ?? {}).map(([lab
         <KeyValueCard title="Labels ({labels.length})" rows={labels} empty="No labels" />
       </div>
     {:else}
-      <CodeEditor language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
+      <CodeEditor bind:search language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
     {/if}
   {:else if app.volumes.loaded}
     <NotFound noun="Volume" />

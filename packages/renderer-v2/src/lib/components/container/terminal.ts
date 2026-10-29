@@ -57,6 +57,8 @@ export function openTerminal(
     disableStdin: options.disableStdin,
     cursorBlink: !options.disableStdin,
     theme: terminalTheme(),
+    // the highlights of the search are decorations, a proposed API of xterm
+    allowProposedApi: true,
   });
   const fitAddon = new FitAddon();
   terminal.loadAddon(fitAddon);
