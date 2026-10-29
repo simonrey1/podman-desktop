@@ -4,6 +4,7 @@ import NetworkIcon from '@lucide/svelte/icons/network';
 
 import { getApp } from '#lib/app.svelte.js';
 import { networkActions } from '#lib/components/network/actions.js';
+import CreateNetworkDialog from '#lib/components/network/CreateNetworkDialog.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -29,6 +30,7 @@ function open(row: NetworkInspectInfo, options: { preview: boolean }): void {
   canSelect={(network): boolean => Object.keys(network.Containers ?? {}).length === 0}
   actionsOf={(network): ResourceActionSet => networkActions(network, app)}
   bulk={['Delete']}
+  onCreate={(): void => app.modals.open(CreateNetworkDialog, { engineId: view.params.engineId })}
   icon={NetworkIcon}
   title="Networks"
   noun="networks"
