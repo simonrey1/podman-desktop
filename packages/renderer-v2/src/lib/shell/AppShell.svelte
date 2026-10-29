@@ -27,6 +27,44 @@ let explorerOpen = $state(true);
 let explorerPane: PaneAPI | undefined = $state();
 let panelPane: PaneAPI | undefined = $state();
 
+// the explorer keeps its width in pixels, the editor takes the rest when the window is resized (the panes are sized in
+// percents): 14rem by default, the width of the navigation of the settings, until the user resizes it
+const EXPLORER_WIDTH_KEY = 'renderer-v2.explorer-width';
+const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+let explorerWidth = Number(localStorage.getItem(EXPLORER_WIDTH_KEY)) || 14 * rem;
+let shell: HTMLElement | undefined = $state();
+// a size set by the shell, not by the user
+let fitting = false;
+
+function fitExplorer(): void {
+  const total = shell?.clientWidth;
+  if (!explorerPane || !total || !explorerOpen) {
+    return;
+  }
+  fitting = true;
+  explorerPane.resize(Math.min(40, Math.max(12, (explorerWidth / total) * 100)));
+  fitting = false;
+}
+
+function explorerResized(size: number): void {
+  const total = shell?.clientWidth;
+  if (fitting || !total || size <= 0) {
+    return;
+  }
+  explorerWidth = (size / 100) * total;
+  localStorage.setItem(EXPLORER_WIDTH_KEY, String(Math.round(explorerWidth)));
+}
+
+$effect(() => {
+  if (!shell || !explorerPane) {
+    return;
+  }
+  fitExplorer();
+  const observer = new ResizeObserver(fitExplorer);
+  observer.observe(shell);
+  return (): void => observer.disconnect();
+});
+
 $effect(() => {
   if (explorerOpen) {
     explorerPane?.expand();
@@ -64,7 +102,7 @@ function onkeydown(event: KeyboardEvent): void {
 <Sidebar.Provider bind:open={explorerOpen} style="--sidebar-width: 100%">
   <div class="flex h-svh w-full flex-col bg-background">
     <TitleBar platform={app.platform} />
-    <div class="flex min-h-0 flex-1 border-y">
+    <div class="flex min-h-0 flex-1 border-y" bind:this={shell}>
       <Resizable.PaneGroup direction="horizontal" autoSaveId="renderer-v2.shell">
         <Resizable.Pane
           bind:this={explorerPane}
@@ -73,8 +111,12 @@ function onkeydown(event: KeyboardEvent): void {
           maxSize={40}
           collapsible
           collapsedSize={0}
+          onResize={explorerResized}
           onCollapse={(): boolean => (explorerOpen = false)}
-          onExpand={(): boolean => (explorerOpen = true)}>
+          onExpand={(): void => {
+            explorerOpen = true;
+            fitExplorer();
+          }}>
           <Explorer />
         </Resizable.Pane>
         <Resizable.Handle />
