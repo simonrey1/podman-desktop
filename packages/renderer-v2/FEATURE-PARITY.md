@@ -5,6 +5,8 @@ feature parity in `packages/renderer-v2`. Paths are relative to `packages/render
 
 Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (not planned in the phases, may come back later)
 
+The decisions behind this inventory, and the designs still open, are in [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md).
+
 ## Cross-cutting patterns (used by most domains)
 
 | Feature                                                                                                                                                                      | v2                                                 |
@@ -156,7 +158,8 @@ Kubernetes is not part of renderer v2: it moves to its own extension (and is pla
 Out of scope with it: contexts and namespaces, the Kubernetes dashboard and resource views, port forwarding,
 deploying a pod / container / compose project to a cluster, the Kubernetes contexts settings page and the Kubernetes
 troubleshooting tab. Kept, as Podman features: Generate Kube and Podman kube play. Kubernetes connections registered by
-providers stay part of the engines and providers domain.
+providers stay part of the engines and providers domain. How extensions (e.g. the Kubernetes dashboard) could contribute what the explorer
+browses is a proposal in [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md#8-extensions-contributing-to-what-the-explorer-browses).
 
 ## Settings (`lib/preferences`)
 
