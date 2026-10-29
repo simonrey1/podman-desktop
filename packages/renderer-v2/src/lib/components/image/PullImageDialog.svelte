@@ -81,6 +81,50 @@ $effect(() => {
   return (): void => clearTimeout(timer);
 });
 
+// the tags of the image in its registry: suggested after a colon, and `latest` checked without one
+let tags: { repository: string; tags: string[] } | undefined = $state.raw();
+let repository = $derived(
+  tagSeparator(name.trim()) < 0 ? name.trim() : name.trim().substring(0, tagSeparator(name.trim())),
+);
+let typedTag = $derived(
+  tagSeparator(name.trim()) < 0 ? undefined : name.trim().substring(tagSeparator(name.trim()) + 1),
+);
+let lookup = 0;
+$effect(() => {
+  const target = repository;
+  const id = ++lookup;
+  if (target.length < 2 || tags?.repository === target) {
+    return;
+  }
+  const timer = setTimeout(() => {
+    window
+      // the registry is asked for `library/nginx`, not `docker.io/library/nginx`
+      .listImageTagsInRegistry({ image: target.replace(/^docker\.io\//, '') })
+      .then(found => {
+        if (id === lookup) {
+          tags = { repository: target, tags: found };
+        }
+      })
+      .catch(() => {
+        // an image the registry does not know, or a registry not answering: no tags
+      });
+  }, 300);
+  return (): void => clearTimeout(timer);
+});
+let knownTags = $derived(tags?.repository === repository ? tags.tags : undefined);
+let tagSuggestions = $derived(
+  typedTag === undefined || !knownTags
+    ? []
+    : knownTags.filter(tag => tag.startsWith(typedTag) && tag !== typedTag).slice(0, 8),
+);
+let noLatest = $derived(typedTag === undefined && !!knownTags?.length && !knownTags.includes('latest'));
+
+/** the colon before the tag (not the one of the port of a registry), else -1 */
+function tagSeparator(value: string): number {
+  const colon = value.lastIndexOf(':');
+  return colon > value.lastIndexOf('/') ? colon : -1;
+}
+
 let image = $derived(candidates.length ? candidate : name.trim());
 
 /**
@@ -102,17 +146,27 @@ function openImage(pulled: string, targetEngine: string): void {
     .catch((error: unknown) => console.error(`Error opening ${pulled}`, error));
 }
 
-function pull(): void {
+async function pull(): Promise<void> {
   const connection = engine?.connection;
   if (!connection || !image) {
     return;
   }
   const pulled = image;
   const targetEngine = engineId;
-  const pulling = window.pullImage($state.snapshot(connection), pulled, () => {});
+  const tokenId = await window.getCancellableTokenSource();
+  const pulling = window.pullImage($state.snapshot(connection), pulled, () => {}, undefined, tokenId);
   // the tasks show it already when their toasts are on
   if (!app.tasks.toasts) {
-    const id = toast.loading(`Pulling ${pulled}`);
+    let canceled = false;
+    const id = toast.loading(`Pulling ${pulled}`, {
+      action: {
+        label: 'Cancel',
+        onClick: (): void => {
+          canceled = true;
+          window.cancelToken(tokenId).catch(console.error);
+        },
+      },
+    });
     pulling
       .then(() =>
         toast.success(`${pulled} pulled`, {
@@ -121,7 +175,9 @@ function pull(): void {
         }),
       )
       .catch((error: unknown) =>
-        toast.error(`Pull of ${pulled} failed`, { id, description: errorMessage(error), duration: 8000 }),
+        canceled
+          ? toast.info(`Pull of ${pulled} canceled`, { id })
+          : toast.error(`Pull of ${pulled} failed`, { id, description: errorMessage(error), duration: 8000 }),
       );
   }
   pulling.catch((error: unknown) => console.error(`Error pulling ${pulled}`, error));
@@ -145,15 +201,35 @@ function pull(): void {
       class="contents"
       onsubmit={(event): void => {
         event.preventDefault();
-        pull();
+        pull().catch(console.error);
       }}>
       <Dialog.Body>
         <Field.Group>
           <Field.Field>
             <Field.Label for="pull-name">Image</Field.Label>
             <Input id="pull-name" bind:value={name} placeholder="quay.io/podman/hello:latest" autocomplete="off" />
-            <Field.Description>A name, and its tag after a colon (latest when not given).</Field.Description>
+            {#if noLatest}
+              <Field.Description>This image has no latest tag: type a colon to choose one of its tags.</Field.Description>
+            {:else}
+              <Field.Description>A name, and its tag after a colon (latest when not given).</Field.Description>
+            {/if}
           </Field.Field>
+          {#if tagSuggestions.length}
+            <ul class="flex max-h-40 flex-col overflow-y-auto rounded-md border py-1" aria-label="Tags of {repository}">
+              {#each tagSuggestions as tag (tag)}
+                <li>
+                  <button
+                    type="button"
+                    class="flex w-full px-2.5 py-1 text-left hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                    onclick={(): void => {
+                      name = `${repository}:${tag}`;
+                    }}>
+                    <span class="text-muted-foreground">{repository}:</span><span class="font-medium">{tag}</span>
+                  </button>
+                </li>
+              {/each}
+            </ul>
+          {/if}
           {#if results.length}
             <ul class="flex max-h-40 flex-col overflow-y-auto rounded-md border py-1" aria-label="Images found">
               {#each results as result (result.name)}
