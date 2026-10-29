@@ -2,6 +2,7 @@
 import CircleCheckIcon from '@lucide/svelte/icons/circle-check';
 import CircleXIcon from '@lucide/svelte/icons/circle-x';
 import FolderOpenIcon from '@lucide/svelte/icons/folder-open';
+import LayersIcon from '@lucide/svelte/icons/layers';
 import PlayIcon from '@lucide/svelte/icons/play';
 import PlusIcon from '@lucide/svelte/icons/plus';
 import XIcon from '@lucide/svelte/icons/x';
@@ -21,7 +22,7 @@ import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
-import { imageName } from '#lib/stores/images.svelte.js';
+import { imageLabel, imageName } from '#lib/stores/images.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -216,7 +217,14 @@ function created(id: string): string {
   </div>
 {/snippet}
 
-<Page icon={PlayIcon} title="Run {reference}">
+<Page
+  icon={PlayIcon}
+  title="Run"
+  parent={{
+    label: image ? imageLabel(image) : shortId(view.params.imageId),
+    icon: LayersIcon,
+    onOpen: (): void => view.open(viewRef('image-details', view.params)),
+  }}>
   {#snippet meta()}
     <EngineBadge engineId={view.params.engineId} />
   {/snippet}

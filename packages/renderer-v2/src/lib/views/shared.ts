@@ -20,7 +20,7 @@ import { z } from 'zod';
 
 import type { App } from '#lib/app.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
-import { imageName } from '#lib/stores/images.svelte.js';
+import { imageLabel } from '#lib/stores/images.svelte.js';
 
 /** Helpers shared by the definitions of the views (not a view). */
 
@@ -78,7 +78,7 @@ export function podTitle(params: { engineId: string; podId: string }, app: App):
 
 export function imageTitle(params: { engineId: string; imageId: string }, app: App): string {
   const image = app.images.get(params.engineId, params.imageId);
-  return image ? imageName(image) : shortId(params.imageId);
+  return image ? imageLabel(image) : shortId(params.imageId);
 }
 
 export function networkTitle(params: { engineId: string; networkId: string }, app: App): string {

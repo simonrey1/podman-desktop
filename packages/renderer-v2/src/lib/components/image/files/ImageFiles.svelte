@@ -99,13 +99,16 @@ function instruction(createdBy: string | undefined): string {
     </ul>
     <div class="flex min-w-0 flex-1 flex-col">
       <div class="flex items-center gap-2 border-b px-3 py-2">
-        <span class="flex-1 text-muted-foreground">
+        <span class="min-w-0 flex-1 truncate text-muted-foreground">
           {layerOnly ? 'The files of this layer' : 'The filesystem up to this layer'}
         </span>
+        <!-- a field takes the whole width: its own size here, the text takes the rest -->
+        <div class="shrink-0">
         <Field.Field orientation="horizontal">
           <Checkbox id="image-files-layer-only" bind:checked={layerOnly} />
           <Field.Label for="image-files-layer-only">This layer only</Field.Label>
         </Field.Field>
+        </div>
       </div>
       <div class="min-h-0 flex-1 overflow-auto py-1">
         <FileTree root={layerOnly ? layer.layerTree.root : layer.stackTree.root} {layerOnly} />

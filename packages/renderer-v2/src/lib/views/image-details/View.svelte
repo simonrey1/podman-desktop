@@ -17,7 +17,7 @@ import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age, bytes } from '#lib/format.js';
 import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
-import { imageName, imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
+import { imageLabel, imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -121,7 +121,7 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
 
 <Page
   icon={LayersIcon}
-  title={image ? imageName(image) : shortId(view.params.imageId)}
+  title={image ? imageLabel(image) : shortId(view.params.imageId)}
   body={section === 'inspect' ? 'fill' : 'scroll'}>
   {#snippet meta()}
     {#if image}

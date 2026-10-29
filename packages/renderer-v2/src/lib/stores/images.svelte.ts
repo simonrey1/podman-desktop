@@ -53,6 +53,12 @@ export function imageName(image: ImageInfo): string {
   return image.RepoTags?.find(repoTag => repoTag !== '<none>:<none>') ?? '<none>';
 }
 
+/** the name of an image to show: its name, else its short ID (an image without a name is `<none>`) */
+export function imageLabel(image: ImageInfo): string {
+  const name = imageName(image);
+  return name === '<none>' ? image.Id.replace('sha256:', '').substring(0, 12) : name;
+}
+
 /** the repository and the tag of an image, e.g. `docker.io/library/nginx` and `latest` */
 export function imageRepositoryAndTag(image: ImageInfo): { repository: string; tag: string } {
   const name = imageName(image);

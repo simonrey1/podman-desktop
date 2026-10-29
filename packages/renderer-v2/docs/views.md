@@ -22,7 +22,8 @@ container from the questions below, not from the size of the content.
 4. **Do the actions of the header still apply?** Delete, Push or Run belong next to Inspect, not next to a file
    browser.
 5. **Is it opened from several places, or linked to?** It then needs an identity of its own: a tab title (e.g.
-   "Files of nginx") and an action (in the row, in the details) opening it.
+   "Files of nginx") and an action (in the row, in the details) opening it. Its header links back to the resource it
+   is about (the `parent` of `Page`, e.g. `nginx › Files`).
 6. **Is it watched next to the resource, or several at once?** When it also changes over time, it is a panel
    session.
 
