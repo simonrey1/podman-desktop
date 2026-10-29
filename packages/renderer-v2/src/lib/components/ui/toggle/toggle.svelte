@@ -10,6 +10,7 @@ export const toggleVariants = tv({
     },
     size: {
       default: 'h-7 min-w-7 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
+      xs: 'h-5 min-w-5 rounded-sm px-1 text-xs',
       sm: 'h-6 min-w-6 px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5',
       lg: 'h-8 min-w-8 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
     },

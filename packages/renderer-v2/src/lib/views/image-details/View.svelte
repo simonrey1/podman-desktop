@@ -12,8 +12,6 @@ import KeyValueCard, { type KeyValue } from '#lib/components/KeyValueCard.svelte
 import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
 import ResourceLinksCard, { type ResourceLink } from '#lib/components/ResourceLinksCard.svelte';
-import type { SearchTarget } from '#lib/components/search/search.js';
-import SearchField from '#lib/components/search/SearchField.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age, bytes } from '#lib/format.js';
@@ -29,9 +27,6 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
-
-// the search of the editor of the Inspect / Kube sections, while one is shown
-let search: SearchTarget | undefined = $state.raw();
 
 let image = $derived(app.images.get(view.params.engineId, view.params.imageId));
 let users = $derived(app.containers.ofImage(view.params.engineId, view.params.imageId));
@@ -98,9 +93,6 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
   {/snippet}
   {#snippet actions()}
     {#if image}
-      {#if search}
-        <SearchField target={search} />
-      {/if}
       <SegmentedControl
         label="Section"
         bind:value={view.state.section}
@@ -127,7 +119,7 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
     {:else if view.state.section === 'history'}
       <DataTable data={layers} columns={historyColumns} getRowId={(layer): string => String(layer.index)} />
     {:else}
-      <CodeEditor bind:search language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
+      <CodeEditor language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />
     {/if}
   {:else if app.images.loaded}
     <NotFound noun="Image" />

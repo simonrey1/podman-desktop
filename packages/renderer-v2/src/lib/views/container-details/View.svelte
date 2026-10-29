@@ -11,8 +11,6 @@ import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import KeyValueCard, { type KeyValue } from '#lib/components/KeyValueCard.svelte';
 import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
-import type { SearchTarget } from '#lib/components/search/search.js';
-import SearchField from '#lib/components/search/SearchField.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { age, bytes } from '#lib/format.js';
@@ -26,9 +24,6 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
-
-// the search of the editor of the Inspect / Kube sections, while one is shown
-let search: SearchTarget | undefined = $state.raw();
 
 let container = $derived(app.containers.get(view.params.engineId, view.params.containerId));
 
@@ -141,9 +136,6 @@ let environment: KeyValue[] = $derived(
   {/snippet}
   {#snippet actions()}
     {#if container}
-      {#if search}
-        <SearchField target={search} />
-      {/if}
       <SegmentedControl
         label="Section"
         bind:value={view.state.section}
@@ -173,9 +165,9 @@ let environment: KeyValue[] = $derived(
         <KeyValueCard title="Environment ({environment.length})" rows={environment} empty="No variables" />
       </div>
     {:else if view.state.section === 'inspect'}
-      <CodeEditor bind:search language="json" value={inspect ? JSON.stringify(inspect, undefined, 2) : ''} />
+      <CodeEditor language="json" value={inspect ? JSON.stringify(inspect, undefined, 2) : ''} />
     {:else}
-      <CodeEditor bind:search language="yaml" value={kube.error ? `# Error generating the Kubernetes YAML: ${kube.error}` : (kube.value ?? '')} />
+      <CodeEditor language="yaml" value={kube.error ? `# Error generating the Kubernetes YAML: ${kube.error}` : (kube.value ?? '')} />
     {/if}
   {:else if app.containers.loaded}
     <NotFound noun="Container" />

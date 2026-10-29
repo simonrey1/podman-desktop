@@ -4,6 +4,7 @@ import type { Attachment } from 'svelte/attachments';
 
 import { getApp } from '#lib/app.svelte.js';
 import { editorSearch } from '#lib/components/search/editor-search.js';
+import FindWidget from '#lib/components/search/FindWidget.svelte';
 import type { SearchTarget } from '#lib/components/search/search.js';
 
 import { applyMonacoTheme, loadMonaco, MONACO_THEME } from './monaco.js';
@@ -13,16 +14,14 @@ interface Props {
   /** a Monaco language, e.g. `json` or `yaml` */
   language: string;
   readOnly?: boolean;
-  /** bindable: the search of the text, for a search field (undefined while the editor loads) */
-  search?: SearchTarget;
 }
 
-// a Monaco editor filling its parent, following the theme of Podman Desktop
-// eslint-disable-next-line no-useless-assignment -- a bindable prop, written when the editor is created and disposed
-let { value, language, readOnly = true, search = $bindable() }: Props = $props();
+// a Monaco editor filling its parent, following the theme of Podman Desktop; Ctrl/Cmd+F opens a find widget over it
+let { value, language, readOnly = true }: Props = $props();
 
 const app = getApp();
 let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state.raw();
+let search: SearchTarget | undefined = $state.raw();
 
 const monaco: Attachment<HTMLElement> = element => {
   let instance: Monaco.editor.IStandaloneCodeEditor | undefined;
@@ -77,4 +76,7 @@ $effect(() => {
 });
 </script>
 
-<div class="h-full w-full" {@attach monaco}></div>
+<div class="relative h-full w-full">
+  <div class="h-full w-full" {@attach monaco}></div>
+  <FindWidget target={search} />
+</div>

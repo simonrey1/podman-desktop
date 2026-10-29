@@ -1,5 +1,6 @@
 <script lang="ts">
 import EraserIcon from '@lucide/svelte/icons/eraser';
+import SearchIcon from '@lucide/svelte/icons/search';
 import type { Terminal } from '@xterm/xterm';
 import type { Attachment } from 'svelte/attachments';
 
@@ -7,8 +8,8 @@ import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
 import SessionHeader from '#lib/components/container/SessionHeader.svelte';
 import { openTerminal, terminalTheme } from '#lib/components/container/terminal.js';
+import FindWidget from '#lib/components/search/FindWidget.svelte';
 import type { SearchTarget } from '#lib/components/search/search.js';
-import SearchField from '#lib/components/search/SearchField.svelte';
 import { terminalSearch } from '#lib/components/search/terminal-search.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -90,7 +91,11 @@ $effect(() => {
 <div class="flex h-full flex-col bg-terminal">
   <SessionHeader engineId={view.params.engineId} containerId={view.params.containerId}>
     {#snippet actions()}
-      <SearchField target={search} placeholder="Search the logs" />
+      <ActionButton
+        icon={SearchIcon}
+        label="Find (Ctrl+F)"
+        size="icon-xs"
+        onclick={(): void => search?.requestFind()} />
       <ActionButton
         icon={EraserIcon}
         label="Clear the logs"
@@ -99,7 +104,8 @@ $effect(() => {
     {/snippet}
   </SessionHeader>
   <!-- the padding is outside the terminal element: xterm fits the terminal to the size of its element -->
-  <div class="min-h-0 flex-1 px-3 py-1.5">
+  <div class="relative min-h-0 flex-1 px-3 py-1.5">
     <div class="h-full w-full" {@attach logs}></div>
+    <FindWidget target={search} />
   </div>
 </div>

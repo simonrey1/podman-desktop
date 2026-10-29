@@ -44,11 +44,12 @@ export function terminalSearch(terminal: Terminal): SearchTarget {
     return true;
   });
   return {
-    find: (query, direction): void => {
+    find: (query, direction, options): void => {
+      const searchOptions = { ...options, decorations: DECORATIONS };
       if (direction === 'previous') {
-        addon.findPrevious(query, { decorations: DECORATIONS });
+        addon.findPrevious(query, searchOptions);
       } else {
-        addon.findNext(query, { decorations: DECORATIONS, incremental: direction === 'incremental' });
+        addon.findNext(query, { ...searchOptions, incremental: direction === 'incremental' });
       }
     },
     clear: (): void => {
@@ -57,5 +58,6 @@ export function terminalSearch(terminal: Terminal): SearchTarget {
     },
     onResults: listener => results.add(listener),
     onFindRequest: listener => findRequests.add(listener),
+    requestFind: (): void => findRequests.emit(),
   };
 }

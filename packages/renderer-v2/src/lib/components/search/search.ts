@@ -22,18 +22,27 @@ export interface SearchResults {
   count: number;
 }
 
+/** How the query matches the text. */
+export interface SearchOptions {
+  caseSensitive: boolean;
+  /** the query is a regular expression */
+  regex: boolean;
+}
+
 /**
- * What a search field searches: a terminal, an editor... The field calls `find` as the query is typed
+ * What the find widget searches: a terminal, an editor... The widget calls `find` as the query is typed
  * (`incremental`: the match at the current position, or the next one) and on previous / next.
  */
 export interface SearchTarget {
-  find(query: string, direction: 'incremental' | 'next' | 'previous'): void;
+  find(query: string, direction: 'incremental' | 'next' | 'previous', options: SearchOptions): void;
   /** removes the highlights of the matches */
   clear(): void;
   /** called with the matches after each search; @returns a function unsubscribing */
   onResults(listener: (results: SearchResults) => void): () => void;
-  /** called when the user asks to search from the target, e.g. Ctrl+F; @returns a function unsubscribing */
+  /** called when the user asks to search, e.g. Ctrl+F in the target; @returns a function unsubscribing */
   onFindRequest(listener: () => void): () => void;
+  /** asks to search, e.g. from a button: opens the find widget */
+  requestFind(): void;
 }
 
 /** a list of listeners, for the events of the targets */

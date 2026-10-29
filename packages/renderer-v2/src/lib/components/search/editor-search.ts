@@ -21,7 +21,7 @@ import type * as Monaco from 'monaco-editor';
 import { Listeners, type SearchResults, type SearchTarget } from './search.js';
 
 /**
- * Searches the text of a Monaco editor (case-insensitive), highlighting the matches with the colors of the editor
+ * Searches the text of a Monaco editor, highlighting the matches with the colors of the editor
  * theme; Ctrl/Cmd+F asks for a search instead of opening the find widget of Monaco.
  */
 export function editorSearch(monaco: typeof Monaco, editor: Monaco.editor.IStandaloneCodeEditor): SearchTarget {
@@ -49,10 +49,17 @@ export function editorSearch(monaco: typeof Monaco, editor: Monaco.editor.IStand
   }
 
   return {
-    find: (query, direction): void => {
+    find: (query, direction, { caseSensitive, regex }): void => {
       const model = editor.getModel();
-      matches =
-        model && query ? model.findMatches(query, false, false, false, null, false).map(match => match.range) : [];
+      try {
+        matches =
+          model && query
+            ? model.findMatches(query, false, regex, caseSensitive, null, false).map(match => match.range)
+            : [];
+      } catch {
+        // a regular expression still being typed
+        matches = [];
+      }
       if (matches.length === 0) {
         index = -1;
       } else if (direction === 'incremental') {
@@ -74,5 +81,6 @@ export function editorSearch(monaco: typeof Monaco, editor: Monaco.editor.IStand
     },
     onResults: listener => results.add(listener),
     onFindRequest: listener => findRequests.add(listener),
+    requestFind: (): void => findRequests.emit(),
   };
 }
