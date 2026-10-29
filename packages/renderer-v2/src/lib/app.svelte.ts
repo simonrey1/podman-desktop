@@ -20,6 +20,7 @@ import { createContext } from 'svelte';
 
 import { whenExtensionsStarted } from '#lib/api/events.js';
 import { ActionsStore } from '#lib/stores/actions.svelte.js';
+import { BuildsStore } from '#lib/stores/builds.svelte.js';
 import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
@@ -54,6 +55,7 @@ export class App {
   readonly messageBoxes = new MessageBoxesStore();
   readonly pickers = new PickersStore();
   readonly modals = new ModalsStore();
+  readonly builds = new BuildsStore();
   readonly tasks = new TasksStore(this.confirmations);
   readonly notifications = new NotificationsStore();
 

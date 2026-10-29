@@ -21,12 +21,14 @@ import type { LucideIcon } from '@lucide/svelte';
 import type { App } from '#lib/app.svelte.js';
 import type { ParamsOf, StateOf, ViewDefinition, ViewSchema } from '#lib/workbench/define-view.js';
 
+import buildOutput from './build-output/view.js';
 import containerDetails from './container-details/view.js';
 import containerLogs from './container-logs/view.js';
 import containerTerminal from './container-terminal/view.js';
 import containers from './containers/view.js';
 import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
+import imageBuild from './image-build/view.js';
 import imageDetails from './image-details/view.js';
 import images from './images/view.js';
 import networkDetails from './network-details/view.js';
@@ -51,6 +53,8 @@ export const VIEWS = {
   'pod-details': podDetails,
   images,
   'image-details': imageDetails,
+  'image-build': imageBuild,
+  'build-output': buildOutput,
   volumes,
   'volume-details': volumeDetails,
   networks,

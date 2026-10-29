@@ -2,6 +2,7 @@
 import type { ImageInfo } from '@desktop-framework/api';
 import ArchiveIcon from '@lucide/svelte/icons/archive';
 import DownloadIcon from '@lucide/svelte/icons/download';
+import HammerIcon from '@lucide/svelte/icons/hammer';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
@@ -9,6 +10,7 @@ import { imageActions, imageImports, imagePrune, saveImages } from '#lib/compone
 import PullImageDialog from '#lib/components/image/PullImageDialog.svelte';
 import ListActionButton from '#lib/components/ListActionButton.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
+import { Button } from '#lib/components/ui/button/index.js';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
@@ -92,6 +94,10 @@ const columns = imageColumns(used, image => manifestByImage[image.Id]);
   onOpen={open}
   loaded={app.images.loaded}>
   {#snippet filters()}
+    <Button variant="outline" onclick={(): void => view.open(viewRef('image-build', { engineId: view.params.engineId }))}>
+      <HammerIcon data-icon="inline-start" />
+      Build
+    </Button>
     <ListActionButton set={imageImports(view.params.engineId, app)} label="Import" />
   {/snippet}
 </ResourceList>
