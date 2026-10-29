@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import type { ProviderContainerConnectionInfo, ProviderInfo } from '@desktop-framework/api';
+import type { ProviderConnectionInfo, ProviderContainerConnectionInfo, ProviderInfo } from '@desktop-framework/api';
 
 import { ListState } from '#lib/stores/list.svelte.js';
 
@@ -27,6 +27,12 @@ export const PROVIDER_EVENTS = [
   'provider-delete',
   'provider:update-status',
   'provider-container-connection-update-status',
+  'provider-register-kubernetes-connection',
+  'provider-unregister-kubernetes-connection',
+  'provider-register-vm-connection',
+  'provider-unregister-vm-connection',
+  'provider:update-version',
+  'provider:update-warnings',
   'extensions-started',
 ] as const;
 
@@ -41,25 +47,65 @@ export interface Engine {
   connection: ProviderContainerConnectionInfo;
 }
 
+/** The kinds of connections a provider registers: the container engines are the resources of v2. */
+export type ConnectionKind = ProviderConnectionInfo['connectionType'];
+
+/** A connection of a provider, of any kind: a container engine, a Kubernetes cluster, a virtual machine. */
+export interface Connection {
+  /** `<provider id>.<kind>.<connection name>`: unique among the connections of every kind */
+  id: string;
+  /** a container connection: the id of its engine, the one of its resources (`<provider id>.<connection name>`) */
+  engineId?: string;
+  kind: ConnectionKind;
+  name: string;
+  provider: ProviderInfo;
+  info: ProviderConnectionInfo;
+}
+
 /**
- * The container engines of the providers, and the one selected in the explorer.
+ * The container engines of the providers, and the one selected in the explorer; the connections of every kind.
  */
 export class EnginesStore {
   readonly #providers = new ListState<ProviderInfo>(() => window.getProviderInfos(), PROVIDER_EVENTS);
 
-  readonly all: Engine[] = $derived(
+  readonly loaded = $derived(this.#providers.loaded);
+
+  readonly providers: ProviderInfo[] = $derived(this.#providers.items);
+
+  /** the connections of every kind, by provider: the container engines, then the Kubernetes clusters, then the VMs */
+  readonly connections: Connection[] = $derived(
     this.#providers.items.flatMap(provider =>
-      provider.containerConnections.map(connection => ({
-        id: `${provider.id}.${connection.name}`,
-        name: connection.displayName ?? connection.name,
-        providerName: provider.name,
-        status: connection.status,
-        connection,
+      [...provider.containerConnections, ...provider.kubernetesConnections, ...provider.vmConnections].map(info => ({
+        id: `${provider.id}.${info.connectionType}.${info.name}`,
+        engineId: info.connectionType === 'container' ? `${provider.id}.${info.name}` : undefined,
+        kind: info.connectionType,
+        name: info.connectionType === 'container' ? (info.displayName ?? info.name) : info.name,
+        provider,
+        info,
       })),
     ),
   );
 
-  readonly loaded = $derived(this.#providers.loaded);
+  /** the container connections, as engines: their id is the one of their resources */
+  readonly all: Engine[] = $derived(
+    this.connections.flatMap(connection =>
+      connection.info.connectionType === 'container' && connection.engineId
+        ? [
+            {
+              id: connection.engineId,
+              name: connection.name,
+              providerName: connection.provider.name,
+              status: connection.info.status,
+              connection: connection.info,
+            },
+          ]
+        : [],
+    ),
+  );
+
+  connection(id: string): Connection | undefined {
+    return this.connections.find(connection => connection.id === id);
+  }
 
   #selectedId: string | undefined = $state();
 

@@ -23,6 +23,7 @@ import type { ParamsOf, StateOf, ViewDefinition, ViewSchema } from '#lib/workben
 
 import buildOutput from './build-output/view.js';
 import composeDetails from './compose-details/view.js';
+import connection from './connection/view.js';
 import containerDetails from './container-details/view.js';
 import containerLogs from './container-logs/view.js';
 import containerTerminal from './container-terminal/view.js';
@@ -51,6 +52,7 @@ import volumes from './volumes/view.js';
 export const VIEWS = {
   dashboard,
   engine,
+  connection,
   containers,
   'compose-details': composeDetails,
   'container-details': containerDetails,
