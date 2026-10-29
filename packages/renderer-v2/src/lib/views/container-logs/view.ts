@@ -17,12 +17,19 @@
  ***********************************************************************/
 
 import ScrollTextIcon from '@lucide/svelte/icons/scroll-text';
+import { z } from 'zod';
 
 import { defineView } from '#lib/workbench/define-view.js';
 
-import { containerParams, containerTitle, noState } from '../shared.js';
+import { containerParams, containerTitle } from '../shared.js';
 
-export const schema = { params: containerParams, state: noState };
+export const schema = {
+  params: containerParams,
+  state: z.object({
+    /** cleared at this time: the logs before are not shown */
+    since: z.string().optional(),
+  }),
+};
 
 export default defineView({
   schema,

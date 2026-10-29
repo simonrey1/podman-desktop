@@ -48,7 +48,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Details Summary (name, id, engine, image, command, ports links, state, started, labels, group/pod info, infra banner)               | ◐                          |
 | Details Inspect, Kube (generated YAML)                                                                                              | ✅                         |
 | Logs: streaming                                                                                                                     | ✅ (panel, multi-instance) |
-| Logs: search, clear logs (since-timestamp), re-fetch on restart                                                                     | ☐                          |
+| Logs: search, clear logs (since-timestamp), re-fetch on restart                                                                     | ✅                         |
 | Terminal: interactive shell                                                                                                         | ✅ (panel, multi-instance) |
 | Terminal: auto-reconnect, "not running" state, hidden for infra containers                                                          | ☐                          |
 | TTY attach tab (Tty + OpenStdin containers)                                                                                         | ☐                          |
