@@ -32,6 +32,7 @@ import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
 import imageBuild from './image-build/view.js';
 import imageDetails from './image-details/view.js';
+import imageFiles from './image-files/view.js';
 import imageRun from './image-run/view.js';
 import images from './images/view.js';
 import kubePlay from './kube-play/view.js';
@@ -60,6 +61,7 @@ export const VIEWS = {
   'kube-play': kubePlay,
   images,
   'image-details': imageDetails,
+  'image-files': imageFiles,
   'image-build': imageBuild,
   'image-run': imageRun,
   'build-output': buildOutput,

@@ -21,6 +21,7 @@ import ArchiveIcon from '@lucide/svelte/icons/archive';
 import ArrowUpFromLineIcon from '@lucide/svelte/icons/arrow-up-from-line';
 import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import FileInputIcon from '@lucide/svelte/icons/file-input';
+import FolderTreeIcon from '@lucide/svelte/icons/folder-tree';
 import HistoryIcon from '@lucide/svelte/icons/history';
 import PackageOpenIcon from '@lucide/svelte/icons/package-open';
 import PencilIcon from '@lucide/svelte/icons/pencil';
@@ -151,6 +152,13 @@ export function imageActions(image: ImageInfo, used: boolean, app: App): Resourc
         label: 'Edit',
         icon: PencilIcon,
         run: (): void => app.modals.open(EditImageDialog, { image }),
+      },
+      {
+        label: 'Browse files',
+        icon: FolderTreeIcon,
+        // the files are read by an extension (e.g. Layers Explorer)
+        hidden: app.imageFilesProviders.items.length === 0,
+        run: (): void => app.workbench.open(viewRef('image-files', { engineId, imageId })),
       },
       {
         label: 'History',

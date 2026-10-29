@@ -7,7 +7,6 @@ import { AsyncValue } from '#lib/async-value.svelte.js';
 import DataTable from '#lib/components/data-table/DataTable.svelte';
 import CodeEditor from '#lib/components/editor/CodeEditor.svelte';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
-import ImageFiles from '#lib/components/image/files/ImageFiles.svelte';
 import ImageActions from '#lib/components/image/ImageActions.svelte';
 import KeyValueCard, { type KeyValue } from '#lib/components/KeyValueCard.svelte';
 import NotFound from '#lib/components/NotFound.svelte';
@@ -47,14 +46,7 @@ let users = $derived(
     ? platformImages.flatMap(item => app.containers.ofImage(view.params.engineId, item.Id))
     : app.containers.ofImage(view.params.engineId, view.params.imageId),
 );
-// the files are read by a provider of an extension: no section without one
-let files = $derived(!manifest && app.imageFilesProviders.items.length > 0);
-let section = $derived.by(() => {
-  if ((manifest && view.state.section === 'history') || (!files && view.state.section === 'files')) {
-    return 'summary';
-  }
-  return view.state.section;
-});
+let section = $derived(manifest && view.state.section === 'history' ? 'summary' : view.state.section);
 
 // the architecture and the OS are only in the inspect data (loaded once the image is listed, not at each reload of
 // the list)
@@ -130,7 +122,7 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
 <Page
   icon={LayersIcon}
   title={image ? imageName(image) : shortId(view.params.imageId)}
-  body={section === 'inspect' || section === 'files' ? 'fill' : 'scroll'}>
+  body={section === 'inspect' ? 'fill' : 'scroll'}>
   {#snippet meta()}
     {#if image}
       <StatusBadge status={users.length ? 'used' : 'unused'} actionKey={resourceKey('image', image.engineId, image.Id)} />
@@ -150,7 +142,6 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
           : [
               { value: 'summary', label: 'Summary' },
               { value: 'history', label: 'History' },
-              ...(files ? [{ value: 'files' as const, label: 'Files' }] : []),
               { value: 'inspect', label: 'Inspect' },
             ]} />
       <ImageActions {image} used={users.length > 0} placement="header" />
@@ -175,8 +166,6 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
         <ResourceLinksCard title="Tags ({tags.length})" items={tags} empty="No tags" />
         <KeyValueCard title="Labels ({labels.length})" rows={labels} empty="No labels" />
       </div>
-    {:else if section === 'files'}
-      <ImageFiles {image} />
     {:else if section === 'history'}
       <DataTable data={layers} columns={historyColumns} getRowId={(layer): string => String(layer.index)} />
     {:else}
