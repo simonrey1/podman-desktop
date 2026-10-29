@@ -30,9 +30,12 @@ function open(row: PodInfo, options: { preview: boolean }): void {
 </script>
 
 <ResourceList
+  engineId={view.params.engineId}
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
+  filtered={view.state.show !== 'all'}
+  onResetFilters={(): unknown => (view.state.show = 'all')}
   actionsOf={(pod): ResourceActionSet => podActions(pod, app)}
   prune={podPrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Start', 'Stop', 'Delete']}

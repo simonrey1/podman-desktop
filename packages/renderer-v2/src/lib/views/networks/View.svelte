@@ -22,6 +22,7 @@ function open(row: NetworkInspectInfo, options: { preview: boolean }): void {
 </script>
 
 <ResourceList
+  engineId={view.params.engineId}
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}

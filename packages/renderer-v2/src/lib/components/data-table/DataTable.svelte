@@ -21,6 +21,8 @@ interface Props {
   onOpen?: (row: T, options: { preview: boolean }) => void;
   /** shown when there are no rows at all (and not because of the filter) */
   empty?: Snippet;
+  /** shown when no row matches the filter */
+  noMatch?: Snippet;
   /**
    * bindable: the ids of the selected rows; when given, a first column of checkboxes selects the rows
    * (the header one selects the rows shown, e.g. the ones matching the filter)
@@ -38,6 +40,7 @@ let {
   sort = $bindable([]),
   onOpen,
   empty,
+  noMatch,
   selection = $bindable(),
   canSelect = (): boolean => true,
 }: Props = $props();
@@ -182,7 +185,11 @@ function onkeydown(event: KeyboardEvent, row: T): void {
       {:else}
         <Table.Row>
           <Table.Cell colspan={columns.length + (selection ? 1 : 0)}>
-            <div class="flex h-24 items-center justify-center text-muted-foreground">No results for “{filter}”</div>
+            {#if noMatch}
+              {@render noMatch()}
+            {:else}
+              <div class="flex h-24 items-center justify-center text-muted-foreground">No results for “{filter}”</div>
+            {/if}
           </Table.Cell>
         </Table.Row>
       {/each}

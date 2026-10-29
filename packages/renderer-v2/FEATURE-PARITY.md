@@ -15,7 +15,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List pages: multi-select (checkbox column, select-all of the rows shown, used resources not selectable)                                      | ✅                                                 |
 | List pages: bulk actions bar ("N selected", the actions on the selected rows, Clear), one confirmation, one toast for the failures           | ✅                                                 |
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ✅                                                 |
-| Empty states: no engine running; filtered with "reset filter"; per-domain empty screen with copyable command + "first X" button              | ◐ (plain empty states)                             |
+| Empty states: engine not running; nothing matching the filters, with "reset filter(s)"                                                       | ✅                                                 |
+| Empty states: per-domain empty screen with "first X" button (pull and run, phase 5)                                                          | ☐                                                  |
 | Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |
 | Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                                       | ✅                                                 |
 | Transient statuses on actions (starting, stopping, deleting, restarting… on the row and the details header; buttons disabled with a spinner) | ✅                                                 |
