@@ -29,7 +29,9 @@ const app = getApp();
 let pending = $derived(actionKey ? app.actions.pending(actionKey) : undefined);
 </script>
 
-<div class="flex min-w-0 items-center gap-2 ps-(--depth-indent)" style:--depth-indent="{depth * 1.5}rem">
+<!-- a row of a group is indented by the chevron of its group and its gap (0.75rem + 0.5rem): its status and its name
+     are under the ones of the group -->
+<div class="flex min-w-0 items-center gap-2 ps-(--depth-indent)" style:--depth-indent="{depth * 1.25}rem">
   {#if onToggle}
     <!-- in a clickable row: the chevron does not open the row -->
     <button
