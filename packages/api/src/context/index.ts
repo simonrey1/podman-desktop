@@ -18,3 +18,5 @@
 
 export * from './charCode.js';
 export * from './context.js';
+export * from './context-key.js';
+export * from './scanner.js';

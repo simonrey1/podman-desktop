@@ -24,7 +24,7 @@
 
 import { expect, test } from 'vitest';
 
-import { Scanner, type Token, TokenType } from './scanner';
+import { Scanner, type Token, TokenType } from './scanner.js';
 
 function tokenTypeToStr(token: Token): string {
   switch (token.type) {
