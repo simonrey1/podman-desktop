@@ -1,4 +1,7 @@
 <script lang="ts">
+import type { Attachment } from 'svelte/attachments';
+import { on } from 'svelte/events';
+
 import { getApp } from '#lib/app.svelte.js';
 import * as ContextMenu from '#lib/components/ui/context-menu/index.js';
 import { describeView } from '#lib/views/index.js';
@@ -9,9 +12,28 @@ import type { TabGroup } from './tab-group.svelte.js';
 let { group, label }: { group: TabGroup; label: string } = $props();
 
 const app = getApp();
+
+// a notch of the wheel (about 100px) scrolls the strip by about 40px, a part of a tab
+const WHEEL_SPEED = 0.4;
+
+// the strip has no scrollbar: the wheel of a mouse (vertical) scrolls it horizontally, a touchpad already can
+const wheelScroll: Attachment<HTMLElement> = element =>
+  on(
+    element,
+    'wheel',
+    event => {
+      if (Math.abs(event.deltaY) > Math.abs(event.deltaX) && element.scrollWidth > element.clientWidth) {
+        event.preventDefault();
+        element.scrollLeft += event.deltaY * WHEEL_SPEED;
+      }
+    },
+    // not passive: the page must not scroll too
+    { passive: false },
+  );
 </script>
 
-<div role="tablist" aria-label={label} class="flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none">
+<div role="tablist" aria-label={label} class="flex min-w-0 flex-1 items-stretch overflow-x-auto scrollbar-none"
+  {@attach wheelScroll}>
   {#each group.tabs as tab, index (tab.key)}
     {@const view = describeView(tab.ref, app)}
     <!-- the instances of a view opened several times are numbered from the second one -->
