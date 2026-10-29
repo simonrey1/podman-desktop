@@ -13,8 +13,9 @@ const app = getApp();
 let engine = $derived(app.engines.get(engineId));
 </script>
 
+<!-- inline-flex: the badge is the height of the button, not placed on the baseline of a text line -->
 <button
-  class="rounded-4xl outline-none focus-visible:ring-1 focus-visible:ring-ring"
+  class="inline-flex rounded-4xl outline-none focus-visible:ring-1 focus-visible:ring-ring"
   onclick={(): void => app.workbench.open(viewRef('engine', { engineId }))}>
   <Badge variant="outline">
     <ServerIcon />
