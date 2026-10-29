@@ -7,7 +7,7 @@ let { ref = $bindable(null), class: className, children, ...restProps }: WithEle
 </script>
 
 <div data-slot="table-container" class="relative w-full">
-	<table bind:this={ref} data-slot="table" class={cn("w-full table-fixed caption-bottom text-sm", className)} {...restProps}>
+	<table bind:this={ref} data-slot="table" class={cn("w-full min-w-(--table-min-width) table-fixed caption-bottom text-sm", className)} {...restProps}>
 		{@render children?.()}
 	</table>
 </div>

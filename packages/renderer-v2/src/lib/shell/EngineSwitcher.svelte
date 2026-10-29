@@ -25,9 +25,10 @@ let engine = $derived(app.engines.selected);
             <span class="flex min-w-0 flex-1 flex-col">
               <span class="truncate font-medium">{engine?.name ?? 'No engine'}</span>
               {#if engine}
-                <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <!-- one line, truncated when the explorer is narrow -->
+                <span class="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
                   <StatusDot size="sm" decorative status={engine.status} />
-                  {engine.providerName} · {engine.status}
+                  <span class="truncate">{engine.providerName} · {engine.status}</span>
                 </span>
               {/if}
             </span>

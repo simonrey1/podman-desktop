@@ -37,7 +37,8 @@ let { icon: Icon, title, meta, actions, toolbar, body = 'scroll', children }: Pr
   {@render toolbar?.()}
   <div class="min-h-0 flex-1">
     {#if body === 'scroll'}
-      <ScrollArea>
+      <!-- both: a table keeps a minimum width, narrower it scrolls horizontally -->
+      <ScrollArea orientation="both">
         {@render children()}
       </ScrollArea>
     {:else}
