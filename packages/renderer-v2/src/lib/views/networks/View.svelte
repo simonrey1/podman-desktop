@@ -27,7 +27,7 @@ function open(row: NetworkInspectInfo, options: { preview: boolean }): void {
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   canSelect={(network): boolean => Object.keys(network.Containers ?? {}).length === 0}
-  actionsOf={(network): ResourceActionSet => networkActions(network)}
+  actionsOf={(network): ResourceActionSet => networkActions(network, app)}
   bulk={['Delete']}
   icon={NetworkIcon}
   title="Networks"

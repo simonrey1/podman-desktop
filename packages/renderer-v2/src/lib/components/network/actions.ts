@@ -17,12 +17,16 @@
  ***********************************************************************/
 
 import type { NetworkInspectInfo } from '@desktop-framework/api';
+import GlobeIcon from '@lucide/svelte/icons/globe';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
+import type { App } from '#lib/app.svelte.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
+import UpdateDnsDialog from './UpdateDnsDialog.svelte';
+
 /** The actions of a network: in its row, in the header of its details, and in the bulk actions. */
-export function networkActions(network: NetworkInspectInfo): ResourceActionSet {
+export function networkActions(network: NetworkInspectInfo, app: App): ResourceActionSet {
   return {
     target: { key: resourceKey('network', network.engineId, network.Id), name: network.Name },
     actions: [
@@ -34,6 +38,13 @@ export function networkActions(network: NetworkInspectInfo): ResourceActionSet {
         // a network used by a container cannot be deleted
         disabled: Object.keys(network.Containers ?? {}).length > 0,
         run: (): Promise<void> => window.removeNetwork(network.engineId, network.Id),
+      },
+      {
+        label: 'Update DNS',
+        icon: GlobeIcon,
+        // the DNS servers of a network are a feature of Podman
+        hidden: network.engineType !== 'podman',
+        run: (): void => app.modals.open(UpdateDnsDialog, { network }),
       },
     ],
   };
