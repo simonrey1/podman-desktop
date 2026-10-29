@@ -1,4 +1,8 @@
 <script lang="ts">
+import CopyIcon from '@lucide/svelte/icons/copy';
+import { toast } from 'svelte-sonner';
+
+import ActionButton from '#lib/components/ActionButton.svelte';
 import type { ViewRef } from '#lib/views/index.js';
 
 import Card from './Card.svelte';
@@ -12,6 +16,8 @@ export interface KeyValue {
   ref?: ViewRef;
   /** an address opened in the browser by the value, e.g. a published port */
   href?: string;
+  /** the value can be copied, e.g. the socket of an engine */
+  copy?: boolean;
 }
 
 // a titled card of key/value rows (label column 160px, muted), e.g. the summary of a resource
@@ -48,6 +54,19 @@ let { title, rows, empty = 'None', onOpen }: Props = $props();
                 }}>{row.value}</button>
             {:else}
               {row.value || '—'}
+            {/if}
+            {#if row.copy && row.value}
+              {@const value = row.value}
+              <ActionButton
+                icon={CopyIcon}
+                label="Copy {row.label.toLowerCase()}"
+                size="icon-xs"
+                onclick={(): void => {
+                  window
+                    .clipboardWriteText(value)
+                    .then(() => toast.success(`${row.label} copied`))
+                    .catch(console.error);
+                }} />
             {/if}
           </dd>
         </div>
