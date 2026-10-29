@@ -46,6 +46,9 @@ export function isShown(show: z.infer<typeof showSchema>, running: boolean): boo
   return show === 'all' || (show === 'running') === running;
 }
 
+/** the groups of a table expanded (true) or collapsed (false), by id: expanded when not listed */
+export const expandedSchema = z.record(z.string(), z.boolean());
+
 /** the selected rows of a table, by id */
 export const selectionSchema = z.record(z.string(), z.literal(true));
 

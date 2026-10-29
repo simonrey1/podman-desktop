@@ -39,6 +39,10 @@ interface Props {
   selection?: Record<string, true>;
   /** whether a row can be selected */
   canSelect?: (row: T) => boolean;
+  /** the rows of a group, see DataTable */
+  getSubRows?: (row: T) => T[] | undefined;
+  /** bindable: the groups expanded or collapsed */
+  expanded?: Record<string, boolean>;
   /** the actions of a row, for the bulk actions */
   actionsOf?: (row: T) => ResourceActionSet;
   /** the labels of the row actions offered on the selected rows, in order: e.g. Start, Stop, Delete */
@@ -66,6 +70,8 @@ let {
   sort = $bindable([]),
   selection = $bindable(),
   canSelect,
+  getSubRows,
+  expanded = $bindable({}),
   actionsOf,
   bulk = [],
   prune,
@@ -81,7 +87,13 @@ function resetFilters(): void {
 }
 
 // the selected rows still listed (a deleted resource leaves the list, not the selection)
-let selected = $derived(selection ? data.filter(row => selection?.[getRowId(row)]) : []);
+// every row, the rows of the groups included
+function flatten(rows: T[]): T[] {
+  return rows.flatMap(row => [row, ...flatten(getSubRows?.(row) ?? [])]);
+}
+let allRows = $derived(getSubRows ? flatten(data) : data);
+
+let selected = $derived(selection ? allRows.filter(row => selection?.[getRowId(row)]) : []);
 
 // each bulk action applies to the selected rows having this action enabled (e.g. Stop: the running containers)
 let bulkActions: BulkAction[] = $derived.by(() => {
@@ -140,7 +152,7 @@ let bulkActions: BulkAction[] = $derived.by(() => {
     {@render filters?.()}
     <FilterInput bind:value={filter} placeholder="Filter {noun}" />
   {/snippet}
-  <DataTable {data} {columns} {getRowId} {filter} bind:sort bind:selection {canSelect} {onOpen}>
+  <DataTable {data} {columns} {getRowId} {filter} bind:sort bind:selection bind:expanded {canSelect} {getSubRows} {onOpen}>
     {#snippet empty()}
       {#if loaded}
         {@const Icon = icon}

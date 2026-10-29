@@ -36,7 +36,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List columns: uptime (running only)                                                                                                 | ✅                         |
 | List columns: environment — v2 lists the containers of the engine selected in the explorer                                          | ◐                          |
 | All / Running / Stopped filter                                                                                                      | ✅                         |
-| Tree grouping: compose projects and Podman pods, expandable, group status/actions                                                   | ☐                          |
+| Tree grouping: compose projects and Podman pods, expandable, group status/actions                                                   | ✅                         |
 | Row actions: start/stop, restart, delete, logs, terminal                                                                            | ✅                         |
 | Row actions: unpause, open in the browser, generate kube, export                                                                    | ✅                         |
 | Row actions: extension actions (phase 9)                                                                                            | ☐                          |
@@ -61,8 +61,9 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 
 | Feature                                                                   | v2  |
 | ------------------------------------------------------------------------- | --- |
-| Compose groups in the containers list (by `com.docker.compose.project`)   | ☐   |
-| Actions: start, stop, restart, delete, generate kube, extension actions   | ☐   |
+| Compose groups in the containers list (by `com.docker.compose.project`)   | ✅  |
+| Actions: start, stop, restart, delete                                     | ✅  |
+| Actions: generate kube, extension actions (phase 9)                       | ☐   |
 | Details: Summary (containers), merged colour-prefixed logs, Inspect, Kube | ☐   |
 
 ## Pods — Podman (`lib/pod`)

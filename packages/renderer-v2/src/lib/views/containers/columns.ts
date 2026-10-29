@@ -16,43 +16,47 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import type { ContainerInfo } from '@desktop-framework/api';
 import { renderComponent } from '@tanstack/svelte-table';
 
-import ContainerActions from '#lib/components/container/ContainerActions.svelte';
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
+import ResourceActions from '#lib/components/ResourceActions.svelte';
 import { age } from '#lib/format.js';
-import { resourceKey } from '#lib/stores/actions.svelte.js';
-import { containerName, containerPorts } from '#lib/stores/containers.svelte.js';
 
-const column = columnHelper<ContainerInfo>();
+import type { ContainerRow } from './rows.js';
+
+const column = columnHelper<ContainerRow>();
 
 export const containerColumns = column.columns([
-  column.accessor(containerName, {
+  // a container of a group matches the name of the group too
+  column.accessor(row => (row.group ? `${row.name} ${row.group}` : row.name), {
     id: 'name',
     header: 'Name',
     cell: ({ row }) =>
       renderComponent(NameCell, {
-        name: containerName(row.original),
-        actionKey: resourceKey('container', row.original.engineId, row.original.Id),
-        status: row.original.State,
-        detail: containerPorts(row.original),
+        name: row.original.name,
+        actionKey: row.original.actions.target.key,
+        status: row.original.status,
+        detail: row.original.detail,
+        depth: row.depth,
+        expanded: row.getIsExpanded(),
+        onToggle: row.getCanExpand() ? row.getToggleExpandedHandler() : undefined,
       }),
   }),
-  column.accessor('Image', { header: 'Image', meta: { width: '18rem', class: 'text-right text-muted-foreground' } }),
+  column.accessor(row => row.image ?? '', {
+    id: 'image',
+    header: 'Image',
+    meta: { width: '18rem', class: 'text-right text-muted-foreground' },
+  }),
   // how long a running container has been running (empty when stopped, sorted before the shortest uptime)
-  column.accessor(
-    container => (container.State === 'running' ? Date.now() - new Date(container.StartedAt).getTime() : -1),
-    {
-      id: 'uptime',
-      header: 'Uptime',
-      cell: ({ row }) => (row.original.State === 'running' ? age(row.original.StartedAt) : ''),
-      sortFn: 'basic',
-      meta: { width: '6rem', class: 'text-right text-muted-foreground' },
-    },
-  ),
-  column.accessor('Created', {
+  column.accessor(row => (row.startedAt ? Date.now() - new Date(row.startedAt).getTime() : -1), {
+    id: 'uptime',
+    header: 'Uptime',
+    cell: ({ row }) => (row.original.startedAt ? age(row.original.startedAt) : ''),
+    sortFn: 'basic',
+    meta: { width: '6rem', class: 'text-right text-muted-foreground' },
+  }),
+  column.accessor('created', {
     header: 'Age',
     cell: ({ getValue }) => age(getValue()),
     sortFn: 'basic',
@@ -60,7 +64,12 @@ export const containerColumns = column.columns([
   }),
   column.display({
     id: 'actions',
-    cell: ({ row }) => renderComponent(ContainerActions, { container: row.original }),
+    cell: ({ row }) =>
+      renderComponent(ResourceActions, {
+        target: row.original.actions.target,
+        actions: row.original.actions.actions,
+        max: 3,
+      }),
     meta: { width: '5.5rem', actions: true },
   }),
 ]);

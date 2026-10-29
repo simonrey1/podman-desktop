@@ -21,11 +21,13 @@ import {
   columnFilteringFeature,
   type ColumnHelper,
   createColumnHelper,
+  createExpandedRowModel,
   createFilteredRowModel,
   createSortedRowModel,
   filterFn_includesString,
   globalFilteringFeature,
   type RowData,
+  rowExpandingFeature,
   rowSortingFeature,
   sortFn_alphanumeric,
   sortFn_basic,
@@ -34,13 +36,15 @@ import {
   tableFeatures,
 } from '@tanstack/svelte-table';
 
-/** The features of the resource tables: sorting, and filtering on the text of the columns. */
+/** The features of the resource tables: sorting, filtering on the text of the columns, and groups of rows. */
 export const features = tableFeatures({
   columnFilteringFeature,
   globalFilteringFeature,
+  rowExpandingFeature,
   rowSortingFeature,
   filteredRowModel: createFilteredRowModel(),
   sortedRowModel: createSortedRowModel(),
+  expandedRowModel: createExpandedRowModel(),
   filterFns: { includesString: filterFn_includesString },
   sortFns: { alphanumeric: sortFn_alphanumeric, basic: sortFn_basic, datetime: sortFn_datetime },
 });

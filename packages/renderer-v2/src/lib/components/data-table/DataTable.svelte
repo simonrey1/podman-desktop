@@ -30,6 +30,10 @@ interface Props {
   selection?: Record<string, true>;
   /** whether a row can be selected, e.g. an image used by a container cannot be deleted */
   canSelect?: (row: T) => boolean;
+  /** the rows of a group (e.g. the containers of a pod): a group shows when one of its rows matches the filter */
+  getSubRows?: (row: T) => T[] | undefined;
+  /** bindable: the groups collapsed (false), by id; the other groups are expanded */
+  expanded?: Record<string, boolean>;
 }
 
 let {
@@ -43,7 +47,28 @@ let {
   noMatch,
   selection = $bindable(),
   canSelect = (): boolean => true,
+  getSubRows,
+  expanded = $bindable({}),
 }: Props = $props();
+
+// the ids of the groups (the rows having rows)
+let groupIds = $derived.by(() => {
+  const ids: string[] = [];
+  const visit = (rows: T[]): void => {
+    for (const row of rows) {
+      const subRows = getSubRows?.(row);
+      if (subRows?.length) {
+        ids.push(getRowId(row));
+        visit(subRows);
+      }
+    }
+  };
+  visit(data);
+  return ids;
+});
+
+// the table expects the groups expanded: every group not collapsed
+let expandedGroups = $derived(Object.fromEntries(groupIds.filter(id => expanded[id] !== false).map(id => [id, true])));
 
 const table = createTable({
   features,
@@ -54,6 +79,19 @@ const table = createTable({
     return columns;
   },
   getRowId: row => getRowId(row),
+  getSubRows: (row): T[] | undefined => getSubRows?.(row),
+  // a group is shown when one of its rows matches, with its rows matching
+  filterFromLeafRows: true,
+  // the groups stay as the user left them when the rows change (by default, the table collapses them)
+  autoResetExpanded: false,
+  onExpandedChange: updater => {
+    const next = typeof updater === 'function' ? updater(expandedGroups) : updater;
+    // kept: the groups collapsed (true: every group expanded)
+    const collapsed = Object.fromEntries(groupIds.filter(id => next !== true && !next[id]).map(id => [id, false]));
+    if (JSON.stringify(collapsed) !== JSON.stringify(expanded)) {
+      expanded = collapsed;
+    }
+  },
   globalFilterFn: 'includesString',
   state: {
     get globalFilter() {
@@ -61,6 +99,9 @@ const table = createTable({
     },
     get sorting() {
       return sort;
+    },
+    get expanded() {
+      return expandedGroups;
     },
   },
   onSortingChange: updater => {
