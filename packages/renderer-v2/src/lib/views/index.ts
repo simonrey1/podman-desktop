@@ -22,6 +22,7 @@ import type { App } from '#lib/app.svelte.js';
 import type { ParamsOf, StateOf, ViewDefinition, ViewSchema } from '#lib/workbench/define-view.js';
 
 import buildOutput from './build-output/view.js';
+import composeDetails from './compose-details/view.js';
 import containerDetails from './container-details/view.js';
 import containerLogs from './container-logs/view.js';
 import containerTerminal from './container-terminal/view.js';
@@ -49,6 +50,7 @@ export const VIEWS = {
   dashboard,
   engine,
   containers,
+  'compose-details': composeDetails,
   'container-details': containerDetails,
   'container-logs': containerLogs,
   'container-terminal': containerTerminal,

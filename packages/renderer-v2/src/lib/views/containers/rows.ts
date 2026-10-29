@@ -25,6 +25,8 @@ import { podActions } from '#lib/components/pod/actions.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName, containerPorts } from '#lib/stores/containers.svelte.js';
 
+import { groupStatus } from '../shared.js';
+
 /**
  * A row of the containers list: a container, or a group of containers (the containers of a pod or of a Compose
  * project) with its own status and actions.
@@ -45,6 +47,8 @@ export interface ContainerRow {
   container?: ContainerInfo;
   /** a pod group: its pod, once the pods are loaded */
   pod?: PodInfo;
+  /** a Compose group: the name of its project */
+  project?: string;
   /** the containers of a group */
   children?: ContainerRow[];
   /** a container of a group: the name of the group (filtering on it shows its containers) */
@@ -70,13 +74,6 @@ function containersCount(count: number): string {
 }
 
 /** the status of a group from its containers: running when they all run, degraded when some do */
-function groupStatus(running: number, total: number): string {
-  if (running === total) {
-    return 'running';
-  }
-  return running ? 'degraded' : 'exited';
-}
-
 interface Group {
   row: ContainerRow;
   engineId: string;
@@ -91,8 +88,9 @@ function completeGroup({ row, engineId, project, pod: podRef }: Group, app: App)
   row.created = Math.min(...children.map(child => child.created));
   row.detail = `${project ? 'Compose' : 'Pod'} · ${containersCount(children.length)}`;
   if (project) {
+    row.project = project;
     row.status = groupStatus(running, children.length);
-    row.actions = composeActions(engineId, project, running, children.length);
+    row.actions = composeActions(engineId, project, running, children.length, app);
   } else if (podRef) {
     row.pod = app.pods.get(engineId, podRef.id);
     row.status = row.pod?.Status ?? groupStatus(running, children.length);

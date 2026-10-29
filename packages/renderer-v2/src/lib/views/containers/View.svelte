@@ -30,7 +30,7 @@ let rows = $derived(
   ),
 );
 
-// a container opens its details, a pod group the details of the pod (a Compose project has no details yet)
+// a container opens its details, a group the details of its pod or of its Compose project
 function open(row: ContainerRow, options: { preview: boolean }): void {
   if (row.container) {
     view.open(
@@ -39,6 +39,8 @@ function open(row: ContainerRow, options: { preview: boolean }): void {
     );
   } else if (row.pod) {
     view.open(viewRef('pod-details', { engineId: row.pod.engineId, podId: row.pod.Id }), options);
+  } else if (row.project) {
+    view.open(viewRef('compose-details', { engineId: view.params.engineId, project: row.project }), options);
   }
 }
 </script>

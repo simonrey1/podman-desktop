@@ -88,3 +88,11 @@ export function networkTitle(params: { engineId: string; networkId: string }, ap
 export function secretTitle(params: { engineId: string; secretId: string }, app: App): string {
   return app.secrets.get(params.engineId, params.secretId)?.Name ?? shortId(params.secretId);
 }
+
+/** the status of a group: running when all its containers run, degraded when some do, exited else */
+export function groupStatus(running: number, total: number): string {
+  if (running === total) {
+    return 'running';
+  }
+  return running ? 'degraded' : 'exited';
+}

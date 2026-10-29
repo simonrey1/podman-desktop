@@ -16,21 +16,31 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import FileCodeIcon from '@lucide/svelte/icons/file-code';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
+import type { App } from '#lib/app.svelte.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
+import { viewRef } from '#lib/views/index.js';
 
 /** the label of the containers of a Compose project: its value is the name of the project */
 export const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
 
 /**
- * The actions of a Compose project, in its group of the containers list: they apply to all its containers.
+ * The actions of a Compose project, in its group of the containers list and in its details: they apply to all its
+ * containers.
  * @param running how many of its `total` containers run
  */
-export function composeActions(engineId: string, project: string, running: number, total: number): ResourceActionSet {
+export function composeActions(
+  engineId: string,
+  project: string,
+  running: number,
+  total: number,
+  app: App,
+): ResourceActionSet {
   const run = (call: typeof window.startContainersByLabel) => (): Promise<void> =>
     call(engineId, COMPOSE_PROJECT_LABEL, project);
   return {
@@ -70,6 +80,12 @@ export function composeActions(engineId: string, project: string, running: numbe
         icon: RotateCwIcon,
         disabled: running === 0,
         run: run(window.restartContainersByLabel),
+      },
+      {
+        label: 'Generate Kube',
+        icon: FileCodeIcon,
+        run: (): void =>
+          app.workbench.open(viewRef('compose-details', { engineId, project }), { state: { section: 'kube' } }),
       },
     ],
   };

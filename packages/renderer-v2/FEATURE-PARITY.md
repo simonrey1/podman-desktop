@@ -59,13 +59,14 @@ Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (no
 
 ## Compose (`lib/compose`)
 
-| Feature                                                                 | v2  |
-| ----------------------------------------------------------------------- | --- |
-| Compose groups in the containers list (by `com.docker.compose.project`) | ✅  |
-| Actions: start, stop, restart, delete                                   | ✅  |
-| Actions: generate kube, extension actions (phase 9)                     | ☐   |
-| Details: Summary (containers), Inspect, Kube                            | ☐   |
-| Details: merged colour-prefixed logs                                    | ✕   |
+| Feature                                                                                                           | v2  |
+| ----------------------------------------------------------------------------------------------------------------- | --- |
+| Compose groups in the containers list (by `com.docker.compose.project`)                                           | ✅  |
+| Actions: start, stop, restart, delete                                                                             | ✅  |
+| Actions: generate kube                                                                                            | ✅  |
+| Actions: extension actions (phase 9)                                                                              | ☐   |
+| Details: Summary (project, Compose file, containers with their service), Inspect, Kube; opened from the group row | ✅  |
+| Details: merged colour-prefixed logs                                                                              | ✕   |
 
 ## Pods — Podman (`lib/pod`)
 
