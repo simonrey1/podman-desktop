@@ -135,17 +135,19 @@ Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (no
 
 ## Engines and providers (`lib/preferences` Resources, `lib/dashboard` providers)
 
-| Feature                                                                                                                                                          | v2            |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| Engine switcher with status                                                                                                                                      | ✅ (explorer) |
-| Engine overview page with resource counts                                                                                                                        | ✅            |
-| Resources page: one card per provider, version, managed-config indicator                                                                                         | ☐             |
-| Provider: create connection, set up (onboarding), install with preflight checks, update, extension buttons                                                       | ☐             |
-| Connection cards: status/error, type, VM type, endpoint + copy, CPU/memory/disk usage, default connection                                                        | ☐             |
-| Connection lifecycle: start, stop, restart, edit, delete (confirm), open terminal, extension menus                                                               | ☐             |
-| Create / edit connection form generated from provider configuration properties (resource sliders bounded by the host, live audit, logs, cancel, background task) | ☐             |
-| Connection details: Summary, Logs, Terminal (container, Kubernetes and VM connections)                                                                           | ☐             |
-| Provider details: status, start/stop, logs, configuration                                                                                                        | ☐             |
+| Feature                                                                                                                                                                                                                                                      | v2            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| Engine switcher with status                                                                                                                                                                                                                                  | ✅ (explorer) |
+| Engine overview page with resource counts                                                                                                                                                                                                                    | ✅            |
+| System overview on the dashboard: the connections by type (container engines, Kubernetes, VMs), their provider, version or VM type, status or error, CPU / memory / disk usage, health summary (replaces the Resources page of the settings, not duplicated) | ☐             |
+| Resources page of the settings (v1: the providers, the CLI-only ones included)                                                                                                                                                                               | ✕             |
+| + Add resource: create a connection (a Podman machine, a kind cluster, a VM) in a modal generated from the provider's properties                                                                                                                             | ☐             |
+| Provider set-up, install, update (v2: the notifications of the extensions on the dashboard, e.g. Podman not installed)                                                                                                                                       | ✕             |
+| Connection overview: container engines in the engine overview (status/error, type, VM type, endpoint + copy, usage, default connection); Kubernetes and VM connections in a simple overview of their details                                                 | ☐             |
+| Connection lifecycle: start, stop, restart, edit, delete (confirm), open terminal, extension menus                                                                                                                                                           | ☐             |
+| Edit connection in a modal, generated from the provider's properties (resource sliders bounded by the host, logs, cancel)                                                                                                                                    | ☐             |
+| Connection logs and terminal (panel sessions, from the overview)                                                                                                                                                                                             | ☐             |
+| Provider details page (v1)                                                                                                                                                                                                                                   | ✕             |
 
 ## Kubernetes — out of scope
 
@@ -177,8 +179,8 @@ providers stay part of the engines and providers domain.
 
 | Feature                                                                                                                                                       | v2  |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| Welcome page (first run: extensions to set up, telemetry opt-in)                                                                                              | ☐   |
-| Onboarding wizard (global multi-extension and per extension; steps with `when`, completion events, commands, embedded forms, skip/retry/cancel, saved status) | ☐   |
+| Welcome screen on first run: the telemetry opt-in only                                                                                                        | ☐   |
+| Onboarding wizard (global multi-extension and per extension; steps with `when`, completion events, commands, embedded forms, skip/retry/cancel, saved status) | ✕   |
 
 ## Extensions (`lib/extensions`, `lib/featured`, `lib/recommendation`, `lib/explore-features`)
 
@@ -230,7 +232,7 @@ providers stay part of the engines and providers domain.
 | Dialogs requested by extensions / main: custom pick (cards with markdown and details, one or several selected)                                              | ✅                                   |
 | Markdown rendering: links opened in the browser, image directive                                                                                            | ✅                                   |
 | Markdown directives: buttons and links running commands (busy while running, failures in a toast), button links                                             | ✅                                   |
-| Markdown directives: warnings, expandable sections (onboarding, phase 8)                                                                                    | ☐                                    |
+| Markdown directives: warnings, expandable sections (used by the onboarding)                                                                                 | ✕                                    |
 | Troubleshooting (engine checks and reconnect, repair/cleanup, console logs, gather logs, stores)                                                            | ☐                                    |
 | Help menu, feedback (direct and GitHub issue)                                                                                                               | ☐                                    |
 | Accounts menu (sign in / out)                                                                                                                               | ☐                                    |
