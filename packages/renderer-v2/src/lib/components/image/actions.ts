@@ -18,8 +18,10 @@
 
 import type { ImageInfo } from '@desktop-framework/api';
 import ArchiveIcon from '@lucide/svelte/icons/archive';
+import ArrowUpFromLineIcon from '@lucide/svelte/icons/arrow-up-from-line';
 import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
 import HistoryIcon from '@lucide/svelte/icons/history';
+import PencilIcon from '@lucide/svelte/icons/pencil';
 import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 import type { Uri } from '@podman-desktop/api';
@@ -30,6 +32,9 @@ import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actio
 import { shortId } from '#lib/stores/containers.svelte.js';
 import { imageName, imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
 import { viewRef } from '#lib/views/index.js';
+
+import EditImageDialog from './EditImageDialog.svelte';
+import PushImageDialog from './PushImageDialog.svelte';
 
 /** asks where to save the image, then saves it as a `.tar` (`nginx.tar` for `docker.io/library/nginx:latest`) */
 async function saveImage(image: ImageInfo): Promise<void> {
@@ -96,6 +101,18 @@ export function imageActions(image: ImageInfo, used: boolean, app: App): Resourc
         destructive: true,
         disabled: used,
         run: (): Promise<void> => window.deleteImage(image.engineId, image.Id),
+      },
+      {
+        label: 'Push',
+        icon: ArrowUpFromLineIcon,
+        // pushed by one of its names
+        hidden: !named,
+        run: (): void => app.modals.open(PushImageDialog, { image }),
+      },
+      {
+        label: 'Edit',
+        icon: PencilIcon,
+        run: (): void => app.modals.open(EditImageDialog, { image }),
       },
       {
         label: 'History',

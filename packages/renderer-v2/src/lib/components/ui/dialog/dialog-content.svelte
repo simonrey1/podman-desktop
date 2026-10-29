@@ -37,7 +37,7 @@ let {
 		class={cn(
 			"bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 grid max-w-[calc(100%_-_2rem)] rounded-xl text-sm ring-1 duration-100 fixed left-1/2 z-50 w-full -translate-x-1/2 outline-none",
 			{
-				center: "top-1/2 -translate-y-1/2 gap-6 p-6 sm:max-w-md",
+				center: "bg-modal text-modal-foreground border border-modal-border shadow-xl ring-0 top-1/2 -translate-y-1/2 gap-0 p-0 sm:max-w-[32rem]",
 				top: "top-16 gap-0 overflow-hidden p-0 shadow-xl sm:max-w-xl",
 				wide: "top-1/2 -translate-y-1/2 gap-0 overflow-hidden p-0 shadow-xl sm:max-w-3xl",
 			}[placement],
