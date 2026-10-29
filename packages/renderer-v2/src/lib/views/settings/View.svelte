@@ -1,11 +1,13 @@
 <script lang="ts">
 import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
+import GlobeIcon from '@lucide/svelte/icons/globe';
 import SettingsIcon from '@lucide/svelte/icons/settings';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
 import { getApp } from '#lib/app.svelte.js';
 import FilterInput from '#lib/components/FilterInput.svelte';
 import Page from '#lib/components/Page.svelte';
+import ProxySettings from '#lib/components/settings/pages/ProxySettings.svelte';
 import { matchesSetting } from '#lib/components/settings/settings.js';
 import SettingsList from '#lib/components/settings/SettingsList.svelte';
 import * as Field from '#lib/components/ui/field/index.js';
@@ -20,6 +22,9 @@ let { view }: ViewProps<typeof schema> = $props();
 
 // the settings of Podman Desktop and of its extensions: a page per configuration section, and the pages of their own
 const app = getApp();
+
+// the pages of their own, after the sections
+const PAGES = [{ id: 'proxy', label: 'Proxy', icon: GlobeIcon, component: ProxySettings }];
 
 let sections = $derived(app.configuration.sections);
 let experimental = $derived(app.configuration.experimental);
@@ -39,6 +44,10 @@ let settings = $derived.by(() => {
 let pageTitle = $derived.by(() => {
   if (page === 'experimental') {
     return 'Experimental';
+  }
+  const own = PAGES.find(item => item.id === page);
+  if (own) {
+    return own.label;
   }
   const id = page.substring('section:'.length);
   const section = sections.find(item => item.id === id);
@@ -91,6 +100,10 @@ function show(next: string): void {
     <nav class="w-56 shrink-0 border-e" aria-label="Settings pages">
       <ScrollArea>
         <div class="flex flex-col gap-0.5 p-2">
+          {#each PAGES as own (own.id)}
+            {@render entry(own.id, own.label, own.icon)}
+          {/each}
+          <div class="my-1 border-t"></div>
           {#each sections as section (section.id)}
             {@render entry(`section:${section.id}`, section.title, SlidersHorizontalIcon)}
             {#if section.nodes.length > 1}
@@ -127,6 +140,10 @@ function show(next: string): void {
               <Field.Error>{experimentalError}</Field.Error>
             {/if}
             <SettingsList settings={experimental} fullLabel />
+          {:else if PAGES.some(item => item.id === page)}
+            {@const Own = PAGES.find(item => item.id === page)?.component}
+            <h2 class="px-1 text-lg font-semibold">{pageTitle}</h2>
+            <Own />
           {:else}
             <h2 class="px-1 text-lg font-semibold">{pageTitle}</h2>
             <SettingsList {settings} />
