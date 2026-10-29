@@ -34,6 +34,8 @@ export const imageParams = z.object({ engineId: z.string(), imageId: z.string() 
 
 export const volumeParams = z.object({ engineId: z.string(), volumeName: z.string() });
 
+export const secretParams = z.object({ engineId: z.string(), secretId: z.string() });
+
 export const networkParams = z.object({ engineId: z.string(), networkId: z.string() });
 
 /** the sort of a table, as TanStack Table describes it */
@@ -81,4 +83,8 @@ export function imageTitle(params: { engineId: string; imageId: string }, app: A
 
 export function networkTitle(params: { engineId: string; networkId: string }, app: App): string {
   return app.networks.get(params.engineId, params.networkId)?.Name ?? shortId(params.networkId);
+}
+
+export function secretTitle(params: { engineId: string; secretId: string }, app: App): string {
+  return app.secrets.get(params.engineId, params.secretId)?.Name ?? shortId(params.secretId);
 }

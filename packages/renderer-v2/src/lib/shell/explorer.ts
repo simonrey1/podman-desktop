@@ -43,5 +43,6 @@ export function explorerEntries(app: App, engineId: string): ExplorerEntry[] {
     entry(viewRef('images', { engineId }), app.images.ofEngine(engineId).length),
     entry(viewRef('volumes', { engineId }), app.volumes.ofEngine(engineId).length),
     entry(viewRef('networks', { engineId }), app.networks.ofEngine(engineId).length),
+    entry(viewRef('secrets', { engineId }), app.secrets.ofEngine(engineId).length),
   ];
 }

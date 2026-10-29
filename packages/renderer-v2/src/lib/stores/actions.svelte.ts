@@ -51,7 +51,7 @@ export interface PendingAction {
 
 /** the key of a resource, for its actions: e.g. `container:podman.Podman:<id>` */
 export function resourceKey(
-  kind: 'container' | 'pod' | 'compose' | 'image' | 'volume' | 'network',
+  kind: 'container' | 'pod' | 'compose' | 'image' | 'volume' | 'network' | 'secret',
   engineId: string,
   id: string,
 ): string {

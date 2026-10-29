@@ -24,7 +24,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Details pages: Summary / Logs / Inspect / Kube / Terminal tabs pattern                                                                       | ◐ (segmented sections, logs/terminal in the panel) |
 | Inspect = read-only JSON in Monaco                                                                                                           | ✅ (containers)                                    |
 | Search in the logs and the editors (Inspect, Kube): one find widget (Ctrl/Cmd+F), match case, regex                                          | ✅                                                 |
-| Open exposed ports in the browser                                                                                                            | ☐                                                  |
+| Open exposed ports in the browser (containers, pods)                                                                                         | ✅                                                 |
 | Terminal settings (font size, line height, scrollback) applied to terminals                                                                  | ☐                                                  |
 | Telemetry events                                                                                                                             | ☐                                                  |
 
@@ -73,7 +73,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | List columns: status, name, containers count, age                                                 | ✅  |
 | List columns: short id, per-container status dots (name and status in their tooltip)              | ✅  |
 | List columns: environment (v2: the engine of the explorer); status dots linking to the containers | ☐   |
-| All / Running / Stopped filter                                                                    | ☐   |
+| All / Running / Stopped filter                                                                    | ✅  |
 | Row actions: start, stop, restart, delete                                                         | ✅  |
 | Bulk: start, stop, delete                                                                         | ✅  |
 | Row actions: generate kube, open the exposed port in the browser                                  | ✅  |
@@ -126,7 +126,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Network details (Summary with addressing and containers, Inspect)                                  | ✅  |
 | Networks: update DNS dialog (Podman networks)                                                      | ✅  |
 | Networks: create (dialog — name, driver, subnet; advanced: IP range, gateway, IPv6, internal, DNS) | ✅  |
-| Secrets: list, create (name + data), details (Summary, Inspect), delete, bulk delete               | ☐   |
+| Secrets: list, create (name + data), details (Summary, Inspect), delete, bulk delete               | ✅  |
 
 ## Engines and providers (`lib/preferences` Resources, `lib/dashboard` providers)
 
