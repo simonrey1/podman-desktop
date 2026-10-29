@@ -145,12 +145,13 @@ function show(next: string): void {
 {/snippet}
 
 <Page icon={SettingsIcon} title="Settings" body="fill">
+  {#snippet actions()}
+    <!-- the search of every page: the settings, and the pages of their own -->
+    <FilterInput bind:value={view.state.query} placeholder="Search the settings" />
+  {/snippet}
   <div class="flex h-full min-h-0">
+    <!-- w-56: the default width of the explorer, the navigation of the application -->
     <nav class="flex w-56 shrink-0 flex-col border-e" aria-label="Settings pages">
-      <!-- the search of every page: the settings, and the pages of their own -->
-      <div class="p-2 pb-0">
-        <FilterInput bind:value={view.state.query} placeholder="Search the settings" />
-      </div>
       <div class="min-h-0 flex-1">
       <ScrollArea>
         <div class="flex flex-col gap-0.5 p-2">
