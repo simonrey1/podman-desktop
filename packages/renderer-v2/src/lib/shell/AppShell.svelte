@@ -1,6 +1,5 @@
 <script lang="ts">
 import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
-import PlusIcon from '@lucide/svelte/icons/plus';
 import type { PaneAPI } from 'paneforge';
 
 import { getApp } from '#lib/app.svelte.js';
@@ -98,17 +97,6 @@ function onkeydown(event: KeyboardEvent): void {
               <section class="flex h-full min-h-0 flex-col">
                 <TabGroupView group={workbench.panel} label="Sessions" title>
                   {#snippet actions()}
-                    {@const active = workbench.panel.active}
-                    <ActionButton
-                      icon={PlusIcon}
-                      label="New session"
-                      size="icon-xs"
-                      disabled={!workbench.allowsInstances(active)}
-                      onclick={(): void => {
-                        if (workbench.allowsInstances(active)) {
-                          workbench.openInstance(active);
-                        }
-                      }} />
                     <ActionButton
                       icon={ChevronDownIcon}
                       label="Minimize the panel"
