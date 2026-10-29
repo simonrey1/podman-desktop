@@ -29,22 +29,42 @@ import { imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
 
 const column = columnHelper<ImageInfo>();
 
-/** @param isUsed whether a container uses the image */
-export function imageColumns(isUsed: (image: ImageInfo) => boolean): ReturnType<typeof column.columns> {
+/**
+ * @param isUsed whether a container uses the image (for a manifest: one of its images)
+ * @param manifestOf the manifest listing the image, if any
+ */
+export function imageColumns(
+  isUsed: (image: ImageInfo) => boolean,
+  manifestOf: (image: ImageInfo) => ImageInfo | undefined,
+): ReturnType<typeof column.columns> {
   return column.columns([
-    column.accessor(image => imageRepositoryAndTag(image).repository, {
-      id: 'name',
-      header: 'Name',
-      cell: ({ row, getValue }) => {
-        const used = isUsed(row.original);
-        return renderComponent(NameCell, {
-          name: getValue(),
-          actionKey: resourceKey('image', row.original.engineId, row.original.Id),
-          status: used ? 'used' : 'unused',
-          statusLabel: used ? 'In use' : 'Unused',
-        });
+    // an image of a manifest matches the name of the manifest too
+    column.accessor(
+      image => {
+        const manifest = manifestOf(image);
+        const { repository } = imageRepositoryAndTag(image);
+        return manifest ? `${repository} ${imageRepositoryAndTag(manifest).repository}` : repository;
       },
-    }),
+      {
+        id: 'name',
+        header: 'Name',
+        cell: ({ row }) => {
+          const used = isUsed(row.original);
+          // the images it lists, not only the ones matching the filter
+          const images = row.original.manifests?.length ?? 0;
+          return renderComponent(NameCell, {
+            name: imageRepositoryAndTag(row.original).repository,
+            actionKey: resourceKey('image', row.original.engineId, row.original.Id),
+            status: used ? 'used' : 'unused',
+            statusLabel: used ? 'In use' : 'Unused',
+            detail: row.original.isManifest ? `Manifest · ${images} image${images === 1 ? '' : 's'}` : undefined,
+            depth: row.depth,
+            expanded: row.getIsExpanded(),
+            onToggle: row.getCanExpand() ? row.getToggleExpandedHandler() : undefined,
+          });
+        },
+      },
+    ),
     column.accessor(image => imageRepositoryAndTag(image).tag, {
       id: 'tag',
       header: 'Tag',

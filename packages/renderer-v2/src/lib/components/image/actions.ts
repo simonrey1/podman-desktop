@@ -67,6 +67,25 @@ async function updateImage(image: ImageInfo): Promise<void> {
 export function imageActions(image: ImageInfo, used: boolean, app: App): ResourceActionSet {
   const { engineId, Id: imageId } = image;
   const named = imageName(image) !== '<none>';
+  // a manifest lists images: deleting it keeps them
+  if (image.isManifest) {
+    return {
+      target: { key: resourceKey('image', engineId, imageId), name: imageName(image) },
+      actions: [
+        {
+          label: 'Delete',
+          progress: 'deleting',
+          icon: Trash2Icon,
+          destructive: true,
+          confirmation: {
+            title: `Delete ${imageName(image)}`,
+            message: `The manifest ${imageName(image)} will be permanently removed, not its images. This cannot be undone.`,
+          },
+          run: (): Promise<void> => window.removeManifest(engineId, imageId),
+        },
+      ],
+    };
+  }
   return {
     target: { key: resourceKey('image', image.engineId, image.Id), name: imageName(image) },
     actions: [

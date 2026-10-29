@@ -20,9 +20,12 @@ import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { defineView } from '#lib/workbench/define-view.js';
 
-import { engineName, engineParams, listState } from '../shared.js';
+import { engineName, engineParams, expandedSchema, listState } from '../shared.js';
 
-export const schema = { params: engineParams, state: listState };
+export const schema = {
+  params: engineParams,
+  state: listState.extend({ expanded: expandedSchema.default({}) }),
+};
 
 export default defineView({
   schema,
