@@ -33,6 +33,8 @@ interface Props {
   filtered?: boolean;
   /** resets the filters (the text filter is reset by the list) */
   onResetFilters?: () => void;
+  /** under "No <noun>" when the engine has none (not filtered): e.g. how to create a first one */
+  emptyContent?: Snippet;
   /** bindable: the text filtering the rows */
   filter?: string;
   /** bindable: the sort of the table */
@@ -79,6 +81,7 @@ let {
   filters,
   filtered = false,
   onResetFilters,
+  emptyContent,
   loaded,
   filter = $bindable(''),
   sort = $bindable([]),
@@ -210,6 +213,10 @@ let bulkActions: BulkAction[] = $derived.by(() => {
           {#if filtered && !engineStopped}
             <Empty.Content>
               <Button variant="outline" onclick={resetFilters}>Reset filters</Button>
+            </Empty.Content>
+          {:else if !engineStopped && emptyContent}
+            <Empty.Content>
+              {@render emptyContent()}
             </Empty.Content>
           {/if}
         </Empty.Root>

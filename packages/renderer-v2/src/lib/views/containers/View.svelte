@@ -1,12 +1,16 @@
 <script lang="ts">
 import BoxIcon from '@lucide/svelte/icons/box';
 import BoxesIcon from '@lucide/svelte/icons/boxes';
+import PlayIcon from '@lucide/svelte/icons/play';
 
 import { getApp } from '#lib/app.svelte.js';
 import { containerPrune } from '#lib/components/container/actions.js';
+import { HELLO_IMAGE, runFirst } from '#lib/components/container/first-run.svelte.js';
 import CreatePodDialog from '#lib/components/pod/CreatePodDialog.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import StateFilter from '#lib/components/StateFilter.svelte';
+import { Button } from '#lib/components/ui/button/index.js';
+import { Spinner } from '#lib/components/ui/spinner/index.js';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import { isShown } from '#lib/views/shared.js';
@@ -19,6 +23,9 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
+
+// the first one is being started, from the empty list
+let starting = $state(false);
 
 // the containers of a Compose project or of a pod are grouped; a group shows the containers shown by the filters
 let rows = $derived(
@@ -83,5 +90,23 @@ function open(row: ContainerRow, options: { preview: boolean }): void {
   loaded={app.containers.loaded}>
   {#snippet filters()}
     <StateFilter bind:value={view.state.show} />
+  {/snippet}
+  {#snippet emptyContent()}
+    <p class="text-muted-foreground">Run a first container of {HELLO_IMAGE}: it prints a message, then exits.</p>
+    <Button
+      disabled={starting}
+      onclick={(): void => {
+        starting = true;
+        runFirst(app, view.params.engineId, false)
+          .catch(console.error)
+          .finally(() => (starting = false));
+      }}>
+      {#if starting}
+        <Spinner data-icon="inline-start" />
+      {:else}
+        <PlayIcon data-icon="inline-start" />
+      {/if}
+      Run a first container
+    </Button>
   {/snippet}
 </ResourceList>

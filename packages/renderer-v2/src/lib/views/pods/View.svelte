@@ -2,12 +2,15 @@
 import type { PodInfo } from '@desktop-framework/api';
 import BoxesIcon from '@lucide/svelte/icons/boxes';
 import FileCodeIcon from '@lucide/svelte/icons/file-code';
+import PlayIcon from '@lucide/svelte/icons/play';
 
 import { getApp } from '#lib/app.svelte.js';
+import { FIRST_POD, HELLO_IMAGE, runFirst } from '#lib/components/container/first-run.svelte.js';
 import { podActions, podPrune } from '#lib/components/pod/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import StateFilter from '#lib/components/StateFilter.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
+import { Spinner } from '#lib/components/ui/spinner/index.js';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import { isShown } from '#lib/views/shared.js';
@@ -19,6 +22,9 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 const app = getApp();
+
+// the first one is being started, from the empty list
+let starting = $state(false);
 
 let pods = $derived(
   app.pods
@@ -60,5 +66,23 @@ function open(row: PodInfo, options: { preview: boolean }): void {
         Play Kubernetes YAML
       </Button>
     {/if}
+  {/snippet}
+  {#snippet emptyContent()}
+    <p class="text-muted-foreground">Start a first pod, {FIRST_POD}, with a container of {HELLO_IMAGE}.</p>
+    <Button
+      disabled={starting}
+      onclick={(): void => {
+        starting = true;
+        runFirst(app, view.params.engineId, true)
+          .catch(console.error)
+          .finally(() => (starting = false));
+      }}>
+      {#if starting}
+        <Spinner data-icon="inline-start" />
+      {:else}
+        <PlayIcon data-icon="inline-start" />
+      {/if}
+      Start a first pod
+    </Button>
   {/snippet}
 </ResourceList>

@@ -16,7 +16,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (no
 | List pages: bulk actions bar ("N selected", the actions on the selected rows, Clear), one confirmation, one toast for the failures           | ✅                                                 |
 | List pages: Prune button (containers, pods, volumes, images: all unused / untagged) with confirmation                                        | ✅                                                 |
 | Empty states: engine not running; nothing matching the filters, with "reset filter(s)"                                                       | ✅                                                 |
-| Empty states: per-domain empty screen with "first X" button (pull and run, phase 5)                                                          | ☐                                                  |
+| Empty states: per-domain empty screen with "first X" button (containers, pods)                                                               | ✅                                                 |
 | Confirmation before destructive actions (delete)                                                                                             | ✅                                                 |
 | Action failures reported to the user (v1: inline error icon; v2: toast with the error)                                                       | ✅                                                 |
 | Transient statuses on actions (starting, stopping, deleting, restarting… on the row and the details header; buttons disabled with a spinner) | ✅                                                 |
@@ -43,7 +43,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (no
 | Bulk: run, stop, delete                                                                                                             | ✅                         |
 | Bulk: create pod from selection (Podman, the containers not in a pod)                                                               | ✅                         |
 | Create: from existing image / from Containerfile                                                                                    | ✕                          |
-| Empty state "Start your first container" (pulls + runs hello)                                                                       | ☐                          |
+| Empty state "Start your first container" (pulls and runs quay.io/podman/hello, a toast opens it)                                    | ✅                         |
 | Details header: status, engine, actions; Summary links to the image and the pod                                                     | ✅                         |
 | Details: live CPU / memory stats                                                                                                    | ✅                         |
 | Details Summary (name, id, engine, image, command, ports links, state, started, labels, group/pod info, infra banner)               | ✅                         |
@@ -81,7 +81,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (no
 | Row actions: generate kube, open the exposed port in the browser                                                                                                                                | ✅  |
 | Row actions: extension actions (phase 9)                                                                                                                                                        | ☐   |
 | Podman kube play (tab from the pods list of a Podman engine: a file or YAML written in an editor, build/replace options, cancel; the pods created with Open, their container errors; form kept) | ✅  |
-| Empty state "Start your first pod"                                                                                                                                                              | ☐   |
+| Empty state "Start your first pod" (my-first-pod with a hello container, a toast opens it)                                                                                                      | ✅  |
 | Details: Summary (containers linked), Inspect, Kube                                                                                                                                             | ✅  |
 | Details: merged logs of the containers                                                                                                                                                          | ✕   |
 | Create pod from containers (name, ports to expose; copies the containers)                                                                                                                       | ✅  |
