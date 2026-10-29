@@ -37,7 +37,7 @@ let badge = $derived(
     .filter(Boolean)
     .join(' · '),
 );
-let set = $derived(connectionActions(connection));
+let set = $derived(connectionActions(connection, app));
 // a lifecycle running on the connection: its progress replaces the status
 let pending = $derived(app.actions.pending(set.target.key));
 let status = $derived(connection.info.status.charAt(0).toUpperCase() + connection.info.status.slice(1));

@@ -22,7 +22,7 @@ let { view }: ViewProps<typeof schema> = $props();
 const app = getApp();
 
 let connection = $derived(app.engines.connection(view.params.connectionId));
-let set = $derived(connection ? connectionActions(connection) : undefined);
+let set = $derived(connection ? connectionActions(connection, app) : undefined);
 </script>
 
 <Page icon={ServerIcon} title={connection?.name ?? view.params.connectionId}>

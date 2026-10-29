@@ -26,7 +26,7 @@ let engine = $derived(app.engines.get(view.params.engineId));
 let connection = $derived(app.engines.connections.find(item => item.engineId === view.params.engineId));
 // the resources of the engine, without its overview (this view)
 let sections = $derived(explorerEntries(app, view.params.engineId).filter(entry => entry.count !== undefined));
-let set = $derived(connection ? connectionActions(connection) : undefined);
+let set = $derived(connection ? connectionActions(connection, app) : undefined);
 const usage = new ConnectionUsage(app, () =>
   connection?.info.connectionType === 'container' ? connection.info : undefined,
 );

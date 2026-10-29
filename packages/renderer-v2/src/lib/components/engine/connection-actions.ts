@@ -16,21 +16,25 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import PencilIcon from '@lucide/svelte/icons/pencil';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
+import type { App } from '#lib/app.svelte.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import type { Connection } from '#lib/stores/engines.svelte.js';
 
-type Lifecycle = 'start' | 'stop' | 'delete';
+import ConnectionFormDialog from './ConnectionFormDialog.svelte';
+
+type Lifecycle = 'start' | 'stop' | 'delete' | 'edit';
 
 /**
  * Runs a lifecycle method of a connection in its provider; a failure is the last error the provider logged (the
  * reason), else the error of the call.
  */
-async function lifecycle(connection: Connection, method: Lifecycle): Promise<void> {
+async function lifecycle(connection: Connection, method: Exclude<Lifecycle, 'edit'>): Promise<void> {
   const calls = {
     start: window.startProviderConnectionLifecycle,
     stop: window.stopProviderConnectionLifecycle,
@@ -55,10 +59,10 @@ async function lifecycle(connection: Connection, method: Lifecycle): Promise<voi
 }
 
 /**
- * The lifecycle of a connection, the methods its provider offers: start or stop (by its status), restart, delete
- * (stopped, once confirmed). In its row of the system overview and in the header of its overview.
+ * The lifecycle of a connection, the methods its provider offers: start or stop (by its status), restart, edit (in a
+ * modal), delete (stopped, once confirmed). In its row of the system overview and in the header of its overview.
  */
-export function connectionActions(connection: Connection): ResourceActionSet {
+export function connectionActions(connection: Connection, app: App): ResourceActionSet {
   const methods = connection.info.lifecycleMethods ?? [];
   const status = connection.info.status;
   const running = status === 'started';
@@ -95,6 +99,14 @@ export function connectionActions(connection: Connection): ResourceActionSet {
           await lifecycle(connection, 'stop');
           await lifecycle(connection, 'start');
         },
+      },
+      {
+        label: 'Edit',
+        icon: PencilIcon,
+        hidden: !can('edit'),
+        disabled: busy,
+        run: (): void =>
+          app.modals.open(ConnectionFormDialog, { provider: connection.provider, kind: connection.kind, connection }),
       },
       {
         label: 'Delete',

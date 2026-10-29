@@ -16,7 +16,9 @@ import { Button } from '#lib/components/ui/button/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
 import * as InputGroup from '#lib/components/ui/input-group/index.js';
+import { Slider } from '#lib/components/ui/slider/index.js';
 import { Switch } from '#lib/components/ui/switch/index.js';
+import { bytes } from '#lib/format.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 import type { Setting } from '#lib/stores/configuration.svelte.js';
 
@@ -26,16 +28,37 @@ interface Props {
   setting: Setting;
   /** the label is the id of the setting (e.g. on the experimental page, where the settings come from everywhere) */
   fullLabel?: boolean;
+  /**
+   * a field of a form (e.g. the creation of a connection): its value, given; its changes, to `onChange`; not written
+   * to the configuration
+   */
+  value?: unknown;
+  onChange?: (value: unknown) => void;
 }
 
-// a setting: its label, its description, the control of its type, written as it is changed
-let { setting, fullLabel = false }: Props = $props();
+// a setting: its label, its description, the control of its type, written as it is changed (or a field of a form)
+let { setting, fullLabel = false, value: formValue, onChange }: Props = $props();
 
 const app = getApp();
 
 let kind = $derived(settingKind(setting));
-let value = $derived(app.configuration.value(setting.id));
-let read = $derived(app.configuration.isRead(setting.id));
+let value = $derived(onChange ? formValue : app.configuration.value(setting.id));
+let read = $derived(onChange ? true : app.configuration.isRead(setting.id));
+// the resources of a connection (CPUs, memory, disk) bounded by the host: a slider
+let slider = $derived(
+  kind === 'number' &&
+    typeof setting.maximum === 'number' &&
+    ['cpu', 'memory', 'diskSize'].includes(setting.format ?? ''),
+);
+let sliderLabel = $derived(setting.format === 'cpu' ? `${Number(value ?? 0)} CPUs` : bytes(Number(value ?? 0)));
+// a field of a form without a display name: its description is its label (e.g. "HTTP Port" for `….http.port`)
+let describedByLabel = $derived(!!onChange && !setting.displayName && !!setting.description);
+let label = $derived.by(() => {
+  if (fullLabel) {
+    return setting.id;
+  }
+  return describedByLabel ? (setting.description ?? '') : settingLabel(setting);
+});
 let disabled = $derived(!!setting.readonly || !!setting.locked);
 let controlId = $derived(`setting-${setting.id}`);
 let error: string | undefined = $state();
@@ -49,6 +72,10 @@ let numberError = $derived(kind === 'number' && draft !== undefined ? validateNu
 
 function write(next: unknown): void {
   error = undefined;
+  if (onChange) {
+    onChange(next);
+    return;
+  }
   app.configuration.update(setting, next).catch((err: unknown) => {
     error = errorMessage(err);
   });
@@ -93,7 +120,7 @@ function reset(): void {
     <div class="flex items-start gap-4">
       <div class="flex min-w-0 flex-1 flex-col gap-1">
         <div class="flex items-center gap-2">
-          <label for={controlId} class="font-medium">{fullLabel ? setting.id : settingLabel(setting)}</label>
+          <label for={controlId} class="font-medium">{label}</label>
           {#if setting.locked}
             <span {@attach tooltip('This setting is managed by your organization')}>
               <Badge variant="outline"><LockIcon />Managed</Badge>
@@ -108,7 +135,7 @@ function reset(): void {
         </div>
         {#if setting.markdownDescription}
           <div class="text-muted-foreground"><Markdown markdown={setting.markdownDescription} /></div>
-        {:else if setting.description}
+        {:else if setting.description && !describedByLabel}
           <p class="text-muted-foreground">{setting.description}</p>
         {/if}
         {#if setting.experimental?.githubDiscussionLink}
@@ -139,6 +166,19 @@ function reset(): void {
             value={String(value ?? '')}
             options={(setting.enum ?? []).map(option => ({ value: option, label: option }))}
             onValueChange={(selected): void => write(selected)} />
+        </div>
+      {:else if slider}
+        <div class="flex w-64 shrink-0 items-center gap-3">
+          <Slider
+            type="single"
+            id={controlId}
+            {disabled}
+            min={setting.minimum ?? 0}
+            max={typeof setting.maximum === 'number' ? setting.maximum : 0}
+            step={setting.step ?? 1}
+            value={Number(value ?? setting.minimum ?? 0)}
+            onValueChange={(next: number): void => write(next)} />
+          <span class="w-20 shrink-0 text-right text-muted-foreground tabular-nums">{sliderLabel}</span>
         </div>
       {:else if kind === 'number'}
         <div class="w-32 shrink-0">
