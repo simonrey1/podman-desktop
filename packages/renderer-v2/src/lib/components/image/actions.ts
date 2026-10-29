@@ -20,7 +20,9 @@ import type { ImageInfo } from '@desktop-framework/api';
 import ArchiveIcon from '@lucide/svelte/icons/archive';
 import ArrowUpFromLineIcon from '@lucide/svelte/icons/arrow-up-from-line';
 import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
+import FileInputIcon from '@lucide/svelte/icons/file-input';
 import HistoryIcon from '@lucide/svelte/icons/history';
+import PackageOpenIcon from '@lucide/svelte/icons/package-open';
 import PencilIcon from '@lucide/svelte/icons/pencil';
 import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
@@ -34,25 +36,42 @@ import { imageName, imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
 import EditImageDialog from './EditImageDialog.svelte';
+import ImageArchivesDialog from './ImageArchivesDialog.svelte';
 import PushImageDialog from './PushImageDialog.svelte';
 
 /** asks where to save the image, then saves it as a `.tar` (`nginx.tar` for `docker.io/library/nginx:latest`) */
-async function saveImage(image: ImageInfo): Promise<void> {
-  const named = imageName(image) !== '<none>';
-  const { repository } = imageRepositoryAndTag(image);
-  const file = `${named ? repository.substring(repository.lastIndexOf('/') + 1) : shortId(image.Id)}.tar`;
+/**
+ * Asks where to save the images (of one engine), then saves them in one `.tar`: `nginx.tar` for one image
+ * `docker.io/library/nginx:latest`, `images.tar` for several.
+ */
+export async function saveImages(images: ImageInfo[]): Promise<void> {
+  const [first] = images;
+  if (!first) {
+    return;
+  }
+  const label = (image: ImageInfo): string => (imageName(image) === '<none>' ? shortId(image.Id) : imageName(image));
+  const { repository } = imageRepositoryAndTag(first);
+  let file = 'images.tar';
+  if (images.length === 1) {
+    file = `${imageName(first) === '<none>' ? shortId(first.Id) : repository.substring(repository.lastIndexOf('/') + 1)}.tar`;
+  }
+  const title = images.length === 1 ? label(first) : `${images.length} images`;
   const target = await window.saveDialog({
-    title: `Save ${named ? imageName(image) : shortId(image.Id)}`,
+    title: `Save ${title}`,
     defaultUri: { fsPath: file, path: file, scheme: 'file' } as Uri,
   });
   if (!target) {
     return;
   }
   await window.saveImages({
-    images: [{ id: named ? imageName(image) : image.Id, engineId: image.engineId }],
+    // an image is saved by its name, or by its ID without one
+    images: images.map(image => ({
+      id: imageName(image) === '<none>' ? image.Id : imageName(image),
+      engineId: image.engineId,
+    })),
     outputTarget: target.fsPath,
   });
-  toast.success(`${named ? imageName(image) : shortId(image.Id)} saved`, { description: target.fsPath });
+  toast.success(`${title} saved`, { description: target.fsPath });
 }
 
 /** pulls the tags of the image again: an image already up to date is reported as such */
@@ -137,7 +156,7 @@ export function imageActions(image: ImageInfo, used: boolean, app: App): Resourc
         label: 'Save',
         progress: 'saving',
         icon: ArchiveIcon,
-        run: (): Promise<void> => saveImage(image),
+        run: (): Promise<void> => saveImages([image]),
       },
       {
         label: 'Update',
@@ -182,6 +201,25 @@ export function imagePrune(engineId: string, engineLabel: string): ResourceActio
           message: `The untagged images of ${engineLabel} not used by a container will be permanently removed. This cannot be undone.`,
         },
         run: (): Promise<unknown> => window.pruneImages(engineId, false),
+      },
+    ],
+  };
+}
+
+/** Loads image archives, or imports container archives, on an engine: the Import menu of the images list. */
+export function imageImports(engineId: string, app: App): ResourceActionSet {
+  return {
+    target: { key: `image-archives:${engineId}`, name: 'the archives' },
+    actions: [
+      {
+        label: 'Load images',
+        icon: PackageOpenIcon,
+        run: (): void => app.modals.open(ImageArchivesDialog, { engineId, mode: 'load' }),
+      },
+      {
+        label: 'Import containers',
+        icon: FileInputIcon,
+        run: (): void => app.modals.open(ImageArchivesDialog, { engineId, mode: 'import' }),
       },
     ],
   };

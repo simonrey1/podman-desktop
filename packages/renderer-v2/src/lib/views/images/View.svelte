@@ -1,11 +1,13 @@
 <script lang="ts">
 import type { ImageInfo } from '@desktop-framework/api';
+import ArchiveIcon from '@lucide/svelte/icons/archive';
 import DownloadIcon from '@lucide/svelte/icons/download';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
-import { imageActions, imagePrune } from '#lib/components/image/actions.js';
+import { imageActions, imageImports, imagePrune, saveImages } from '#lib/components/image/actions.js';
 import PullImageDialog from '#lib/components/image/PullImageDialog.svelte';
+import ListActionButton from '#lib/components/ListActionButton.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -69,6 +71,15 @@ const columns = imageColumns(used, image => manifestByImage[image.Id]);
   actionsOf={(image): ResourceActionSet => imageActions(image, used(image), app)}
   prune={imagePrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Delete']}
+  selectionActions={[
+    {
+      label: 'Save',
+      icon: ArchiveIcon,
+      // the images of a manifest are saved with it
+      applies: (image): boolean => !image.isManifest,
+      run: (images): void => void saveImages(images).catch(console.error),
+    },
+  ]}
   onCreate={(): void => app.modals.open(PullImageDialog, { engineId: view.params.engineId })}
   createLabel="Pull"
   createIcon={DownloadIcon}
@@ -79,4 +90,8 @@ const columns = imageColumns(used, image => manifestByImage[image.Id]);
   {columns}
   getRowId={(image): string => image.Id}
   onOpen={open}
-  loaded={app.images.loaded} />
+  loaded={app.images.loaded}>
+  {#snippet filters()}
+    <ListActionButton set={imageImports(view.params.engineId, app)} label="Import" />
+  {/snippet}
+</ResourceList>
