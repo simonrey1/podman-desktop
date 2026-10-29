@@ -50,7 +50,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Logs: streaming                                                                                                                     | ✅ (panel, multi-instance) |
 | Logs: search, clear logs (since-timestamp), re-fetch on restart                                                                     | ✅                         |
 | Terminal: interactive shell                                                                                                         | ✅ (panel, multi-instance) |
-| Terminal: auto-reconnect, "not running" state, hidden for infra containers                                                          | ☐                          |
+| Terminal: auto-reconnect, "not running" state, hidden for infra containers                                                          | ✅                         |
 | TTY attach tab (Tty + OpenStdin containers)                                                                                         | ☐                          |
 | Export container to a `.tar`                                                                                                        | ✅                         |
 | Create container from existing image (typeahead on local/registry images and tags, short-name resolution, FQN option, pull-and-run) | ☐                          |

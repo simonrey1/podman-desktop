@@ -114,6 +114,8 @@ export function containerActions(container: ContainerInfo, app: App): ResourceAc
       {
         label: 'Terminal',
         icon: TerminalIcon,
+        // the infra container of a pod has no shell
+        hidden: !!container.IsInfra,
         disabled: !running,
         run: (): void => app.workbench.open(viewRef('container-terminal', { engineId, containerId })),
       },
