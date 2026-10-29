@@ -37,6 +37,8 @@ export interface Engine {
   name: string;
   providerName: string;
   status: ProviderContainerConnectionInfo['status'];
+  /** to create resources on the engine (e.g. a volume) */
+  connection: ProviderContainerConnectionInfo;
 }
 
 /**
@@ -52,6 +54,7 @@ export class EnginesStore {
         name: connection.displayName ?? connection.name,
         providerName: provider.name,
         status: connection.status,
+        connection,
       })),
     ),
   );

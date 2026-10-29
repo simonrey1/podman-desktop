@@ -1,5 +1,6 @@
 <script lang="ts" generics="T extends RowData">
 import type { LucideIcon } from '@lucide/svelte';
+import PlusIcon from '@lucide/svelte/icons/plus';
 import type { ColumnDef, RowData, SortingState } from '@tanstack/svelte-table';
 import type { Snippet } from 'svelte';
 
@@ -50,6 +51,8 @@ interface Props {
   bulk?: string[];
   /** the prune of the unused resources of the engine, in the header */
   prune?: ResourceActionSet;
+  /** creates a resource, e.g. opens its form: a Create button in the header */
+  onCreate?: () => void;
   loaded: boolean;
 }
 
@@ -76,6 +79,7 @@ let {
   actionsOf,
   bulk = [],
   prune,
+  onCreate,
 }: Props = $props();
 
 const app = getApp();
@@ -150,6 +154,12 @@ let bulkActions: BulkAction[] = $derived.by(() => {
     {/if}
   {/snippet}
   {#snippet actions()}
+    {#if onCreate}
+      <Button onclick={onCreate}>
+        <PlusIcon data-icon="inline-start" />
+        Create
+      </Button>
+    {/if}
     {#if prune}
       <ListActionButton set={prune} label="Prune" />
     {/if}

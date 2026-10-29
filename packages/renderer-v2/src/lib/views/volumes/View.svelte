@@ -6,6 +6,7 @@ import { getApp } from '#lib/app.svelte.js';
 import ListActionButton from '#lib/components/ListActionButton.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import { volumeActions, volumePrune, volumeSizes } from '#lib/components/volume/actions.js';
+import CreateVolumeDialog from '#lib/components/volume/CreateVolumeDialog.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
@@ -33,6 +34,7 @@ function open(row: VolumeInfo, options: { preview: boolean }): void {
   actionsOf={(volume): ResourceActionSet => volumeActions(volume)}
   prune={volumePrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Delete']}
+  onCreate={(): void => app.modals.open(CreateVolumeDialog, { engineId: view.params.engineId })}
   icon={HardDriveIcon}
   title="Volumes"
   noun="volumes"
