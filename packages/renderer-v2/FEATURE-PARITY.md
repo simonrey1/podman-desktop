@@ -111,7 +111,8 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | --------------------------------------------------------------------------------------------------------------------------- | --- |
 | Volumes list: status (in use), name, driver, age, delete                                                                    | ✅  |
 | Volumes list: bulk delete                                                                                                   | ✅  |
-| Volumes list: environment, size + "gather sizes", extension actions                                                         | ☐   |
+| Volumes list: size + "gather sizes"                                                                                         | ✅  |
+| Volumes list: environment (v2: the engine of the explorer), extension actions (phase 9)                                     | ☐   |
 | Volume details (Summary with containers using it, Inspect)                                                                  | ✅  |
 | Create volume                                                                                                               | ☐   |
 | Networks list: status (in use), name, driver, id, delete, bulk delete                                                       | ✅  |

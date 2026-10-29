@@ -22,34 +22,44 @@ import { renderComponent } from '@tanstack/svelte-table';
 import NameCell from '#lib/components/data-table/cells/NameCell.svelte';
 import { columnHelper } from '#lib/components/data-table/data-table.js';
 import VolumeActions from '#lib/components/volume/VolumeActions.svelte';
-import { age } from '#lib/format.js';
+import { age, bytes } from '#lib/format.js';
 import { resourceKey } from '#lib/stores/actions.svelte.js';
 
 const column = columnHelper<VolumeInfo>();
 
-export const volumeColumns = column.columns([
-  column.accessor('Name', {
-    header: 'Name',
-    cell: ({ row }) => {
-      const users = row.original.containersUsage?.length ?? 0;
-      return renderComponent(NameCell, {
-        name: row.original.Name,
-        actionKey: resourceKey('volume', row.original.engineId, row.original.Name),
-        status: users ? 'used' : 'unused',
-        statusLabel: users ? `Used by ${users} container${users > 1 ? 's' : ''}` : 'Unused',
-      });
-    },
-  }),
-  column.accessor('Driver', { header: 'Driver', meta: { width: '6rem', class: 'text-muted-foreground' } }),
-  column.accessor('CreatedAt', {
-    header: 'Age',
-    cell: ({ getValue }) => age(getValue()),
-    sortFn: 'datetime',
-    meta: { width: '6rem', class: 'text-right text-muted-foreground' },
-  }),
-  column.display({
-    id: 'actions',
-    cell: ({ row }) => renderComponent(VolumeActions, { volume: row.original }),
-    meta: { width: '5.5rem', actions: true },
-  }),
-]);
+/** @param sizeOf the size of the volume, once gathered */
+export function volumeColumns(sizeOf: (volume: VolumeInfo) => number | undefined): ReturnType<typeof column.columns> {
+  return column.columns([
+    column.accessor('Name', {
+      header: 'Name',
+      cell: ({ row }) => {
+        const users = row.original.containersUsage?.length ?? 0;
+        return renderComponent(NameCell, {
+          name: row.original.Name,
+          actionKey: resourceKey('volume', row.original.engineId, row.original.Name),
+          status: users ? 'used' : 'unused',
+          statusLabel: users ? `Used by ${users} container${users > 1 ? 's' : ''}` : 'Unused',
+        });
+      },
+    }),
+    column.accessor('Driver', { header: 'Driver', meta: { width: '6rem', class: 'text-muted-foreground' } }),
+    column.accessor(volume => sizeOf(volume) ?? -1, {
+      id: 'size',
+      header: 'Size',
+      cell: ({ getValue }) => (getValue() >= 0 ? bytes(getValue()) : ''),
+      sortFn: 'basic',
+      meta: { width: '5.5rem', class: 'text-right tabular-nums text-muted-foreground' },
+    }),
+    column.accessor('CreatedAt', {
+      header: 'Age',
+      cell: ({ getValue }) => age(getValue()),
+      sortFn: 'datetime',
+      meta: { width: '6rem', class: 'text-right text-muted-foreground' },
+    }),
+    column.display({
+      id: 'actions',
+      cell: ({ row }) => renderComponent(VolumeActions, { volume: row.original }),
+      meta: { width: '5.5rem', actions: true },
+    }),
+  ]);
+}

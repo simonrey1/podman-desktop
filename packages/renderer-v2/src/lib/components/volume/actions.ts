@@ -18,8 +18,10 @@
 
 import type { VolumeInfo } from '@desktop-framework/api';
 import BrushCleaningIcon from '@lucide/svelte/icons/brush-cleaning';
+import RulerIcon from '@lucide/svelte/icons/ruler';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
+import type { App } from '#lib/app.svelte.js';
 import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
 /** The actions of a volume: in its row, in the header of its details, and in the bulk actions. */
@@ -55,6 +57,21 @@ export function volumePrune(engineId: string, engineLabel: string): ResourceActi
           message: `The volumes of ${engineLabel} not used by a container will be permanently removed. This cannot be undone.`,
         },
         run: (): Promise<unknown> => window.pruneVolumes(engineId),
+      },
+    ],
+  };
+}
+
+/** Gathers the sizes of the volumes of an engine, in the header of the list: slow, so on demand. */
+export function volumeSizes(engineId: string, app: App): ResourceActionSet {
+  return {
+    target: { key: `volume-sizes:${engineId}`, name: 'of the volumes' },
+    actions: [
+      {
+        label: 'Gather sizes',
+        progress: 'gathering',
+        icon: RulerIcon,
+        run: (): Promise<void> => app.volumes.gatherSizes(engineId),
       },
     ],
   };

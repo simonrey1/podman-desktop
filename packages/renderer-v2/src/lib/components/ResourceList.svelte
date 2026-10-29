@@ -7,8 +7,8 @@ import { getApp } from '#lib/app.svelte.js';
 import type { DataTableFeatures } from '#lib/components/data-table/data-table.js';
 import DataTable from '#lib/components/data-table/DataTable.svelte';
 import FilterInput from '#lib/components/FilterInput.svelte';
+import ListActionButton from '#lib/components/ListActionButton.svelte';
 import Page from '#lib/components/Page.svelte';
-import PruneButton from '#lib/components/PruneButton.svelte';
 import SelectionBar, { type BulkAction } from '#lib/components/SelectionBar.svelte';
 import * as Empty from '#lib/components/ui/empty/index.js';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
@@ -22,7 +22,7 @@ interface Props {
   columns: ColumnDef<DataTableFeatures, T>[];
   getRowId: (row: T) => string;
   onOpen?: (row: T, options: { preview: boolean }) => void;
-  /** before the filter, e.g. a segmented control */
+  /** before the filter: e.g. a segmented control, a button */
   filters?: Snippet;
   /** bindable: the text filtering the rows */
   filter?: string;
@@ -118,7 +118,7 @@ let bulkActions: BulkAction[] = $derived.by(() => {
   {/snippet}
   {#snippet actions()}
     {#if prune}
-      <PruneButton {prune} />
+      <ListActionButton set={prune} label="Prune" />
     {/if}
     {@render filters?.()}
     <FilterInput bind:value={filter} placeholder="Filter {noun}" />

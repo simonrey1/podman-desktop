@@ -17,6 +17,7 @@
  ***********************************************************************/
 
 import type { VolumeInfo } from '@desktop-framework/api';
+import { SvelteMap } from 'svelte/reactivity';
 
 import { PROVIDER_EVENTS } from '#lib/stores/engines.svelte.js';
 import { ListState } from '#lib/stores/list.svelte.js';
@@ -29,9 +30,39 @@ export class VolumesStore extends ListState<VolumeInfo> {
     super(
       // without the usage (sizes): the preload asks for it by default, and computing it fails for the whole engine
       // when one of its containers is broken
-      async () => (await window.listVolumes(false)).flatMap(list => list.Volumes),
+      // an engine failing to list its volumes is reported without them
+      async () => (await window.listVolumes(false)).flatMap(list => list.Volumes ?? []),
       ['volume-event', ...PROVIDER_EVENTS],
     );
+  }
+
+  // the sizes gathered, by engine and name: computing them is slow, they are gathered on demand
+  readonly #sizes = new SvelteMap<string, number>();
+
+  /** the size in bytes of the volume, once gathered */
+  size(volume: VolumeInfo): number | undefined {
+    return this.#sizes.get(`${volume.engineId}:${volume.Name}`);
+  }
+
+  /**
+   * Gathers the sizes of the volumes of an engine: it computes the usage of its disk, which can take a while.
+   * @throws when the engine does not report them
+   */
+  async gatherSizes(engineId: string): Promise<void> {
+    const list = (await window.listVolumes(true)).find(list => list.engineId === engineId);
+    if (!list?.Volumes) {
+      throw new Error('The engine did not report the sizes of its volumes');
+    }
+    for (const volume of list.Volumes) {
+      // -1: unknown
+      if (volume.UsageData && volume.UsageData.Size >= 0) {
+        this.#sizes.set(`${volume.engineId}:${volume.Name}`, volume.UsageData.Size);
+      }
+    }
+    // the tables compute the values of their rows when their data changes: a new list shows the sizes
+    this.items = [...this.items];
+    // the tables compute the values of their rows when their data changes: a new list shows the sizes
+    this.items = [...this.items];
   }
 
   ofEngine(engineId: string): VolumeInfo[] {

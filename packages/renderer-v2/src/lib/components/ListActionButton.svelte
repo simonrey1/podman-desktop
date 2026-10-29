@@ -8,20 +8,22 @@ import { Spinner } from '#lib/components/ui/spinner/index.js';
 import type { ResourceAction, ResourceActionSet } from '#lib/stores/actions.svelte.js';
 
 interface Props {
-  /** one prune (a button), or several (a menu): e.g. the unused or the untagged images */
-  prune: ResourceActionSet;
+  /** one action (a button), or several (a menu): e.g. the prunes of the unused or the untagged images */
+  set: ResourceActionSet;
+  /** the label of the menu, when there are several actions */
+  label?: string;
 }
 
-// in the header of a list: removes the unused resources of the engine, after a confirmation
-let { prune }: Props = $props();
+// in the header of a list: an action on the resources of the engine, e.g. Prune, with a spinner while it runs
+let { set, label }: Props = $props();
 
 const app = getApp();
 
-let pending = $derived(app.actions.pending(prune.target.key));
-let [first] = $derived(prune.actions);
+let pending = $derived(app.actions.pending(set.target.key));
+let [first] = $derived(set.actions);
 
 function run(action: ResourceAction): void {
-  app.actions.run(prune.target, action).catch((error: unknown) => console.error('Error running a prune', error));
+  app.actions.run(set.target, action).catch((error: unknown) => console.error(`Error running ${action.label}`, error));
 }
 </script>
 
@@ -33,7 +35,7 @@ function run(action: ResourceAction): void {
   {/if}
 {/snippet}
 
-{#if prune.actions.length === 1}
+{#if set.actions.length === 1}
   <Button variant="outline" disabled={!!pending} onclick={(): void => run(first)}>
     {@render icon()}
     {first.label}
@@ -44,14 +46,14 @@ function run(action: ResourceAction): void {
       {#snippet child({ props })}
         <Button {...props} variant="outline" disabled={!!pending}>
           {@render icon()}
-          Prune
+          {label}
           <ChevronDownIcon data-icon="inline-end" />
         </Button>
       {/snippet}
     </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end">
-      {#each prune.actions as action (action.label)}
-        <DropdownMenu.Item variant="destructive" onSelect={(): void => run(action)}>
+      {#each set.actions as action (action.label)}
+        <DropdownMenu.Item variant={action.destructive ? 'destructive' : 'default'} onSelect={(): void => run(action)}>
           <action.icon />
           {action.label}
         </DropdownMenu.Item>
