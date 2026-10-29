@@ -1,5 +1,5 @@
 <script lang="ts">
-import type { HistoryInfo, ImageInspectInfo } from '@desktop-framework/api';
+import type { HistoryInfo, ImageInspectInfo, ManifestInspectInfo } from '@desktop-framework/api';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
@@ -29,11 +29,50 @@ let { view }: ViewProps<typeof schema> = $props();
 const app = getApp();
 
 let image = $derived(app.images.get(view.params.engineId, view.params.imageId));
-let users = $derived(app.containers.ofImage(view.params.engineId, view.params.imageId));
+// a manifest lists the images of several platforms: it has no history, its inspect data is the list
+let manifest = $derived(!!image?.isManifest);
+let present = $derived(!!image);
+// the images of the manifest pulled on the engine, by their digest
+let platformImages = $derived(
+  manifest
+    ? app.images
+        .ofEngine(view.params.engineId)
+        .filter(item => image?.manifests?.some(entry => entry.digest === item.Digest))
+    : [],
+);
+// a manifest is used when one of its images is
+let users = $derived(
+  manifest
+    ? platformImages.flatMap(item => app.containers.ofImage(view.params.engineId, item.Id))
+    : app.containers.ofImage(view.params.engineId, view.params.imageId),
+);
+let section = $derived(manifest && view.state.section === 'history' ? 'summary' : view.state.section);
 
-// the architecture and the OS are only in the inspect data
-const inspect = new AsyncValue<ImageInspectInfo>(() =>
-  image ? window.getImageInspect(view.params.engineId, view.params.imageId) : undefined,
+// the architecture and the OS are only in the inspect data (loaded once the image is listed, not at each reload of
+// the list)
+const inspect = new AsyncValue<ImageInspectInfo | ManifestInspectInfo>(() => {
+  if (!present) {
+    return undefined;
+  }
+  return manifest
+    ? window.inspectManifest(view.params.engineId, view.params.imageId)
+    : window.getImageInspect(view.params.engineId, view.params.imageId);
+});
+let imageInspect = $derived(inspect.value && 'Os' in inspect.value ? inspect.value : undefined);
+let manifestInspect = $derived(inspect.value && 'manifests' in inspect.value ? inspect.value : undefined);
+
+// the platforms of the manifest, each linked to its image when pulled
+let platforms: ResourceLink[] = $derived(
+  (manifestInspect?.manifests ?? []).map(entry => {
+    const pulled = platformImages.find(item => item.Digest === entry.digest);
+    const { os, architecture, variant } = entry.platform;
+    return {
+      id: entry.digest,
+      label: [os, architecture, variant].filter(Boolean).join('/'),
+      detail: pulled ? bytes(pulled.Size) : 'not pulled',
+      ref: pulled ? viewRef('image-details', { engineId: pulled.engineId, imageId: pulled.Id }) : undefined,
+    };
+  }),
 );
 
 // loaded each time the History section is shown
@@ -56,10 +95,9 @@ let details: KeyValue[] = $derived.by(() => {
     { label: 'Engine', value: app.engines.label(image.engineId, image.engineName) },
     { label: 'Size', value: bytes(image.Size) },
     { label: 'Created', value: `${age(image.Created)} ago` },
-    {
-      label: 'Platform',
-      value: inspect.value ? `${inspect.value.Os}/${inspect.value.Architecture}` : '',
-    },
+    manifest
+      ? { label: 'Platforms', value: String(manifestInspect?.manifests.length ?? '') }
+      : { label: 'Platform', value: imageInspect ? `${imageInspect.Os}/${imageInspect.Architecture}` : '' },
   ];
 });
 
@@ -84,7 +122,7 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
 <Page
   icon={LayersIcon}
   title={image ? imageName(image) : shortId(view.params.imageId)}
-  body={view.state.section === 'inspect' ? 'fill' : 'scroll'}>
+  body={section === 'inspect' ? 'fill' : 'scroll'}>
   {#snippet meta()}
     {#if image}
       <StatusBadge status={users.length ? 'used' : 'unused'} actionKey={resourceKey('image', image.engineId, image.Id)} />
@@ -96,18 +134,30 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
       <SegmentedControl
         label="Section"
         bind:value={view.state.section}
-        options={[
-          { value: 'summary', label: 'Summary' },
-          { value: 'history', label: 'History' },
-          { value: 'inspect', label: 'Inspect' },
-        ]} />
+        options={manifest
+          ? [
+              { value: 'summary', label: 'Summary' },
+              { value: 'inspect', label: 'Inspect' },
+            ]
+          : [
+              { value: 'summary', label: 'Summary' },
+              { value: 'history', label: 'History' },
+              { value: 'inspect', label: 'Inspect' },
+            ]} />
       <ImageActions {image} used={users.length > 0} placement="header" />
     {/if}
   {/snippet}
   {#if image}
-    {#if view.state.section === 'summary'}
+    {#if section === 'summary'}
       <div class="grid grid-cols-1 gap-3 p-3 xl:grid-cols-2">
         <KeyValueCard title="Details" rows={details} />
+        {#if manifest}
+          <ResourceLinksCard
+            title="Platforms ({platforms.length})"
+            items={platforms}
+            empty="No platforms"
+            onOpen={(ref): void => view.open(ref)} />
+        {/if}
         <ResourceLinksCard
           title="Used by ({containers.length})"
           items={containers}
@@ -116,7 +166,7 @@ let labels: KeyValue[] = $derived(Object.entries(image?.Labels ?? {}).map(([labe
         <ResourceLinksCard title="Tags ({tags.length})" items={tags} empty="No tags" />
         <KeyValueCard title="Labels ({labels.length})" rows={labels} empty="No labels" />
       </div>
-    {:else if view.state.section === 'history'}
+    {:else if section === 'history'}
       <DataTable data={layers} columns={historyColumns} getRowId={(layer): string => String(layer.index)} />
     {:else}
       <CodeEditor language="json" value={inspect.value ? JSON.stringify(inspect.value, undefined, 2) : ''} />

@@ -27,9 +27,10 @@ const app = getApp();
 
 let pod = $derived(app.pods.get(view.params.engineId, view.params.podId));
 
-// reloaded when the status of the pod changes
+// reloaded when the status changes, not each time the list of the pods is reloaded
+let status = $derived(pod?.Status);
 const inspect = new AsyncValue<PodInspectInfo>(() =>
-  pod?.Status ? window.getPodInspect(view.params.engineId, view.params.podId) : undefined,
+  status ? window.getPodInspect(view.params.engineId, view.params.podId) : undefined,
 );
 
 // the Kubernetes YAML is generated each time the Kube section is shown
