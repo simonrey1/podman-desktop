@@ -37,7 +37,7 @@ let engine = $derived(app.engines.selected);
         {/snippet}
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="start">
-        <DropdownMenu.Label>Engines</DropdownMenu.Label>
+        <DropdownMenu.Label>Container engines</DropdownMenu.Label>
         {#each app.engines.all as item (item.id)}
           <DropdownMenu.Item onSelect={(): void => app.engines.select(item.id)}>
             <StatusDot decorative status={item.status} />
