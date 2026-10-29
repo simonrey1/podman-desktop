@@ -26,7 +26,6 @@ import { noState, sortSchema } from '../shared.js';
 export const schema = {
   params: noState,
   state: z.object({
-    filter: z.string().default(''),
     sort: sortSchema.default([]),
   }),
 };
