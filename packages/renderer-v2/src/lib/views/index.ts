@@ -32,6 +32,7 @@ import imageBuild from './image-build/view.js';
 import imageDetails from './image-details/view.js';
 import imageRun from './image-run/view.js';
 import images from './images/view.js';
+import kubePlay from './kube-play/view.js';
 import networkDetails from './network-details/view.js';
 import networks from './networks/view.js';
 import podDetails from './pod-details/view.js';
@@ -52,6 +53,7 @@ export const VIEWS = {
   'container-terminal': containerTerminal,
   pods,
   'pod-details': podDetails,
+  'kube-play': kubePlay,
   images,
   'image-details': imageDetails,
   'image-build': imageBuild,

@@ -10,6 +10,7 @@ import type { SearchTarget } from '#lib/components/search/search.js';
 import { applyMonacoTheme, loadMonaco, MONACO_THEME } from './monaco.js';
 
 interface Props {
+  /** bindable: an editor not read-only writes what is typed */
   value: string;
   /** a Monaco language, e.g. `json` or `yaml` */
   language: string;
@@ -17,7 +18,7 @@ interface Props {
 }
 
 // a Monaco editor filling its parent, following the theme of Podman Desktop; Ctrl/Cmd+F opens a find widget over it
-let { value, language, readOnly = true }: Props = $props();
+let { value = $bindable(), language, readOnly = true }: Props = $props();
 
 const app = getApp();
 let editor: Monaco.editor.IStandaloneCodeEditor | undefined = $state.raw();
@@ -47,6 +48,12 @@ const monaco: Attachment<HTMLElement> = element => {
         renderLineHighlight: readOnly ? 'none' : 'line',
         scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6, useShadows: false },
       });
+      if (!readOnly) {
+        const typed = instance;
+        typed.onDidChangeModelContent(() => {
+          value = typed.getValue();
+        });
+      }
       editor = instance;
       search = editorSearch(api, instance);
     })

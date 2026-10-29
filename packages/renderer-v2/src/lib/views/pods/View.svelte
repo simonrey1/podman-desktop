@@ -1,11 +1,13 @@
 <script lang="ts">
 import type { PodInfo } from '@desktop-framework/api';
 import BoxesIcon from '@lucide/svelte/icons/boxes';
+import FileCodeIcon from '@lucide/svelte/icons/file-code';
 
 import { getApp } from '#lib/app.svelte.js';
 import { podActions, podPrune } from '#lib/components/pod/actions.js';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import StateFilter from '#lib/components/StateFilter.svelte';
+import { Button } from '#lib/components/ui/button/index.js';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import { isShown } from '#lib/views/shared.js';
@@ -23,6 +25,9 @@ let pods = $derived(
     .ofEngine(view.params.engineId)
     .filter(pod => isShown(view.state.show, pod.Status.toLowerCase() === 'running')),
 );
+
+// kube play is a feature of Podman
+let podman = $derived(app.engines.get(view.params.engineId)?.connection.type === 'podman');
 
 function open(row: PodInfo, options: { preview: boolean }): void {
   view.open(viewRef('pod-details', { engineId: row.engineId, podId: row.Id }), options);
@@ -49,5 +54,11 @@ function open(row: PodInfo, options: { preview: boolean }): void {
   loaded={app.pods.loaded}>
   {#snippet filters()}
     <StateFilter bind:value={view.state.show} />
+    {#if podman}
+      <Button variant="outline" onclick={(): void => view.open(viewRef('kube-play', { engineId: view.params.engineId }))}>
+        <FileCodeIcon data-icon="inline-start" />
+        Play Kubernetes YAML
+      </Button>
+    {/if}
   {/snippet}
 </ResourceList>
