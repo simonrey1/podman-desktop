@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import { createContext } from 'svelte';
+import { getContext, setContext } from 'svelte';
 
 import { whenExtensionsStarted } from '#lib/api/events.js';
 import { ActionsStore } from '#lib/stores/actions.svelte.js';
@@ -110,4 +110,20 @@ export class App {
   }
 }
 
-export const [getApp, setApp] = createContext<App>();
+// a key shared by every instance of this module: a hot reload of the dev server evaluates it again, and the components
+// reloaded must still find the application set by the root
+const APP_KEY = Symbol.for('podman-desktop.renderer-v2.app');
+
+/** the application, set by the root component */
+export function getApp(): App {
+  const app = getContext<App | undefined>(APP_KEY);
+  if (!app) {
+    throw new Error('The application is not set: getApp() is called outside of the root component');
+  }
+  return app;
+}
+
+/** sets the application for the components under the root, @returns it */
+export function setApp(app: App): App {
+  return setContext(APP_KEY, app);
+}
