@@ -4,6 +4,7 @@ import StarIcon from '@lucide/svelte/icons/star';
 import { toast } from 'svelte-sonner';
 
 import { getApp } from '#lib/app.svelte.js';
+import { signInHint } from '#lib/components/registry/sign-in-hint.js';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as Dialog from '#lib/components/ui/dialog/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
@@ -156,31 +157,46 @@ async function pull(): Promise<void> {
   const tokenId = await window.getCancellableTokenSource();
   const pulling = window.pullImage($state.snapshot(connection), pulled, () => {}, undefined, tokenId);
   // the tasks show it already when their toasts are on
-  if (!app.tasks.toasts) {
-    let canceled = false;
-    const id = toast.loading(`Pulling ${pulled}`, {
-      action: {
-        label: 'Cancel',
-        onClick: (): void => {
-          canceled = true;
-          window.cancelToken(tokenId).catch(console.error);
+  const ownToast = !app.tasks.toasts;
+  let canceled = false;
+  const id = ownToast
+    ? toast.loading(`Pulling ${pulled}`, {
+        action: {
+          label: 'Cancel',
+          onClick: (): void => {
+            canceled = true;
+            window.cancelToken(tokenId).catch(console.error);
+          },
         },
-      },
-    });
-    pulling
-      .then(() =>
+      })
+    : undefined;
+  pulling
+    .then(() => {
+      if (ownToast) {
         toast.success(`${pulled} pulled`, {
           id,
           action: { label: 'Open', onClick: (): void => openImage(pulled, targetEngine) },
-        }),
-      )
-      .catch((error: unknown) =>
-        canceled
-          ? toast.info(`Pull of ${pulled} canceled`, { id })
-          : toast.error(`Pull of ${pulled} failed`, { id, description: errorMessage(error), duration: 8000 }),
-      );
-  }
-  pulling.catch((error: unknown) => console.error(`Error pulling ${pulled}`, error));
+        });
+      }
+    })
+    .catch(async (error: unknown) => {
+      console.error(`Error pulling ${pulled}`, error);
+      if (canceled) {
+        toast.info(`Pull of ${pulled} canceled`, { id });
+        return;
+      }
+      // refused by the registry: what to sign in to
+      const hint = await signInHint(app, pulled, errorMessage(error));
+      if (ownToast || hint) {
+        toast.error(`Pull of ${pulled} failed`, {
+          id,
+          description: hint ? `${errorMessage(error)} — ${hint.description}` : errorMessage(error),
+          action: hint?.action,
+          duration: hint ? 15000 : 8000,
+        });
+      }
+    })
+    .catch(console.error);
   onClose();
 }
 </script>
