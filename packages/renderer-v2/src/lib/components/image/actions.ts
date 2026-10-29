@@ -24,6 +24,7 @@ import FileInputIcon from '@lucide/svelte/icons/file-input';
 import HistoryIcon from '@lucide/svelte/icons/history';
 import PackageOpenIcon from '@lucide/svelte/icons/package-open';
 import PencilIcon from '@lucide/svelte/icons/pencil';
+import PlayIcon from '@lucide/svelte/icons/play';
 import RefreshCwIcon from '@lucide/svelte/icons/refresh-cw';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 import type { Uri } from '@podman-desktop/api';
@@ -126,6 +127,11 @@ export function imageActions(image: ImageInfo, used: boolean, app: App): Resourc
   return {
     target: { key: resourceKey('image', image.engineId, image.Id), name: imageName(image) },
     actions: [
+      {
+        label: 'Run',
+        icon: PlayIcon,
+        run: (): void => app.workbench.open(viewRef('image-run', { engineId, imageId })),
+      },
       {
         label: 'Delete',
         progress: 'deleting',

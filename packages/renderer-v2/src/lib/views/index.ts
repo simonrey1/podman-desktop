@@ -30,6 +30,7 @@ import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
 import imageBuild from './image-build/view.js';
 import imageDetails from './image-details/view.js';
+import imageRun from './image-run/view.js';
 import images from './images/view.js';
 import networkDetails from './network-details/view.js';
 import networks from './networks/view.js';
@@ -54,6 +55,7 @@ export const VIEWS = {
   images,
   'image-details': imageDetails,
   'image-build': imageBuild,
+  'image-run': imageRun,
   'build-output': buildOutput,
   volumes,
   'volume-details': volumeDetails,
