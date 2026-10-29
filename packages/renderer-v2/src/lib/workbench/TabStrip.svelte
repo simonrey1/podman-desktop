@@ -72,8 +72,13 @@ const wheelScroll: Attachment<HTMLElement> = element =>
           disabled={index === group.tabs.length - 1}
           onSelect={(): void => group.closeToTheRight(tab.key)}>Close to the Right</ContextMenu.Item>
         <ContextMenu.Item onSelect={(): void => group.closeAll()}>Close All</ContextMenu.Item>
-        <ContextMenu.Separator />
-        <ContextMenu.Item disabled={!tab.preview} onSelect={(): void => group.pin(tab.key)}>Keep Open</ContextMenu.Item>
+        <!-- a preview tab (italic) is replaced by the next single click: Keep Open makes it a regular tab -->
+        {#if tab.preview || app.workbench.allowsInstances(tab)}
+          <ContextMenu.Separator />
+        {/if}
+        {#if tab.preview}
+          <ContextMenu.Item onSelect={(): void => group.pin(tab.key)}>Keep Open</ContextMenu.Item>
+        {/if}
         {#if app.workbench.allowsInstances(tab)}
           <ContextMenu.Item onSelect={(): void => app.workbench.openInstance(tab)}>Open Another</ContextMenu.Item>
         {/if}
