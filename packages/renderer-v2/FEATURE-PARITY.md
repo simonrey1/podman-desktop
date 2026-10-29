@@ -3,7 +3,7 @@
 Inventory of the user-facing features of `packages/renderer` (read from the code), grouped by domain, to plan
 feature parity in `packages/renderer-v2`. Paths are relative to `packages/renderer/src`.
 
-Status in v2: ✅ done · ◐ partial · ☐ missing
+Status in v2: ✅ done · ◐ partial · ☐ missing · ✕ rejected for now (not planned in the phases, may come back later)
 
 ## Cross-cutting patterns (used by most domains)
 
@@ -42,7 +42,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Row actions: extension actions (phase 9)                                                                                            | ☐                          |
 | Bulk: run, stop, delete                                                                                                             | ✅                         |
 | Bulk: create pod from selection (Podman, the containers not in a pod)                                                               | ✅                         |
-| Create: from existing image / from Containerfile                                                                                    | ☐                          |
+| Create: from existing image / from Containerfile                                                                                    | ✕                          |
 | Empty state "Start your first container" (pulls + runs hello)                                                                       | ☐                          |
 | Details header: status, engine, actions; Summary links to the image and the pod                                                     | ✅                         |
 | Details: live CPU / memory stats                                                                                                    | ✅                         |
@@ -54,17 +54,18 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Terminal: auto-reconnect, "not running" state, hidden for infra containers                                                          | ✅                         |
 | TTY attach tab (Tty + OpenStdin containers)                                                                                         | ☐                          |
 | Export container to a `.tar`                                                                                                        | ✅                         |
-| Create container from existing image (typeahead on local/registry images and tags, short-name resolution, FQN option, pull-and-run) | ☐                          |
-| Recommended registry sign-in hint                                                                                                   | ☐                          |
+| Create container from existing image (typeahead on local/registry images and tags, short-name resolution, FQN option, pull-and-run) | ✕                          |
+| TTY attach tab: Run opens it after starting a Tty + OpenStdin container                                                             | ☐                          |
 
 ## Compose (`lib/compose`)
 
-| Feature                                                                   | v2  |
-| ------------------------------------------------------------------------- | --- |
-| Compose groups in the containers list (by `com.docker.compose.project`)   | ✅  |
-| Actions: start, stop, restart, delete                                     | ✅  |
-| Actions: generate kube, extension actions (phase 9)                       | ☐   |
-| Details: Summary (containers), merged colour-prefixed logs, Inspect, Kube | ☐   |
+| Feature                                                                 | v2  |
+| ----------------------------------------------------------------------- | --- |
+| Compose groups in the containers list (by `com.docker.compose.project`) | ✅  |
+| Actions: start, stop, restart, delete                                   | ✅  |
+| Actions: generate kube, extension actions (phase 9)                     | ☐   |
+| Details: Summary (containers), Inspect, Kube                            | ☐   |
+| Details: merged colour-prefixed logs                                    | ✕   |
 
 ## Pods — Podman (`lib/pod`)
 
@@ -81,7 +82,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Podman kube play (tab from the pods list of a Podman engine: a file or YAML written in an editor, build/replace options, cancel; the pods created with Open, their container errors; form kept) | ✅  |
 | Empty state "Start your first pod"                                                                                                                                                              | ☐   |
 | Details: Summary (containers linked), Inspect, Kube                                                                                                                                             | ✅  |
-| Details: merged logs of the containers                                                                                                                                                          | ☐   |
+| Details: merged logs of the containers                                                                                                                                                          | ✕   |
 | Create pod from containers (name, ports to expose; copies the containers)                                                                                                                       | ✅  |
 
 ## Images (`lib/image`) and manifests (`lib/manifest`)
@@ -110,7 +111,6 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Pull image: cancel, choose the tag from the registry, then run                                                                                                                                                                                                                                                                               | ☐   |
 | Build image (tab: Containerfile, context, name, target stage, build args, platforms → manifest, registry validation; output in a panel session, cancel)                                                                                                                                                                                      | ✅  |
 | Run image (tab: name, entrypoint, command, ports with free host ports and checks, volumes, env, env files, secrets; tty, interactive, user, auto-remove, restart policy, devices; network mode, hostname, DNS, extra hosts; privileged, read-only, security options, capabilities, userns; create or create and start, form kept, then Open) | ✅  |
-| Run image: open the TTY of a container started interactive (phase 6 leftover, the TTY attach tab)                                                                                                                                                                                                                                            | ☐   |
 | Import containers (tar), save images (one tar for the images selected), load images (archives)                                                                                                                                                                                                                                               | ✅  |
 | Manifest details page (sub-manifests summary)                                                                                                                                                                                                                                                                                                | ☐   |
 
@@ -161,6 +161,7 @@ providers stay part of the engines and providers domain.
 | Proxy (disabled / manual / system, HTTP/HTTPS/no-proxy)                                                                                                                  | ☐                                            |
 | Docker compatibility (socket mapping status, extension toggles)                                                                                                          | ☐                                            |
 | Registries (list, login, edit, remove, suggested registries, add with credential check)                                                                                  | ☐                                            |
+| Recommended registry sign-in hint (on pull and in the images, once the registries are in the settings)                                                                   | ☐                                            |
 | Authentication providers (accounts, sign in/out, pending session requests)                                                                                               | ☐                                            |
 | CLI tools (install/update to a version, uninstall, progress)                                                                                                             | ☐                                            |
 | Experimental features (master toggle + properties)                                                                                                                       | ☐                                            |
