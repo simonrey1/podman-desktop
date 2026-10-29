@@ -53,9 +53,36 @@ export interface InputBoxRequest {
   ignoreFocusOut?: boolean;
 }
 
+/** A card of a custom pick: markdown content, and sections of details. */
+export interface CustomPickItem {
+  title: string;
+  description?: string;
+  markDownContent: string;
+  sections?: { title: string; content?: string; markDownContent?: string }[];
+  selected?: boolean;
+}
+
+/** A custom pick asked by an extension (`window.createCustomPick`): cards to select, then Next. */
+export interface CustomPickRequest {
+  id: number;
+  title?: string;
+  description?: string;
+  /** the address of an image, one per theme or for both */
+  icon?: string | { light: string; dark: string };
+  items: CustomPickItem[];
+  canSelectMany: boolean;
+  /** the sections of the cards are folded */
+  hideItemSections: boolean;
+  /** the minimum height of the cards, as CSS */
+  minHeight?: string;
+  /** never sent: a custom pick closes on a click outside */
+  ignoreFocusOut?: boolean;
+}
+
 export type Picker =
   | { kind: 'quick-pick'; request: QuickPickRequest }
-  | { kind: 'input-box'; request: InputBoxRequest };
+  | { kind: 'input-box'; request: InputBoxRequest }
+  | { kind: 'custom-pick'; request: CustomPickRequest };
 
 /**
  * The quick picks and the input boxes asked by the extensions, one at a time (the next ones wait): the shell shows
@@ -70,6 +97,7 @@ export class PickersStore {
     const stops = [
       receive<QuickPickRequest>('showQuickPick:add', request => this.#show({ kind: 'quick-pick', request })),
       receive<InputBoxRequest>('showInputBox:add', request => this.#show({ kind: 'input-box', request })),
+      receive<CustomPickRequest>('showCustomPick:add', request => this.#show({ kind: 'custom-pick', request })),
     ];
     return (): void => stops.forEach(stop => stop());
   }
@@ -110,11 +138,26 @@ export class PickersStore {
 
   /** closed without an answer */
   cancel(): void {
-    if (this.current?.kind === 'quick-pick') {
+    const kind = this.current?.kind;
+    if (kind === 'quick-pick') {
       this.pick(undefined);
-    } else {
+    } else if (kind === 'input-box') {
       this.enter(undefined);
+    } else if (kind === 'custom-pick') {
+      this.choose(undefined);
     }
+  }
+
+  /** @param indexes the cards selected: none when cancelled */
+  choose(indexes: number[] | undefined): void {
+    const picker = this.#next();
+    if (picker?.kind !== 'custom-pick') {
+      return;
+    }
+    const id = picker.request.id;
+    (indexes ? window.sendCustomPickItemsOnConfirmation(id, indexes) : Promise.resolve())
+      .then(() => window.closeCustomPick(id))
+      .catch((error: unknown) => console.error('Error answering a custom pick', error));
   }
 
   /** tells the main process the item highlighted, when it asked for it */

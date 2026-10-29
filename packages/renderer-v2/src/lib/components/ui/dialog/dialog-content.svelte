@@ -21,8 +21,11 @@ let {
   portalProps?: WithoutChildrenOrChild<ComponentProps<typeof DialogPortal>>;
   children: Snippet;
   showCloseButton?: boolean;
-  /** top: under the title bar, without padding, for the pickers (quick pick, input box) */
-  placement?: 'center' | 'top';
+  /**
+   * top: under the title bar, without padding, for the pickers (quick pick, input box);
+   * wide: centered and wider, without padding (e.g. cards to pick)
+   */
+  placement?: 'center' | 'top' | 'wide';
 } = $props();
 </script>
 
@@ -33,9 +36,11 @@ let {
 		data-slot="dialog-content"
 		class={cn(
 			"bg-popover text-popover-foreground data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 grid max-w-[calc(100%_-_2rem)] rounded-xl text-sm ring-1 duration-100 fixed left-1/2 z-50 w-full -translate-x-1/2 outline-none",
-			placement === "top"
-				? "top-16 gap-0 overflow-hidden p-0 shadow-xl sm:max-w-xl"
-				: "top-1/2 -translate-y-1/2 gap-6 p-6 sm:max-w-md",
+			{
+				center: "top-1/2 -translate-y-1/2 gap-6 p-6 sm:max-w-md",
+				top: "top-16 gap-0 overflow-hidden p-0 shadow-xl sm:max-w-xl",
+				wide: "top-1/2 -translate-y-1/2 gap-0 overflow-hidden p-0 shadow-xl sm:max-w-3xl",
+			}[placement],
 			className
 		)}
 		{...restProps}

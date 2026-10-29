@@ -2,6 +2,7 @@
 import { getApp } from '#lib/app.svelte.js';
 import * as Dialog from '#lib/components/ui/dialog/index.js';
 
+import CustomPick from './CustomPick.svelte';
 import InputBox from './InputBox.svelte';
 import QuickPick from './QuickPick.svelte';
 
@@ -20,7 +21,7 @@ let picker = $derived(pickers.current);
     }
   }}>
   <Dialog.Content
-    placement="top"
+    placement={picker?.kind === 'custom-pick' ? 'wide' : 'top'}
     showCloseButton={false}
     interactOutsideBehavior={picker?.request.ignoreFocusOut ? 'ignore' : 'close'}
     aria-label={picker?.request.title ?? (picker?.kind === 'quick-pick' ? 'Pick an item' : 'Enter a value')}>
@@ -31,6 +32,11 @@ let picker = $derived(pickers.current);
           request={picker.request}
           onPick={(indexes): void => pickers.pick(indexes)}
           onHighlight={(index): void => pickers.highlight(index)} />
+      {:else if picker?.kind === 'custom-pick'}
+        <CustomPick
+          request={picker.request}
+          onChoose={(indexes): void => pickers.choose(indexes)}
+          onCancel={(): void => pickers.cancel()} />
       {:else if picker?.kind === 'input-box'}
         <InputBox
           request={picker.request}

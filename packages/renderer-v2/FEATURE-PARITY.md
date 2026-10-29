@@ -214,7 +214,7 @@ providers stay part of the engines and providers domain.
 | Toasts (success / error / warning / info, task toasts)                                                                                                      | ◐ (failures of the actions)          |
 | Dialogs requested by extensions / main: message box (markdown, type icon, cancel / default buttons, dropdown buttons, queued)                               | ✅                                   |
 | Dialogs requested by extensions / main: input box (validation, password, multiline, selection), quick pick (filter, details, pick many, highlight callback) | ✅                                   |
-| Dialogs requested by extensions / main: custom pick                                                                                                         | ☐                                    |
+| Dialogs requested by extensions / main: custom pick (cards with markdown and details, one or several selected)                                              | ✅                                   |
 | Markdown rendering: links opened in the browser, image directive                                                                                            | ✅                                   |
 | Markdown directives: buttons running commands, command links, warnings, expandable                                                                          | ☐                                    |
 | Troubleshooting (engine checks and reconnect, repair/cleanup, console logs, gather logs, stores)                                                            | ☐                                    |
