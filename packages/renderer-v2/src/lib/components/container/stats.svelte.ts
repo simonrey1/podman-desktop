@@ -24,6 +24,9 @@ interface Target {
   running: boolean;
 }
 
+/** how long a container is running before its statistics are streamed, in ms */
+const START_DELAY = 1000;
+
 /**
  * The CPU and memory used by a running container, streamed by the engine while the component creating it is
  * mounted. Created in a component (it uses an effect): the stream follows the container given by `target`.
@@ -35,32 +38,46 @@ export class ContainerStats {
   memory: number | undefined = $state();
   memoryLimit: number | undefined = $state();
 
+  // primitives: the effect below runs again when they change, not each time the list of the containers is reloaded
+  readonly #engineId: string;
+  readonly #containerId: string;
+  readonly #running: boolean;
+
   constructor(target: () => Target) {
+    this.#engineId = $derived(target().engineId);
+    this.#containerId = $derived(target().containerId);
+    this.#running = $derived(target().running);
+
     $effect(() => {
-      const { engineId, containerId, running } = target();
+      const engineId = this.#engineId;
+      const containerId = this.#containerId;
       this.cpu = undefined;
       this.memory = undefined;
       this.memoryLimit = undefined;
-      if (!running) {
+      if (!this.#running) {
         return;
       }
       let streamId: number | undefined;
       let stopped = false;
-      window
-        .getContainerStats(engineId, containerId, stats => this.#update(stats))
-        .then(id => {
-          // the component may be gone before the stream starts
-          if (stopped) {
-            window.stopContainerStats(id).catch(console.error);
-          } else {
-            streamId = id;
-          }
-        })
-        .catch((error: unknown) =>
-          console.error(`Error getting the statistics of the container ${containerId}`, error),
-        );
+      // a container restarting in a loop is running for a moment only: streamed once it stays running
+      const timer = setTimeout(() => {
+        window
+          .getContainerStats(engineId, containerId, stats => this.#update(stats))
+          .then(id => {
+            // the component may be gone before the stream starts
+            if (stopped) {
+              window.stopContainerStats(id).catch(console.error);
+            } else {
+              streamId = id;
+            }
+          })
+          .catch((error: unknown) =>
+            console.error(`Error getting the statistics of the container ${containerId}`, error),
+          );
+      }, START_DELAY);
       return (): void => {
         stopped = true;
+        clearTimeout(timer);
         if (streamId !== undefined) {
           window.stopContainerStats(streamId).catch(console.error);
         }
