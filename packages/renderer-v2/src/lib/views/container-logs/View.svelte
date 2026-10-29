@@ -7,7 +7,7 @@ import type { Attachment } from 'svelte/attachments';
 import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
 import SessionHeader from '#lib/components/container/SessionHeader.svelte';
-import { openTerminal, terminalTheme } from '#lib/components/container/terminal.js';
+import { openTerminal, terminalTheme } from '#lib/components/container/terminal.svelte.js';
 import FindWidget from '#lib/components/search/FindWidget.svelte';
 import type { SearchTarget } from '#lib/components/search/search.js';
 import { terminalSearch } from '#lib/components/search/terminal-search.js';
@@ -32,7 +32,7 @@ $effect(() => {
 });
 
 const logs: Attachment<HTMLElement> = element => {
-  const opened = openTerminal(element, { disableStdin: true });
+  const opened = openTerminal(element, { disableStdin: true }, app);
   search = terminalSearch(opened.terminal);
   terminal = opened.terminal;
   return (): void => {

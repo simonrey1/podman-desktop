@@ -4,7 +4,7 @@ import type { Attachment } from 'svelte/attachments';
 
 import { getApp } from '#lib/app.svelte.js';
 import SessionHeader from '#lib/components/container/SessionHeader.svelte';
-import { openTerminal, terminalTheme } from '#lib/components/container/terminal.js';
+import { openTerminal, terminalTheme } from '#lib/components/container/terminal.svelte.js';
 import { containerName } from '#lib/stores/containers.svelte.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -29,7 +29,7 @@ $effect(() => {
 });
 
 const attach: Attachment<HTMLElement> = element => {
-  const opened = openTerminal(element, { disableStdin: false });
+  const opened = openTerminal(element, { disableStdin: false }, app);
   terminal = opened.terminal;
   return (): void => {
     terminal = undefined;

@@ -9,7 +9,7 @@ import type { Attachment } from 'svelte/attachments';
 
 import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
-import { openTerminal, terminalTheme } from '#lib/components/container/terminal.js';
+import { openTerminal, terminalTheme } from '#lib/components/container/terminal.svelte.js';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import FindWidget from '#lib/components/search/FindWidget.svelte';
 import type { SearchTarget } from '#lib/components/search/search.js';
@@ -37,7 +37,7 @@ $effect(() => {
 });
 
 const output: Attachment<HTMLElement> = element => {
-  const opened = openTerminal(element, { disableStdin: true });
+  const opened = openTerminal(element, { disableStdin: true }, app);
   search = terminalSearch(opened.terminal);
   terminal = opened.terminal;
   return (): void => {
