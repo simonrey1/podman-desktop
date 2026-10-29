@@ -211,8 +211,9 @@ providers stay part of the engines and providers domain.
 | Navigation requests from main (protocol links, notifications: `NavigationPage` → view)                                                                      | ☐                                    |
 | Command palette (commands, documentation, go to; Ctrl/Cmd+Shift+P, F1, Ctrl/Cmd+K)                                                                          | ☐                                    |
 | Status bar entries contributed by extensions / main                                                                                                         | ☐                                    |
-| Status bar: pinned provider widgets, task indicator                                                                                                         | ☐                                    |
-| Task manager (running / completed tasks, view, cancel, clear)                                                                                               | ☐                                    |
+| Status bar: task indicator (running tasks, opens the tasks)                                                                                                 | ✅                                   |
+| Status bar: pinned provider widgets                                                                                                                         | ☐                                    |
+| Task manager (running / completed tasks, view, cancel, clear), in the panel                                                                                 | ✅                                   |
 | Toasts (success / error / warning / info, task toasts)                                                                                                      | ◐ (failures of the actions)          |
 | Dialogs requested by extensions / main: message box (markdown, type icon, cancel / default buttons, dropdown buttons, queued)                               | ✅                                   |
 | Dialogs requested by extensions / main: input box (validation, password, multiline, selection), quick pick (filter, details, pick many, highlight callback) | ✅                                   |

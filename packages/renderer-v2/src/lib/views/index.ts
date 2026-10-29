@@ -33,6 +33,7 @@ import networkDetails from './network-details/view.js';
 import networks from './networks/view.js';
 import podDetails from './pod-details/view.js';
 import pods from './pods/view.js';
+import tasks from './tasks/view.js';
 import volumeDetails from './volume-details/view.js';
 import volumes from './volumes/view.js';
 
@@ -52,6 +53,7 @@ export const VIEWS = {
   'volume-details': volumeDetails,
   networks,
   'network-details': networkDetails,
+  tasks,
 } satisfies Record<string, ViewDefinition<ViewSchema>>;
 
 type Views = typeof VIEWS;
