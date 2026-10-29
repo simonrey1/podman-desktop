@@ -33,6 +33,7 @@ import { NetworksStore } from '#lib/stores/networks.svelte.js';
 import { NotificationsStore } from '#lib/stores/notifications.svelte.js';
 import { PickersStore } from '#lib/stores/pickers.svelte.js';
 import { PodsStore } from '#lib/stores/pods.svelte.js';
+import { RegistriesStore } from '#lib/stores/registries.svelte.js';
 import { SecretsStore } from '#lib/stores/secrets.svelte.js';
 import { TasksStore } from '#lib/stores/tasks.svelte.js';
 import { ThemeStore } from '#lib/stores/theme.svelte.js';
@@ -53,6 +54,7 @@ export class App {
   readonly imageFilesProviders = new ImageFilesProvidersStore();
   readonly volumes = new VolumesStore();
   readonly secrets = new SecretsStore();
+  readonly registries = new RegistriesStore();
   readonly networks = new NetworksStore();
   readonly confirmations = new ConfirmationsStore();
   readonly actions = new ActionsStore(this.confirmations);
@@ -100,6 +102,7 @@ export class App {
       this.imageFilesProviders,
       this.volumes,
       this.secrets,
+      this.registries,
       this.networks,
     ].map(store => store.start());
     return (): void => {

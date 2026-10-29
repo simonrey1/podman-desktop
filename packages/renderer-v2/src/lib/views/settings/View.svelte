@@ -1,6 +1,7 @@
 <script lang="ts">
 import FlaskConicalIcon from '@lucide/svelte/icons/flask-conical';
 import GlobeIcon from '@lucide/svelte/icons/globe';
+import ServerIcon from '@lucide/svelte/icons/server';
 import SettingsIcon from '@lucide/svelte/icons/settings';
 import SlidersHorizontalIcon from '@lucide/svelte/icons/sliders-horizontal';
 
@@ -8,6 +9,7 @@ import { getApp } from '#lib/app.svelte.js';
 import FilterInput from '#lib/components/FilterInput.svelte';
 import Page from '#lib/components/Page.svelte';
 import ProxySettings from '#lib/components/settings/pages/ProxySettings.svelte';
+import RegistriesSettings from '#lib/components/settings/pages/RegistriesSettings.svelte';
 import { matchesSetting } from '#lib/components/settings/settings.js';
 import SettingsList from '#lib/components/settings/SettingsList.svelte';
 import * as Field from '#lib/components/ui/field/index.js';
@@ -24,7 +26,10 @@ let { view }: ViewProps<typeof schema> = $props();
 const app = getApp();
 
 // the pages of their own, after the sections
-const PAGES = [{ id: 'proxy', label: 'Proxy', icon: GlobeIcon, component: ProxySettings }];
+const PAGES = [
+  { id: 'proxy', label: 'Proxy', icon: GlobeIcon, component: ProxySettings },
+  { id: 'registries', label: 'Registries', icon: ServerIcon, component: RegistriesSettings },
+];
 
 let sections = $derived(app.configuration.sections);
 let experimental = $derived(app.configuration.experimental);
