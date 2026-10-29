@@ -5,6 +5,7 @@ import BoxIcon from '@lucide/svelte/icons/box';
 import { getApp } from '#lib/app.svelte.js';
 import { AsyncValue } from '#lib/async-value.svelte.js';
 import ContainerActions from '#lib/components/container/ContainerActions.svelte';
+import { ContainerStats } from '#lib/components/container/stats.svelte.js';
 import CodeEditor from '#lib/components/editor/CodeEditor.svelte';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import KeyValueCard, { type KeyValue } from '#lib/components/KeyValueCard.svelte';
@@ -12,7 +13,7 @@ import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
 import SegmentedControl from '#lib/components/SegmentedControl.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
-import { age } from '#lib/format.js';
+import { age, bytes } from '#lib/format.js';
 import { resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -38,6 +39,24 @@ const kube = new AsyncValue<string>(() =>
     ? window.generatePodmanKube(view.params.engineId, [view.params.containerId])
     : undefined,
 );
+
+// streamed while the summary of a running container is shown
+const stats = new ContainerStats(() => ({
+  engineId: view.params.engineId,
+  containerId: view.params.containerId,
+  running: container?.State === 'running' && view.state.section === 'summary',
+}));
+
+let usage: KeyValue[] = $derived([
+  { label: 'CPU', value: stats.cpu === undefined ? '' : `${stats.cpu.toFixed(1)}%` },
+  {
+    label: 'Memory',
+    value: [stats.memory, stats.memoryLimit]
+      .filter(value => value !== undefined)
+      .map(bytes)
+      .join(' of '),
+  },
+]);
 
 let details: KeyValue[] = $derived(
   container
@@ -117,6 +136,9 @@ let environment: KeyValue[] = $derived(
     {#if view.state.section === 'summary'}
       <div class="grid grid-cols-1 gap-3 p-3 xl:grid-cols-2">
         <KeyValueCard title="Details" rows={details} onOpen={(ref): void => view.open(ref)} />
+        {#if container.State === 'running'}
+          <KeyValueCard title="Usage" rows={usage} />
+        {/if}
         <KeyValueCard title="Networking & storage" rows={networking} />
         <KeyValueCard title="Labels ({labels.length})" rows={labels} empty="No labels" />
         <KeyValueCard title="Environment ({environment.length})" rows={environment} empty="No variables" />
