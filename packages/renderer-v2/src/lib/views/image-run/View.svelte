@@ -11,6 +11,7 @@ import { untrack } from 'svelte';
 import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
 import Card from '#lib/components/Card.svelte';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import Page from '#lib/components/Page.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
@@ -18,7 +19,6 @@ import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
 import * as InputGroup from '#lib/components/ui/input-group/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 import { containerName, shortId } from '#lib/stores/containers.svelte.js';
@@ -30,6 +30,29 @@ import { createOptions, joinArguments, portRange, type RunForm } from './options
 import type { schema } from './view.js';
 
 let { view }: ViewProps<typeof schema> = $props();
+
+const VOLUME_TYPES = [
+  { value: 'bind', label: 'Host directory' },
+  { value: 'volume', label: 'Volume' },
+] as const;
+const SECRET_TYPES = [
+  { value: 'mount', label: 'File' },
+  { value: 'env', label: 'Variable' },
+] as const;
+const RESTART_POLICIES = [
+  { value: '', label: 'The default of the engine' },
+  { value: 'no', label: 'Never' },
+  { value: 'always', label: 'Always' },
+  { value: 'unless-stopped', label: 'Unless stopped by the user' },
+  { value: 'on-failure', label: 'When it fails (exit code not 0)' },
+] as const;
+const NETWORK_MODES = [
+  { value: 'bridge', label: 'Bridge' },
+  { value: 'network', label: 'A network of the engine' },
+  { value: 'container', label: 'The network of a container' },
+  { value: 'host', label: 'The network of the host' },
+  { value: 'none', label: 'None' },
+] as const;
 
 // creates a container of the image, started or not: the form keeps its values after it (a failure loses nothing)
 const app = getApp();
@@ -338,15 +361,13 @@ function created(id: string): string {
         {#each form.volumes as volume, index (index)}
           <div class="flex items-center gap-2">
             <div class="w-40 shrink-0">
-              <NativeSelect.Root
+              <ChoiceSelect
                 bind:value={volume.type}
                 aria-label="Type of the volume {index + 1}"
-                onchange={(): void => {
+                options={VOLUME_TYPES}
+                onValueChange={(): void => {
                   volume.source = '';
-                }}>
-                <NativeSelect.Option value="bind">Host directory</NativeSelect.Option>
-                <NativeSelect.Option value="volume">Volume</NativeSelect.Option>
-              </NativeSelect.Root>
+                }} />
             </div>
             {#if volume.type === 'bind'}
               <InputGroup.Root>
@@ -366,12 +387,14 @@ function created(id: string): string {
                 </InputGroup.Addon>
               </InputGroup.Root>
             {:else}
-              <NativeSelect.Root bind:value={volume.source} aria-label="Volume {index + 1}">
-                <NativeSelect.Option value="">Choose a volume</NativeSelect.Option>
-                {#each volumes as item (item.Name)}
-                  <NativeSelect.Option value={item.Name}>{item.Name.length > 24 ? shortId(item.Name) : item.Name}</NativeSelect.Option>
-                {/each}
-              </NativeSelect.Root>
+              <ChoiceSelect
+                bind:value={volume.source}
+                aria-label="Volume {index + 1}"
+                placeholder="Choose a volume"
+                options={volumes.map(item => ({
+                  value: item.Name,
+                  label: item.Name.length > 24 ? shortId(item.Name) : item.Name,
+                }))} />
             {/if}
             <Input bind:value={volume.target} placeholder="/path/in/the/container" aria-label="Path in the container {index + 1}" />
             <ActionButton icon={XIcon} label="Remove the volume" size="icon-xs" onclick={(): unknown => form.volumes.splice(index, 1)} />
@@ -438,16 +461,12 @@ function created(id: string): string {
             <Field.Legend variant="label">Secrets</Field.Legend>
             {#each form.secrets as secret, index (index)}
               <div class="flex items-center gap-2">
-                <NativeSelect.Root bind:value={secret.name} aria-label="Secret {index + 1}">
-                  {#each secrets as item (item.Id)}
-                    <NativeSelect.Option value={item.Name}>{item.Name}</NativeSelect.Option>
-                  {/each}
-                </NativeSelect.Root>
+                <ChoiceSelect
+                  bind:value={secret.name}
+                  aria-label="Secret {index + 1}"
+                  options={secrets.map(item => ({ value: item.Name, label: item.Name }))} />
                 <div class="w-40 shrink-0">
-                  <NativeSelect.Root bind:value={secret.type} aria-label="Type of the secret {index + 1}">
-                    <NativeSelect.Option value="mount">File</NativeSelect.Option>
-                    <NativeSelect.Option value="env">Variable</NativeSelect.Option>
-                  </NativeSelect.Root>
+                  <ChoiceSelect bind:value={secret.type} aria-label="Type of the secret {index + 1}" options={SECRET_TYPES} />
                 </div>
                 <Input
                   bind:value={secret.target}
@@ -497,13 +516,7 @@ function created(id: string): string {
           <div class="col-span-2">
           <Field.Field>
             <Field.Label for="run-restart">Restart policy</Field.Label>
-            <NativeSelect.Root id="run-restart" bind:value={form.restartPolicy}>
-              <NativeSelect.Option value="">The default of the engine</NativeSelect.Option>
-              <NativeSelect.Option value="no">Never</NativeSelect.Option>
-              <NativeSelect.Option value="always">Always</NativeSelect.Option>
-              <NativeSelect.Option value="unless-stopped">Unless stopped by the user</NativeSelect.Option>
-              <NativeSelect.Option value="on-failure">When it fails (exit code not 0)</NativeSelect.Option>
-            </NativeSelect.Root>
+            <ChoiceSelect id="run-restart" bind:value={form.restartPolicy} options={RESTART_POLICIES} />
           </Field.Field>
           </div>
           <Field.Field>
@@ -548,31 +561,23 @@ function created(id: string): string {
         <div class="grid grid-cols-2 gap-3">
           <Field.Field>
             <Field.Label for="run-network-mode">Network</Field.Label>
-            <NativeSelect.Root id="run-network-mode" bind:value={form.networkMode}>
-              <NativeSelect.Option value="bridge">Bridge</NativeSelect.Option>
-              <NativeSelect.Option value="network">A network of the engine</NativeSelect.Option>
-              <NativeSelect.Option value="container">The network of a container</NativeSelect.Option>
-              <NativeSelect.Option value="host">The network of the host</NativeSelect.Option>
-              <NativeSelect.Option value="none">None</NativeSelect.Option>
-            </NativeSelect.Root>
+            <ChoiceSelect id="run-network-mode" bind:value={form.networkMode} options={NETWORK_MODES} />
           </Field.Field>
           {#if form.networkMode === 'network'}
             <Field.Field>
               <Field.Label for="run-network">Of the network</Field.Label>
-              <NativeSelect.Root id="run-network" bind:value={network}>
-                {#each networks as item (item.Id)}
-                  <NativeSelect.Option value={item.Id}>{item.Name}</NativeSelect.Option>
-                {/each}
-              </NativeSelect.Root>
+              <ChoiceSelect
+                id="run-network"
+                bind:value={network}
+                options={networks.map(item => ({ value: item.Id, label: item.Name }))} />
             </Field.Field>
           {:else if form.networkMode === 'container'}
             <Field.Field>
               <Field.Label for="run-network-container">Of the container</Field.Label>
-              <NativeSelect.Root id="run-network-container" bind:value={container}>
-                {#each containers as item (item.Id)}
-                  <NativeSelect.Option value={item.Id}>{containerName(item)} ({shortId(item.Id)})</NativeSelect.Option>
-                {/each}
-              </NativeSelect.Root>
+              <ChoiceSelect
+                id="run-network-container"
+                bind:value={container}
+                options={containers.map(item => ({ value: item.Id, label: `${containerName(item)} (${shortId(item.Id)})` }))} />
             </Field.Field>
           {/if}
         </div>

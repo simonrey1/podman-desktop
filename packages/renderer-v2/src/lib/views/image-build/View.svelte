@@ -11,6 +11,7 @@ import { getApp } from '#lib/app.svelte.js';
 import { AsyncValue } from '#lib/async-value.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
 import Card from '#lib/components/Card.svelte';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import EngineBadge from '#lib/components/engine/EngineBadge.svelte';
 import Page from '#lib/components/Page.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
@@ -18,7 +19,6 @@ import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
 import * as InputGroup from '#lib/components/ui/input-group/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import type { Build } from '#lib/stores/builds.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -218,12 +218,10 @@ function openImage(): void {
         {#if targets.length > 1}
           <Field.Field>
             <Field.Label for="build-target">Stage</Field.Label>
-            <NativeSelect.Root id="build-target" bind:value={target}>
-              <NativeSelect.Option value="">The last one</NativeSelect.Option>
-              {#each targets as stage (stage)}
-                <NativeSelect.Option value={stage}>{stage}</NativeSelect.Option>
-              {/each}
-            </NativeSelect.Root>
+            <ChoiceSelect
+              id="build-target"
+              bind:value={target}
+              options={[{ value: '', label: 'The last one' }, ...targets.map(stage => ({ value: stage, label: stage }))]} />
           </Field.Field>
         {/if}
         <Field.Set>

@@ -4,11 +4,11 @@ import FolderTreeIcon from '@lucide/svelte/icons/folder-tree';
 import type { ImageFilesystemLayer } from '@podman-desktop/api';
 
 import { getApp } from '#lib/app.svelte.js';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Empty from '#lib/components/ui/empty/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { bytes } from '#lib/format.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
@@ -128,11 +128,10 @@ function instruction(createdBy: string | undefined): string {
     </Empty.Header>
     <Empty.Content>
       {#if providers.length > 1}
-        <NativeSelect.Root bind:value={providerId} aria-label="Read by">
-          {#each providers as provider (provider.id)}
-            <NativeSelect.Option value={provider.id}>{provider.label}</NativeSelect.Option>
-          {/each}
-        </NativeSelect.Root>
+        <ChoiceSelect
+          bind:value={providerId}
+          aria-label="Read by"
+          options={providers.map(provider => ({ value: provider.id, label: provider.label }))} />
       {/if}
       <Button
         disabled={loading || !providerId}

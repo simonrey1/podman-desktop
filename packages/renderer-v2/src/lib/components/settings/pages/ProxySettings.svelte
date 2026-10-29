@@ -4,10 +4,10 @@ import LockIcon from '@lucide/svelte/icons/lock';
 
 import { getApp } from '#lib/app.svelte.js';
 import Card from '#lib/components/Card.svelte';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 
@@ -96,17 +96,14 @@ async function save(): Promise<void> {
   <Field.Group>
     <Field.Field>
       <Field.Label for="proxy-mode">Proxy</Field.Label>
-      <NativeSelect.Root
+      <ChoiceSelect
         id="proxy-mode"
         disabled={!loaded || modeLocked}
         value={String(mode)}
-        onchange={(event): void => {
-          mode = Number((event.currentTarget as HTMLSelectElement).value) as ProxyState;
-        }}>
-        {#each MODES as option (option.value)}
-          <NativeSelect.Option value={String(option.value)}>{option.label}</NativeSelect.Option>
-        {/each}
-      </NativeSelect.Root>
+        options={MODES.map(option => ({ value: String(option.value), label: option.label }))}
+        onValueChange={(selected): void => {
+          mode = Number(selected) as ProxyState;
+        }} />
       {@render managed(PROXY_CONFIG_KEYS.ENABLED)}
     </Field.Field>
     <Field.Field data-invalid={!!httpError || undefined}>

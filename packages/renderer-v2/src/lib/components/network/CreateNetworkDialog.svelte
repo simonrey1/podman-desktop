@@ -4,13 +4,13 @@ import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 
 import { getApp } from '#lib/app.svelte.js';
 import { AsyncValue } from '#lib/async-value.svelte.js';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Collapsible from '#lib/components/ui/collapsible/index.js';
 import * as Dialog from '#lib/components/ui/dialog/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -113,11 +113,10 @@ async function create(): Promise<void> {
           </Field.Field>
           <Field.Field>
             <Field.Label for="network-driver">Driver</Field.Label>
-            <NativeSelect.Root id="network-driver" bind:value={driver}>
-              {#each drivers.value ?? ['bridge'] as option (option)}
-                <NativeSelect.Option value={option}>{option}</NativeSelect.Option>
-              {/each}
-            </NativeSelect.Root>
+            <ChoiceSelect
+              id="network-driver"
+              bind:value={driver}
+              options={(drivers.value ?? ['bridge']).map(option => ({ value: option, label: option }))} />
           </Field.Field>
           <Field.Field>
             <Field.Label for="network-subnet">Subnet{requiresSubnet ? '' : ' (optional)'}</Field.Label>

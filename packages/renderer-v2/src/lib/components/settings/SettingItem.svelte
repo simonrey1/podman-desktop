@@ -8,6 +8,7 @@ import RotateCcwIcon from '@lucide/svelte/icons/rotate-ccw';
 
 import { getApp } from '#lib/app.svelte.js';
 import ActionButton from '#lib/components/ActionButton.svelte';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import Markdown from '#lib/components/markdown/Markdown.svelte';
 import { tooltip } from '#lib/components/tooltip/tooltip.svelte.js';
 import { Badge } from '#lib/components/ui/badge/index.js';
@@ -15,7 +16,6 @@ import { Button } from '#lib/components/ui/button/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
 import * as InputGroup from '#lib/components/ui/input-group/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Switch } from '#lib/components/ui/switch/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 import type { Setting } from '#lib/stores/configuration.svelte.js';
@@ -133,15 +133,12 @@ function reset(): void {
           onCheckedChange={(checked): void => write(setting.experimental ? (checked ? {} : false) : checked)} />
       {:else if kind === 'enum'}
         <div class="w-56 shrink-0">
-          <NativeSelect.Root
+          <ChoiceSelect
             id={controlId}
             {disabled}
             value={String(value ?? '')}
-            onchange={(event): void => write((event.currentTarget as HTMLSelectElement).value)}>
-            {#each setting.enum ?? [] as option (option)}
-              <NativeSelect.Option value={option}>{option}</NativeSelect.Option>
-            {/each}
-          </NativeSelect.Root>
+            options={(setting.enum ?? []).map(option => ({ value: option, label: option }))}
+            onValueChange={(selected): void => write(selected)} />
         </div>
       {:else if kind === 'number'}
         <div class="w-32 shrink-0">

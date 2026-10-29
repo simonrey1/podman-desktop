@@ -5,10 +5,10 @@ import TriangleAlertIcon from '@lucide/svelte/icons/triangle-alert';
 import { untrack } from 'svelte';
 
 import { AsyncValue } from '#lib/async-value.svelte.js';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as Dialog from '#lib/components/ui/dialog/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 
@@ -78,11 +78,11 @@ function push(): void {
     <Dialog.Body>
       <Field.Field>
         <Field.Label for="push-tag">Tag</Field.Label>
-        <NativeSelect.Root id="push-tag" bind:value={tag} disabled={status === 'pushing'}>
-          {#each tags as option (option)}
-            <NativeSelect.Option value={option}>{option}</NativeSelect.Option>
-          {/each}
-        </NativeSelect.Root>
+        <ChoiceSelect
+          id="push-tag"
+          bind:value={tag}
+          disabled={status === 'pushing'}
+          options={tags.map(option => ({ value: option, label: option }))} />
         {#if authenticated.value === false}
           <Field.Description>
             <span class="flex items-center gap-1.5 text-state-warning">

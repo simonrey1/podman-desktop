@@ -4,12 +4,12 @@ import StarIcon from '@lucide/svelte/icons/star';
 import { toast } from 'svelte-sonner';
 
 import { getApp } from '#lib/app.svelte.js';
+import ChoiceSelect from '#lib/components/ChoiceSelect.svelte';
 import { signInHint } from '#lib/components/registry/sign-in-hint.js';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as Dialog from '#lib/components/ui/dialog/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
 import { Input } from '#lib/components/ui/input/index.js';
-import * as NativeSelect from '#lib/components/ui/native-select/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
@@ -272,11 +272,10 @@ async function pull(): Promise<void> {
           {#if candidates.length}
             <Field.Field>
               <Field.Label for="pull-registry">From</Field.Label>
-              <NativeSelect.Root id="pull-registry" bind:value={candidate}>
-                {#each candidates as option (option)}
-                  <NativeSelect.Option value={option}>{option}</NativeSelect.Option>
-                {/each}
-              </NativeSelect.Root>
+              <ChoiceSelect
+                id="pull-registry"
+                bind:value={candidate}
+                options={candidates.map(option => ({ value: option, label: option }))} />
               <Field.Description>The registries Podman searches for a name without a registry.</Field.Description>
             </Field.Field>
           {/if}
