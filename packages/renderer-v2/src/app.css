@@ -88,6 +88,12 @@
   --color-state-warning: var(--pd-state-warning, oklch(0.75 0.15 85));
   --color-state-success: var(--pd-state-success, oklch(0.7 0.17 150));
 
+  /* the files of an image: removed by a layer, directories, symbolic links, executables */
+  --color-files-hidden: var(--pd-files-hidden, oklch(0.64 0.21 25));
+  --color-files-directory: var(--pd-files-directory, oklch(0.68 0.15 237));
+  --color-files-symlink: var(--pd-files-symlink, oklch(0.83 0.1 230));
+  --color-files-executable: var(--pd-files-executable, oklch(0.72 0.19 150));
+
   /* dialogs: the modal colors of the theme */
   --color-modal: var(--pd-modal-bg, oklch(0.22 0 0));
   --color-modal-foreground: var(--pd-modal-text, oklch(0.9 0 0));

@@ -26,7 +26,7 @@ import { engineName, imageParams, imageTitle } from '../shared.js';
 export const schema = {
   params: imageParams,
   state: z.object({
-    section: z.enum(['summary', 'history', 'inspect']).default('summary'),
+    section: z.enum(['summary', 'history', 'files', 'inspect']).default('summary'),
   }),
 };
 

@@ -24,6 +24,7 @@ import { BuildsStore } from '#lib/stores/builds.svelte.js';
 import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
+import { ImageFilesProvidersStore } from '#lib/stores/image-files.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
 import { MessageBoxesStore } from '#lib/stores/message-boxes.svelte.js';
 import { ModalsStore } from '#lib/stores/modals.svelte.js';
@@ -47,6 +48,7 @@ export class App {
   readonly containers = new ContainersStore();
   readonly pods = new PodsStore();
   readonly images = new ImagesStore();
+  readonly imageFilesProviders = new ImageFilesProvidersStore();
   readonly volumes = new VolumesStore();
   readonly secrets = new SecretsStore();
   readonly networks = new NetworksStore();
@@ -92,6 +94,7 @@ export class App {
       this.containers,
       this.pods,
       this.images,
+      this.imageFilesProviders,
       this.volumes,
       this.secrets,
       this.networks,
