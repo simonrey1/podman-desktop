@@ -4,7 +4,8 @@ The decisions taken for `packages/renderer-v2`, and the designs still open. What
 [FEATURE-PARITY.md](FEATURE-PARITY.md); where a view goes (section, tab, panel, dialog) is in
 [docs/views.md](docs/views.md).
 
-Status: **Decided** (applied, or to apply as written) · **Proposed** (to discuss before building)
+Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, its design to detail) · **Proposed**
+(to discuss before building)
 
 ## 1. Scope
 
@@ -81,8 +82,8 @@ Status: **Decided** (applied, or to apply as written) · **Proposed** (to discus
 
 ## 8. Extensions contributing to what the explorer browses
 
-**Proposed.** Phase 9 and beyond: the Kubernetes dashboard, the quadlets and the other extensions whose content
-belongs to a connection.
+**Direction** for the targets, **Proposed** for the rest. Phase 9 and beyond: the Kubernetes dashboard, the quadlets
+and the other extensions whose content belongs to a connection.
 
 ### What exists
 
@@ -102,7 +103,8 @@ A provider connection is what a provider runs and manages (its lifecycle); a kub
 talk to. Registering a connection per context (by the contexts extension) would make connections without a
 lifecycle, duplicate the clusters of kind or minikube, and need a merge somewhere.
 
-Proposal:
+Direction (agreed): Podman Desktop browses its container engines by default; what else can be browsed is the logic
+of each extension (Kubernetes contexts, RHEL VMs, subscriptions...).
 
 - **Provider connections stay their lifecycle**, in the system overview (create, start, stop, delete, usage).
 - **The dropdown of the explorer lists targets**: what can be browsed, with an id, a kind, a label, an icon and a
@@ -128,7 +130,8 @@ gives nothing to the other kinds of targets.
   target, again after a restart), and a webview opens another tab through the host (preview or kept open).
 - **Native lists** (to weigh against the cost of a webview per tab: each one loads the whole frontend of its
   extension): the extension gives the columns, the rows and the actions of a list, the host renders it as its other
-  lists (virtualized, the same look); the details, the forms and the custom pages stay webview tabs.
+  lists (virtualized, the same look); the details, the forms and the custom pages stay webview tabs. Drafted in
+  [docs/draft-extension-data-views.md](docs/draft-extension-data-views.md).
 
 ### Open questions
 
