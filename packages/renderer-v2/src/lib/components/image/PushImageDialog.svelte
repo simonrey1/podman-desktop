@@ -70,7 +70,7 @@ function push(): void {
       onClose();
     }
   }}>
-  <Dialog.Content>
+  <Dialog.Content size="md">
     <Dialog.Header>
       <Dialog.Title>Push image</Dialog.Title>
       <Dialog.Description>Pushes a tag of the image to its registry.</Dialog.Description>

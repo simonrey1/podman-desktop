@@ -26,7 +26,7 @@ let {
 		data-slot="alert-dialog-content"
 		data-size={size}
 		class={cn(
-			"data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 bg-modal text-modal-foreground border border-modal-border shadow-xl rounded-xl duration-100 data-[size=default]:max-w-[32rem] data-[size=sm]:max-w-[28rem] group/alert-dialog-content fixed top-1/2 left-1/2 z-50 flex w-[calc(100vw-4rem)] -translate-x-1/2 -translate-y-1/2 flex-col outline-none",
+			"data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 bg-modal text-modal-foreground border border-modal-border shadow-xl rounded-xl duration-100 data-[size=default]:max-w-[26rem] data-[size=sm]:max-w-[22rem] group/alert-dialog-content fixed top-1/2 left-1/2 z-50 flex max-h-[85vh] w-[calc(100vw-4rem)] -translate-x-1/2 -translate-y-1/2 flex-col outline-none",
 			className
 		)}
 		{...restProps}

@@ -9,6 +9,6 @@ let { ref = $bindable(null), class: className, ...restProps }: AlertDialogPrimit
 <AlertDialogPrimitive.Description
 	bind:ref
 	data-slot="alert-dialog-description"
-	class={cn("px-5 py-4 text-base text-modal-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground", className)}
+	class={cn("min-h-0 overflow-y-auto px-4 py-3 text-base text-modal-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground", className)}
 	{...restProps}
 />

@@ -15,7 +15,7 @@ let {
 	bind:this={ref}
 	data-slot="alert-dialog-footer"
 	class={cn(
-		"flex shrink-0 items-center justify-end gap-2 border-t px-5 py-3",
+		"flex shrink-0 items-center justify-end gap-2 border-t px-4 py-2.5",
 		className
 	)}
 	{...restProps}

@@ -94,7 +94,7 @@ async function create(): Promise<void> {
       onClose();
     }
   }}>
-  <Dialog.Content>
+  <Dialog.Content size="md">
     <Dialog.Header>
       <Dialog.Title>Create a network</Dialog.Title>
       <Dialog.Description>On {app.engines.label(engineId, engineId)}.</Dialog.Description>

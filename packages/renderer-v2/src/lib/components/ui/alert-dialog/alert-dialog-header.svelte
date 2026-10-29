@@ -14,7 +14,7 @@ let {
 <div
 	bind:this={ref}
 	data-slot="alert-dialog-header"
-	class={cn("flex h-14 shrink-0 items-center gap-2 border-b px-5 text-left", className)}
+	class={cn("flex h-11 shrink-0 items-center gap-2 border-b px-4 text-left", className)}
 	{...restProps}
 >
 	{@render children?.()}
