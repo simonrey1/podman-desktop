@@ -10,6 +10,8 @@ export interface KeyValue {
   mono?: boolean;
   /** the view of the value, e.g. the image of a container: the value opens it */
   ref?: ViewRef;
+  /** an address opened in the browser by the value, e.g. a published port */
+  href?: string;
 }
 
 // a titled card of key/value rows (label column 160px, muted), e.g. the summary of a resource
@@ -27,7 +29,7 @@ let { title, rows, empty = 'None', onOpen }: Props = $props();
 <Card {title}>
   {#if rows.length}
     <dl class="flex flex-col gap-2">
-      {#each rows as row (row.label)}
+      {#each rows as row (`${row.label}:${row.value}`)}
         {@const ref = row.ref}
         <div class="flex items-baseline gap-4">
           <dt class="w-40 shrink-0 truncate text-muted-foreground" title={row.label}>{row.label}</dt>
@@ -36,6 +38,14 @@ let { title, rows, empty = 'None', onOpen }: Props = $props();
               <button
                 class="rounded-sm text-left outline-none hover:underline focus-visible:ring-1 focus-visible:ring-ring"
                 onclick={(): void => onOpen(ref)}>{row.value}</button>
+            {:else if row.href}
+              {@const href = row.href}
+              <button
+                class="rounded-sm text-left text-primary outline-none hover:underline focus-visible:ring-1 focus-visible:ring-ring"
+                title="Open {href} in the browser"
+                onclick={(): void => {
+                  window.openExternal(href).catch(console.error);
+                }}>{row.value}</button>
             {:else}
               {row.value || '—'}
             {/if}

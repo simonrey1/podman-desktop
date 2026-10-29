@@ -45,7 +45,7 @@ Status in v2: ✅ done · ◐ partial · ☐ missing
 | Empty state "Start your first container" (pulls + runs hello)                                                                       | ☐                          |
 | Details header: status, engine, actions; Summary links to the image and the pod                                                     | ✅                         |
 | Details: live CPU / memory stats                                                                                                    | ✅                         |
-| Details Summary (name, id, engine, image, command, ports links, state, started, labels, group/pod info, infra banner)               | ◐                          |
+| Details Summary (name, id, engine, image, command, ports links, state, started, labels, group/pod info, infra banner)               | ✅                         |
 | Details Inspect, Kube (generated YAML)                                                                                              | ✅                         |
 | Logs: streaming                                                                                                                     | ✅ (panel, multi-instance) |
 | Logs: search, clear logs (since-timestamp), re-fetch on restart                                                                     | ✅                         |

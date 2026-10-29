@@ -76,22 +76,37 @@ let details: KeyValue[] = $derived(
             ? viewRef('pod-details', { engineId: container.engineId, podId: container.pod.id })
             : undefined,
         },
+        // only for the containers of a Compose project
+        ...(container.Labels?.['com.docker.compose.project']
+          ? [{ label: 'Compose project', value: container.Labels['com.docker.compose.project'] }]
+          : []),
         { label: 'Command', value: container.Command ?? '', mono: true },
+        { label: 'State', value: container.State },
         { label: 'Created', value: `${age(container.Created)} ago` },
-        { label: 'Started', value: container.StartedAt ? `${age(container.StartedAt)} ago` : '' },
+        {
+          label: 'Uptime',
+          value: container.State === 'running' && container.StartedAt ? age(container.StartedAt) : '',
+        },
         { label: 'Restart policy', value: inspect?.HostConfig.RestartPolicy?.Name ?? '' },
       ]
     : [],
 );
 
+// each published port opens in the browser
+let ports: KeyValue[] = $derived.by(() => {
+  const published = (container?.Ports ?? []).filter(port => port.PublicPort);
+  if (published.length === 0) {
+    return [{ label: 'Ports', value: '' }];
+  }
+  return published.map((port, index) => ({
+    label: index === 0 ? 'Ports' : '',
+    value: `localhost:${port.PublicPort} → ${port.PrivatePort}/${port.Type}`,
+    href: port.Type === 'tcp' ? `http://localhost:${port.PublicPort}` : undefined,
+  }));
+});
+
 let networking: KeyValue[] = $derived([
-  {
-    label: 'Ports',
-    value: (container?.Ports ?? [])
-      .filter(port => port.PublicPort)
-      .map(port => `${port.PublicPort} → ${port.PrivatePort}/${port.Type}`)
-      .join(', '),
-  },
+  ...ports,
   { label: 'Networks', value: Object.keys(inspect?.NetworkSettings.Networks ?? {}).join(', ') },
   {
     label: 'Mounts',
@@ -134,6 +149,12 @@ let environment: KeyValue[] = $derived(
   {/snippet}
   {#if container}
     {#if view.state.section === 'summary'}
+      {#if container.IsInfra}
+        <p class="mx-3 mt-3 rounded-lg border bg-card px-4 py-3 text-muted-foreground">
+          This is the infra container of the pod {container.pod?.name ?? ''}: it holds the namespaces shared by the
+          containers of the pod.
+        </p>
+      {/if}
       <div class="grid grid-cols-1 gap-3 p-3 xl:grid-cols-2">
         <KeyValueCard title="Details" rows={details} onOpen={(ref): void => view.open(ref)} />
         {#if container.State === 'running'}
