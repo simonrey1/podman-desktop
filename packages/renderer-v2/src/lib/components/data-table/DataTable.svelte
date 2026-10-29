@@ -2,7 +2,8 @@
 import ArrowDownIcon from '@lucide/svelte/icons/arrow-down';
 import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 import { type ColumnDef, createTable, FlexRender, type RowData, type SortingState } from '@tanstack/svelte-table';
-import type { Snippet } from 'svelte';
+import { createVirtualizer } from '@tanstack/svelte-virtual';
+import { type Snippet, untrack } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
 
 import { Checkbox } from '#lib/components/ui/checkbox/index.js';
@@ -112,55 +113,59 @@ const table = createTable({
 
 let rows = $derived(table.getRowModel().rows);
 
-// only the rows in the scrolling viewport are rendered (and some around, to scroll without a blank): a list of
-// hundreds of rows renders as fast as a short one; spacers keep the height of the rows not rendered
+// only the rows in the scrolling viewport are rendered (and some around, to scroll without a blank), by the virtualizer
+// of TanStack: a list of hundreds of rows renders as fast as a short one; spacers keep the height of the others
 const ROW_HEIGHT = 35;
 const OVERSCAN = 6;
-let rowHeight = $state(ROW_HEIGHT);
-let range = $state({ start: 0, end: 25 });
-// fewer rows (e.g. filtered) than the start of the range: the last rows
-let start = $derived(Math.min(range.start, Math.max(0, rows.length - (range.end - range.start))));
-let end = $derived(Math.min(rows.length, start + (range.end - range.start)));
-let shown = $derived(rows.slice(start, end));
 let columnCount = $derived(columns.length + (selection ? 1 : 0));
+// the scrolling viewport of the page, and the distance from its top to the first row (the header above the rows)
+let viewport: HTMLElement | null = $state(null);
+let scrollMargin = $state(0);
+
+const virtualizer = createVirtualizer<HTMLElement, HTMLTableRowElement>({
+  count: 0,
+  getScrollElement: () => viewport,
+  estimateSize: () => ROW_HEIGHT,
+  overscan: OVERSCAN,
+});
+
+// the options follow the rows (setOptions updates the store: not a dependency of the effect)
+$effect(() => {
+  const options = {
+    count: rows.length,
+    scrollMargin,
+    getScrollElement: (): HTMLElement | null => viewport,
+    getItemKey: (index: number): string | number => rows[index]?.id ?? index,
+  };
+  untrack(() => $virtualizer).setOptions(options);
+});
+
+let items = $derived($virtualizer.getVirtualItems());
+let shown = $derived(items.flatMap(item => (rows[item.index] ? [{ row: rows[item.index], index: item.index }] : [])));
+let before = $derived(items[0] ? items[0].start - scrollMargin : 0);
+let after = $derived(items.length ? $virtualizer.getTotalSize() - ((items.at(-1)?.end ?? 0) - scrollMargin) : 0);
+
+// the height of a row rendered, measured: the estimate is corrected (e.g. by the density of the theme)
+const measureRow: Attachment<HTMLTableRowElement> = row => {
+  untrack(() => $virtualizer).measureElement(row);
+};
 
 const windowed: Attachment<HTMLElement> = body => {
-  const viewport = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+  viewport = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
   if (!viewport) {
-    // not in a scrolling page: every row
-    range = { start: 0, end: Number.POSITIVE_INFINITY };
     return;
   }
-  let frame = 0;
-  const update = (): void => {
-    frame = 0;
-    // the top of the rows in the viewport: negative once scrolled past it
-    const top = body.getBoundingClientRect().top - viewport.getBoundingClientRect().top;
-    const start = Math.max(0, Math.floor(-top / rowHeight) - OVERSCAN);
-    const end = Math.ceil((viewport.clientHeight - top) / rowHeight) + OVERSCAN;
-    if (start !== range.start || end !== range.end) {
-      range = { start, end };
-    }
+  const scroller = viewport;
+  // the rows start under the header of the table (and what is above it in the page)
+  const measure = (): void => {
+    scrollMargin = body.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
   };
-  const schedule = (): void => {
-    frame ||= requestAnimationFrame(update);
-  };
-  const resized = new ResizeObserver(() => {
-    // the height of a rendered row (the density of the theme may change it)
-    const row = body.querySelector('tr[data-row]');
-    const height = row?.getBoundingClientRect().height;
-    if (height) {
-      rowHeight = height;
-    }
-    schedule();
-  });
-  resized.observe(viewport);
-  viewport.addEventListener('scroll', schedule, { passive: true });
-  update();
+  const resized = new ResizeObserver(measure);
+  resized.observe(scroller);
+  measure();
   return (): void => {
-    cancelAnimationFrame(frame);
     resized.disconnect();
-    viewport.removeEventListener('scroll', schedule);
+    viewport = null;
   };
 };
 
@@ -245,15 +250,17 @@ function onkeydown(event: KeyboardEvent, row: T): void {
         {/each}
       </Table.Header>
       <Table.Body {@attach windowed}>
-        {#if start > 0}
+        {#if before > 0}
           <tr aria-hidden="true">
-            <td class="h-(--spacer) p-0" colspan={columnCount} style:--spacer="{start * rowHeight}px"></td>
+            <td class="h-(--spacer) p-0" colspan={columnCount} style:--spacer="{before}px"></td>
           </tr>
         {/if}
-        {#each shown as row, index (row.id)}
+        {#each shown as { row, index } (row.id)}
           <Table.Row
             data-row
-            aria-rowindex={start + index + 2}
+            data-index={index}
+            {@attach measureRow}
+            aria-rowindex={index + 2}
             tabindex={onOpen ? 0 : undefined}
             data-interactive={onOpen ? true : undefined}
             onclick={(): void => onOpen?.(row.original, { preview: true })}
@@ -300,9 +307,9 @@ function onkeydown(event: KeyboardEvent, row: T): void {
             </Table.Cell>
           </Table.Row>
         {/each}
-        {#if end < rows.length}
+        {#if after > 0}
           <tr aria-hidden="true">
-            <td class="h-(--spacer) p-0" colspan={columnCount} style:--spacer="{(rows.length - end) * rowHeight}px"></td>
+            <td class="h-(--spacer) p-0" colspan={columnCount} style:--spacer="{after}px"></td>
           </tr>
         {/if}
       </Table.Body>

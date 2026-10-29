@@ -1115,6 +1115,9 @@ importers:
       '@tanstack/svelte-table':
         specifier: ^9.3.1
         version: 9.3.1(svelte@5.57.2(@typescript-eslint/types@8.70.0))
+      '@tanstack/svelte-virtual':
+        specifier: ^3.13.49
+        version: 3.13.49(svelte@5.57.2(@typescript-eslint/types@8.70.0))
       '@tsconfig/svelte':
         specifier: ^5.0.8
         version: 5.0.8
@@ -5450,9 +5453,17 @@ packages:
     peerDependencies:
       svelte: ^5.0.0
 
+  '@tanstack/svelte-virtual@3.13.49':
+    resolution: {integrity: sha512-0P4dw7IF0ItwP3E/sye1rHfMkRPtJnX73VUjVaO6iGJmYVfXyVHnZ21SsWaY5OdTBYnBxZnJdBptuVgSI5zTKQ==}
+    peerDependencies:
+      svelte: ^3.48.0 || ^4.0.0 || ^5.0.0
+
   '@tanstack/table-core@9.3.1':
     resolution: {integrity: sha512-zQvlxSNi2qGM3L4jh85Z6hqMfdIR5qOfD9KHOU32nuKFJGN0RlJ7UvV1lsPb1fPVhpFYI0VP3jJGxLdLDpTKjQ==}
     engines: {node: '>=20'}
+
+  '@tanstack/virtual-core@3.19.8':
+    resolution: {integrity: sha512-Oz/SYBo/aVPyQkwtOw7Q23myITUgFIof2glQqydYJAPL6mH2SkJDkvDKZTklB+7gv5jGLZQhyTcd7SO1A1EODQ==}
 
   '@testing-library/dom@10.4.2':
     resolution: {integrity: sha512-yzr2S9HyAIdhz2/6qHgbs665Q7PKVcDF05vsOlHPxG1mo36gKVesdYVeDLnXgfjJ03CrKRk08knc6+E/9m8v2Q==}
@@ -17859,9 +17870,16 @@ snapshots:
       '@tanstack/table-core': 9.3.1
       svelte: 5.57.2(@typescript-eslint/types@8.70.0)
 
+  '@tanstack/svelte-virtual@3.13.49(svelte@5.57.2(@typescript-eslint/types@8.70.0))':
+    dependencies:
+      '@tanstack/virtual-core': 3.19.8
+      svelte: 5.57.2(@typescript-eslint/types@8.70.0)
+
   '@tanstack/table-core@9.3.1':
     dependencies:
       '@tanstack/store': 0.11.2
+
+  '@tanstack/virtual-core@3.19.8': {}
 
   '@testing-library/dom@10.4.2':
     dependencies:
