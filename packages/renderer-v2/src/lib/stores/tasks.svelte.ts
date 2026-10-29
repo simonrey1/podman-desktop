@@ -17,6 +17,7 @@
  ***********************************************************************/
 
 import type { NotificationTaskInfo, TaskInfo } from '@desktop-framework/api';
+import { toast } from 'svelte-sonner';
 
 import { receive } from '#lib/api/events.js';
 import type { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
@@ -29,12 +30,32 @@ function normalize(task: TaskInfo | NotificationTaskInfo): TaskInfo {
   return task;
 }
 
+/** the setting showing a toast for each task (experimental, off by default) */
+const TOAST_SETTING = 'tasks.Toast';
+
+/** shows the task in its toast, created with the task and updated with it */
+function showToast(task: TaskInfo): void {
+  const options = { id: task.id, description: task.error };
+  if (task.state === 'running') {
+    const progress = task.progress === undefined ? undefined : `${Math.round(task.progress)}%`;
+    toast.loading(task.name, { ...options, description: progress, duration: Number.POSITIVE_INFINITY });
+  } else if (task.status === 'success') {
+    toast.success(task.name, options);
+  } else if (task.status === 'failure') {
+    toast.error(task.name, { ...options, duration: 8000 });
+  } else {
+    toast.info(task.name, { ...options, description: 'Canceled' });
+  }
+}
+
 /**
  * The tasks of the main process and of the extensions (pulls, pushes, builds...), as they are created, updated
  * and removed: the main process sends them from its start, they cannot be listed.
  */
 export class TasksStore {
   all: TaskInfo[] = $state.raw([]);
+  /** each task shows in a toast (the setting of the toasts) */
+  toasts = $state(false);
   readonly running: TaskInfo[] = $derived(this.all.filter(task => task.state === 'running'));
 
   readonly #confirmations: ConfirmationsStore;
@@ -44,15 +65,31 @@ export class TasksStore {
   }
 
   start(): () => void {
+    window
+      .getConfigurationValue<boolean>(TOAST_SETTING)
+      .then(value => (this.toasts = !!value))
+      .catch((error: unknown) => console.error('Error reading the setting of the task toasts', error));
     const stops = [
+      receive<{ key: string; value: unknown }>('onDidChangeConfiguration', ({ key, value }) => {
+        if (key === TOAST_SETTING) {
+          this.toasts = !!value;
+        }
+      }),
       receive<TaskInfo>('task-created', task => {
         this.all = [...this.all, normalize(task)];
+        if (this.toasts) {
+          showToast(normalize(task));
+        }
       }),
       receive<TaskInfo>('task-updated', task => {
         this.all = this.all.map(current => (current.id === task.id ? normalize(task) : current));
+        if (this.toasts) {
+          showToast(normalize(task));
+        }
       }),
       receive<TaskInfo>('task-removed', task => {
         this.all = this.all.filter(current => current.id !== task.id);
+        toast.dismiss(task.id);
       }),
     ];
     return (): void => stops.forEach(stop => stop());

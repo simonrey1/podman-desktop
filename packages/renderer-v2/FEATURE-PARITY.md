@@ -214,7 +214,7 @@ providers stay part of the engines and providers domain.
 | Status bar: task indicator (running tasks, opens the tasks)                                                                                                 | ✅                                   |
 | Status bar: pinned provider widgets                                                                                                                         | ☐                                    |
 | Task manager (running / completed tasks, view, cancel, clear), in the panel                                                                                 | ✅                                   |
-| Toasts (success / error / warning / info, task toasts)                                                                                                      | ◐ (failures of the actions)          |
+| Toasts: failures of the actions, task toasts (setting tasks.Toast: running, then success / failure / canceled)                                              | ✅                                   |
 | Dialogs requested by extensions / main: message box (markdown, type icon, cancel / default buttons, dropdown buttons, queued)                               | ✅                                   |
 | Dialogs requested by extensions / main: input box (validation, password, multiline, selection), quick pick (filter, details, pick many, highlight callback) | ✅                                   |
 | Dialogs requested by extensions / main: custom pick (cards with markdown and details, one or several selected)                                              | ✅                                   |
