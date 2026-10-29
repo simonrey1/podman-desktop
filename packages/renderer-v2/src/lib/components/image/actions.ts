@@ -88,6 +88,19 @@ export function imageActions(image: ImageInfo, used: boolean, app: App): Resourc
           },
           run: (): Promise<void> => window.removeManifest(engineId, imageId),
         },
+        {
+          label: 'Push',
+          progress: 'pushing',
+          icon: ArrowUpFromLineIcon,
+          confirmation: {
+            title: `Push ${imageName(image)}`,
+            message: `The manifest ${imageName(image)} and its images will be pushed to its registry.`,
+          },
+          run: async (): Promise<void> => {
+            await window.pushManifest({ name: imageName(image), destination: imageName(image) });
+            toast.success(`${imageName(image)} pushed`);
+          },
+        },
       ],
     };
   }
