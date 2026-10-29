@@ -30,6 +30,15 @@ export function subscribe(channels: readonly string[], listener: () => void): ()
 }
 
 /**
+ * Receives the data of an event sent by the main process (e.g. a dialog to show).
+ * @returns a function removing the listener
+ */
+export function receive<T>(channel: string, listener: (data: T) => void): () => void {
+  const disposable = window.events.receive(channel, (data: unknown) => listener(data as T));
+  return (): void => disposable.dispose();
+}
+
+/**
  * Resolves once the extensions are started: until then the providers (and their resources) are not registered.
  */
 export function whenExtensionsStarted(): Promise<void> {

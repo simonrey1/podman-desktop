@@ -12,6 +12,7 @@ import TabGroupView from '#lib/workbench/TabGroupView.svelte';
 
 import ConfirmationDialog from './ConfirmationDialog.svelte';
 import Explorer from './Explorer.svelte';
+import MessageBoxDialog from './MessageBoxDialog.svelte';
 import StatusBar from './StatusBar.svelte';
 import TitleBar from './TitleBar.svelte';
 
@@ -123,6 +124,7 @@ function onkeydown(event: KeyboardEvent): void {
 </Sidebar.Provider>
 
 <ConfirmationDialog />
+<MessageBoxDialog />
 
 <!-- the results of the actions, e.g. their failures -->
 <Toaster theme={app.theme.isDark ? 'dark' : 'light'} position="bottom-right" />

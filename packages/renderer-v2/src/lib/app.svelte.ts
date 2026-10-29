@@ -24,6 +24,7 @@ import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
+import { MessageBoxesStore } from '#lib/stores/message-boxes.svelte.js';
 import { NetworksStore } from '#lib/stores/networks.svelte.js';
 import { PodsStore } from '#lib/stores/pods.svelte.js';
 import { ThemeStore } from '#lib/stores/theme.svelte.js';
@@ -44,6 +45,7 @@ export class App {
   readonly networks = new NetworksStore();
   readonly confirmations = new ConfirmationsStore();
   readonly actions = new ActionsStore(this.confirmations);
+  readonly messageBoxes = new MessageBoxesStore();
 
   readonly workbench = new Workbench({
     // the explorer shows the engine of the active view
@@ -68,9 +70,16 @@ export class App {
       })
       .catch((error: unknown) => console.error('Error getting the platform and the version', error));
 
-    const stops = [this.theme, this.engines, this.containers, this.pods, this.images, this.volumes, this.networks].map(
-      store => store.start(),
-    );
+    const stops = [
+      this.theme,
+      this.messageBoxes,
+      this.engines,
+      this.containers,
+      this.pods,
+      this.images,
+      this.volumes,
+      this.networks,
+    ].map(store => store.start());
     return (): void => {
       for (const stop of stops) {
         stop();
