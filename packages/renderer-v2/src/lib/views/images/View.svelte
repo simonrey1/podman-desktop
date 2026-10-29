@@ -1,9 +1,11 @@
 <script lang="ts">
 import type { ImageInfo } from '@desktop-framework/api';
+import DownloadIcon from '@lucide/svelte/icons/download';
 import LayersIcon from '@lucide/svelte/icons/layers';
 
 import { getApp } from '#lib/app.svelte.js';
 import { imageActions, imagePrune } from '#lib/components/image/actions.js';
+import PullImageDialog from '#lib/components/image/PullImageDialog.svelte';
 import ResourceList from '#lib/components/ResourceList.svelte';
 import type { ResourceActionSet } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -67,6 +69,9 @@ const columns = imageColumns(used, image => manifestByImage[image.Id]);
   actionsOf={(image): ResourceActionSet => imageActions(image, used(image), app)}
   prune={imagePrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Delete']}
+  onCreate={(): void => app.modals.open(PullImageDialog, { engineId: view.params.engineId })}
+  createLabel="Pull"
+  createIcon={DownloadIcon}
   icon={LayersIcon}
   title="Images"
   noun="images"

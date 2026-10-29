@@ -51,8 +51,10 @@ interface Props {
   bulk?: string[];
   /** the prune of the unused resources of the engine, in the header */
   prune?: ResourceActionSet;
-  /** creates a resource, e.g. opens its form: a Create button in the header */
+  /** creates a resource, e.g. opens its form: a button in the header (Create, unless labelled) */
   onCreate?: () => void;
+  createLabel?: string;
+  createIcon?: LucideIcon;
   /** actions on the selected rows together (e.g. a pod of the selected containers), after the bulk actions */
   selectionActions?: {
     label: string;
@@ -88,6 +90,8 @@ let {
   bulk = [],
   prune,
   onCreate,
+  createLabel = 'Create',
+  createIcon = PlusIcon,
   selectionActions = [],
 }: Props = $props();
 
@@ -174,8 +178,9 @@ let bulkActions: BulkAction[] = $derived.by(() => {
   {#snippet actions()}
     {#if onCreate}
       <Button onclick={onCreate}>
-        <PlusIcon data-icon="inline-start" />
-        Create
+        {@const CreateIcon = createIcon}
+        <CreateIcon data-icon="inline-start" />
+        {createLabel}
       </Button>
     {/if}
     {#if prune}
