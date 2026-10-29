@@ -2,14 +2,14 @@
 import ArrowDownIcon from '@lucide/svelte/icons/arrow-down';
 import ArrowUpIcon from '@lucide/svelte/icons/arrow-up';
 import { type ColumnDef, createTable, FlexRender, type RowData, type SortingState } from '@tanstack/svelte-table';
-import { createVirtualizer } from '@tanstack/svelte-virtual';
-import { type Snippet, untrack } from 'svelte';
+import type { Snippet } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
 
 import { Checkbox } from '#lib/components/ui/checkbox/index.js';
 import * as Table from '#lib/components/ui/table/index.js';
 
 import { type DataTableFeatures, features } from './data-table.js';
+import { VirtualRows } from './virtual-rows.svelte.js';
 
 interface Props {
   data: T[];
@@ -115,55 +115,49 @@ let rows = $derived(table.getRowModel().rows);
 
 // only the rows in the scrolling viewport are rendered (and some around, to scroll without a blank), by the virtualizer
 // of TanStack: a list of hundreds of rows renders as fast as a short one; spacers keep the height of the others
-const ROW_HEIGHT = 35;
 const OVERSCAN = 6;
 let columnCount = $derived(columns.length + (selection ? 1 : 0));
-// the scrolling viewport of the page, and the distance from its top to the first row (the header above the rows)
+// the scrolling viewport of the page, the distance from its top to the first row (the header above the rows), and the
+// height of a row (the same for all, measured once rendered: the density of the theme may change it)
 let viewport: HTMLElement | null = $state(null);
 let scrollMargin = $state(0);
+let rowHeight = $state(35);
 
-const virtualizer = createVirtualizer<HTMLElement, HTMLTableRowElement>({
-  count: 0,
-  getScrollElement: () => viewport,
-  estimateSize: () => ROW_HEIGHT,
+const virtual = new VirtualRows(() => ({
+  count: rows.length,
+  scrollElement: viewport,
+  scrollMargin,
+  rowHeight,
   overscan: OVERSCAN,
-});
+  getItemKey: (index: number): string | number => rows[index]?.id ?? index,
+}));
 
-// the options follow the rows (setOptions updates the store: not a dependency of the effect)
-$effect(() => {
-  const options = {
-    count: rows.length,
-    scrollMargin,
-    getScrollElement: (): HTMLElement | null => viewport,
-    getItemKey: (index: number): string | number => rows[index]?.id ?? index,
-  };
-  untrack(() => $virtualizer).setOptions(options);
-});
-
-let items = $derived($virtualizer.getVirtualItems());
+let items = $derived(virtual.items);
 let shown = $derived(items.flatMap(item => (rows[item.index] ? [{ row: rows[item.index], index: item.index }] : [])));
 let before = $derived(items[0] ? items[0].start - scrollMargin : 0);
-let after = $derived(items.length ? $virtualizer.getTotalSize() - ((items.at(-1)?.end ?? 0) - scrollMargin) : 0);
-
-// the height of a row rendered, measured: the estimate is corrected (e.g. by the density of the theme)
-const measureRow: Attachment<HTMLTableRowElement> = row => {
-  untrack(() => $virtualizer).measureElement(row);
-};
+let after = $derived(items.length ? virtual.totalSize - ((items.at(-1)?.end ?? 0) - scrollMargin) : 0);
 
 const windowed: Attachment<HTMLElement> = body => {
-  viewport = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
-  if (!viewport) {
+  const scroller = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+  if (!scroller) {
     return;
   }
-  const scroller = viewport;
   // the rows start under the header of the table (and what is above it in the page)
   const measure = (): void => {
     scrollMargin = body.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    const height = body.querySelector('tr[data-row]')?.getBoundingClientRect().height;
+    if (height) {
+      rowHeight = height;
+    }
   };
   const resized = new ResizeObserver(measure);
   resized.observe(scroller);
   measure();
+  viewport = scroller;
+  // the first rows are rendered once the viewport is known: their height measured then
+  const frame = requestAnimationFrame(measure);
   return (): void => {
+    cancelAnimationFrame(frame);
     resized.disconnect();
     viewport = null;
   };
@@ -258,8 +252,6 @@ function onkeydown(event: KeyboardEvent, row: T): void {
         {#each shown as { row, index } (row.id)}
           <Table.Row
             data-row
-            data-index={index}
-            {@attach measureRow}
             aria-rowindex={index + 2}
             tabindex={onOpen ? 0 : undefined}
             data-interactive={onOpen ? true : undefined}
