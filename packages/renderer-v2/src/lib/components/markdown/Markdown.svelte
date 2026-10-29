@@ -93,14 +93,14 @@ function onclick(event: MouseEvent): void {
     margin-block: 0.5rem;
     border-radius: var(--radius-md);
   }
-  /* like the default buttons */
+  /* like the small buttons */
   .markdown :global(.markdown-button) {
     display: inline-flex;
     align-items: center;
-    height: 1.75rem;
-    margin-block: 0.25rem;
+    height: 1.5rem;
     padding-inline: 0.625rem;
     border-radius: var(--radius-md);
+    font-size: var(--text-sm);
     background: var(--color-primary);
     color: var(--color-primary-foreground);
     font-weight: 500;

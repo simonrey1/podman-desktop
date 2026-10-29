@@ -17,28 +17,33 @@ interface Props {
 let { notification, onDismiss }: Props = $props();
 
 const TYPES = {
-  info: { icon: InfoIcon, class: 'text-primary', border: 'border-t-primary' },
-  warn: { icon: TriangleAlertIcon, class: 'text-state-warning', border: 'border-t-state-warning' },
-  error: { icon: CircleAlertIcon, class: 'text-destructive', border: 'border-t-destructive' },
+  info: { icon: InfoIcon, class: 'border-primary/30 bg-primary/5', iconClass: 'text-primary' },
+  warn: {
+    icon: TriangleAlertIcon,
+    class: 'border-state-warning/30 bg-state-warning/5',
+    iconClass: 'text-state-warning',
+  },
+  error: { icon: CircleAlertIcon, class: 'border-destructive/30 bg-destructive/5', iconClass: 'text-destructive' },
 };
 
 let type = $derived(TYPES[notification.type] ?? TYPES.info);
 </script>
 
-<article class={['flex gap-3 rounded-lg border-t-2 bg-card p-4 text-card-foreground', type.border]} aria-label={notification.title}>
-  <type.icon class={['size-5 shrink-0', type.class]} />
-  <div class="flex min-w-0 flex-1 flex-col gap-2">
-    <div class="flex items-start gap-2">
-      <h3 class="flex-1 font-medium">{notification.title}</h3>
-      <ActionButton icon={XIcon} label="Dismiss" size="icon-xs" onclick={onDismiss} />
-    </div>
+<!-- compact, like an alert: the text takes the room, the actions are on the right -->
+<article class={['flex items-start gap-3 rounded-lg border px-4 py-3', type.class]} aria-label={notification.title}>
+  <type.icon class={['mt-0.5 size-4 shrink-0', type.iconClass]} />
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <h3 class="font-medium">{notification.title}</h3>
     {#if notification.body}
       <div class="text-muted-foreground">
         <Markdown markdown={notification.body} />
       </div>
     {/if}
-    {#if notification.markdownActions}
-      <Markdown markdown={notification.markdownActions} />
-    {/if}
   </div>
+  {#if notification.markdownActions}
+    <div class="shrink-0">
+      <Markdown markdown={notification.markdownActions} />
+    </div>
+  {/if}
+  <ActionButton icon={XIcon} label="Dismiss" size="icon-xs" onclick={onDismiss} />
 </article>
