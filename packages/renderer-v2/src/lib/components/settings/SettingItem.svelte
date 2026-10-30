@@ -50,7 +50,12 @@ let slider = $derived(
     typeof setting.maximum === 'number' &&
     ['cpu', 'memory', 'diskSize'].includes(setting.format ?? ''),
 );
-let sliderLabel = $derived(setting.format === 'cpu' ? `${Number(value ?? 0)} CPUs` : bytes(Number(value ?? 0)));
+// the slider snaps its value to its step as soon as it is shown (e.g. a memory of 2046517248 bytes to 2000000000): only
+// what the user moves is written, once released, the value shown while moving it
+let sliding: number | undefined = $state();
+let sliderTouched = false;
+let sliderValue = $derived(sliding ?? Number(value ?? 0));
+let sliderLabel = $derived(setting.format === 'cpu' ? `${sliderValue} CPUs` : bytes(sliderValue));
 // a field of a form without a display name: its description is its label (e.g. "HTTP Port" for `….http.port`)
 let describedByLabel = $derived(!!onChange && !setting.displayName && !!setting.description);
 let label = $derived.by(() => {
@@ -129,7 +134,7 @@ function reset(): void {
           {#if setting.experimental}
             <Badge variant="outline"><FlaskConicalIcon />Experimental</Badge>
           {/if}
-          {#if read && !disabled && isModified(setting, value)}
+          {#if read && !disabled && !onChange && isModified(setting, value)}
             <ActionButton icon={RotateCcwIcon} label="Reset to the default" size="icon-xs" onclick={reset} />
           {/if}
         </div>
@@ -169,15 +174,32 @@ function reset(): void {
         </div>
       {:else if slider}
         <div class="flex w-64 shrink-0 items-center gap-3">
+          <!-- moved by the user (its pointer, its keys, seen before its thumb commits): only then its value is written -->
           <Slider
             type="single"
             id={controlId}
+            onpointerdowncapture={(): void => {
+              sliderTouched = true;
+            }}
+            onkeydowncapture={(): void => {
+              sliderTouched = true;
+            }}
             {disabled}
             min={setting.minimum ?? 0}
             max={typeof setting.maximum === 'number' ? setting.maximum : 0}
             step={setting.step ?? 1}
             value={Number(value ?? setting.minimum ?? 0)}
-            onValueChange={(next: number): void => write(next)} />
+            onValueChange={(next: number): void => {
+              if (sliderTouched) {
+                sliding = next;
+              }
+            }}
+            onValueCommit={(next: number): void => {
+              if (sliderTouched) {
+                sliding = undefined;
+                write(next);
+              }
+            }} />
           <span class="w-20 shrink-0 text-right text-muted-foreground tabular-nums">{sliderLabel}</span>
         </div>
       {:else if kind === 'number'}
