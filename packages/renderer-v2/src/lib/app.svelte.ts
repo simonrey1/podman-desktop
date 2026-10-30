@@ -27,6 +27,7 @@ import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
 import { ConnectionLogs } from '#lib/stores/connection-logs.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { ContextStore } from '#lib/stores/context.svelte.js';
+import { CreationsStore } from '#lib/stores/creations.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
 import { ImageFilesProvidersStore } from '#lib/stores/image-files.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
@@ -69,6 +70,7 @@ export class App {
   readonly modals = new ModalsStore();
   readonly builds = new BuildsStore();
   readonly connectionLogs = new ConnectionLogs();
+  readonly creations = new CreationsStore(this.engines);
   readonly tasks = new TasksStore(this.confirmations);
   readonly notifications = new NotificationsStore();
 

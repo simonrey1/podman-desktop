@@ -24,6 +24,7 @@ import type { ParamsOf, StateOf, ViewDefinition, ViewSchema } from '#lib/workben
 import buildOutput from './build-output/view.js';
 import composeDetails from './compose-details/view.js';
 import connection from './connection/view.js';
+import connectionCreate from './connection-create/view.js';
 import connectionLogs from './connection-logs/view.js';
 import connectionTerminal from './connection-terminal/view.js';
 import containerDetails from './container-details/view.js';
@@ -31,6 +32,7 @@ import containerLogs from './container-logs/view.js';
 import containerTerminal from './container-terminal/view.js';
 import containerTty from './container-tty/view.js';
 import containers from './containers/view.js';
+import creationOutput from './creation-output/view.js';
 import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
 import imageBuild from './image-build/view.js';
@@ -55,6 +57,8 @@ export const VIEWS = {
   dashboard,
   engine,
   connection,
+  'connection-create': connectionCreate,
+  'creation-output': creationOutput,
   'connection-terminal': connectionTerminal,
   'connection-logs': connectionLogs,
   containers,

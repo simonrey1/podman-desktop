@@ -40,8 +40,9 @@ Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, 
 - A container engine opens its **overview** (the Overview entry of the explorer): its resources, and the details and
   the lifecycle of its connection. A Kubernetes cluster or a VM opens a simple overview of its details: v2 has no views
   of their resources (see 8).
-- A connection is created with **+ Add resource** and edited in a **modal**, generated from the properties of its
-  provider. The set-up of a provider (e.g. Podman not installed) is the notification of its extension on the dashboard.
+- A connection is created with **+ Add resource** in a **tab** (it takes a while, its output matters, it can fail and
+  be tried again: its output is a session of the panel, as a build) and edited in a **modal**, both generated from the
+  properties of its provider. The set-up of a provider (e.g. Podman not installed) is the notification of its extension on the dashboard.
 - A connection has one id, `<provider id>.<kind>.<name>`; a container connection also has the id of its engine,
   `<provider id>.<name>`, the one its resources carry.
 

@@ -29,7 +29,7 @@ import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.
 import type { Connection } from '#lib/stores/engines.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
-import ConnectionFormDialog from './ConnectionFormDialog.svelte';
+import ConnectionEditDialog from './ConnectionEditDialog.svelte';
 
 type Lifecycle = 'start' | 'stop' | 'delete' | 'edit';
 
@@ -131,8 +131,7 @@ export function connectionActions(connection: Connection, app: App): ResourceAct
         icon: PencilIcon,
         hidden: !can('edit'),
         disabled: busy,
-        run: (): void =>
-          app.modals.open(ConnectionFormDialog, { provider: connection.provider, kind: connection.kind, connection }),
+        run: (): void => app.modals.open(ConnectionEditDialog, { connection }),
       },
       {
         label: 'Delete',

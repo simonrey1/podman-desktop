@@ -16,8 +16,8 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-/** the color of a line of a provider, by its level (ANSI) */
-const COLORS = { log: '', warn: '\x1b[33m', error: '\x1b[31m' };
+/** the color of a line of a provider, by its level (ANSI): the tools write their progress as warnings (stderr) */
+const COLORS = { log: '', warn: '', error: '\x1b[31m' };
 
 /**
  * The output of the lifecycle operations of the connections (start, stop, edit...), as their provider logs it: kept
@@ -31,7 +31,9 @@ export class ConnectionLogs {
 
   /** a line of a provider about a connection, e.g. while it starts */
   write(connectionId: string, level: 'log' | 'warn' | 'error', text: string): void {
-    const data = `${COLORS[level]}${text}${COLORS[level] ? '\x1b[0m' : ''}\r\n`;
+    // the provider writes lines, some with their end: the terminal needs carriage returns
+    const lines = text.replace(/\r?\n$/, '').replaceAll(/\r?\n/g, '\r\n');
+    const data = `${COLORS[level]}${lines}${COLORS[level] ? '\x1b[0m' : ''}\r\n`;
     const output = this.#output.get(connectionId) ?? [];
     output.push(data);
     this.#output.set(connectionId, output);

@@ -12,8 +12,8 @@ import { Button } from '#lib/components/ui/button/index.js';
 import * as DropdownMenu from '#lib/components/ui/dropdown-menu/index.js';
 import { iconOf } from '#lib/stores/accessories.svelte.js';
 import { type Connection, type ConnectionKind, PROVIDER_EVENTS } from '#lib/stores/engines.svelte.js';
+import { viewRef } from '#lib/views/index.js';
 
-import ConnectionFormDialog from './ConnectionFormDialog.svelte';
 import ConnectionRow from './ConnectionRow.svelte';
 
 interface Props {
@@ -88,7 +88,7 @@ let healthy = $derived(health?.status === 'healthy' || health?.status === 'stabl
           'flex items-center gap-1.5 rounded-md px-2 py-0.5 text-sm',
           healthy && 'bg-state-success/10 text-state-success',
           health.status === 'progressing' && 'bg-muted text-muted-foreground',
-          health.status === 'critical' && 'bg-destructive/10 text-destructive',
+          health.status === 'critical' && 'bg-destructive/10 text-state-error',
         ]}
         role="status">
         {#if health.status === 'progressing'}
@@ -117,7 +117,7 @@ let healthy = $derived(health?.status === 'healthy' || health?.status === 'stabl
               {@const icon = iconOf(item.provider.images)}
               <DropdownMenu.Item
                 onSelect={(): void =>
-                  app.modals.open(ConnectionFormDialog, { provider: item.provider, kind: item.kind })}>
+                  app.workbench.open(viewRef('connection-create', { providerId: item.provider.id, kind: item.kind }))}>
                 {#if icon}<ImageIcon {icon} class="size-4" />{/if}
                 {item.label}
               </DropdownMenu.Item>
