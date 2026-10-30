@@ -188,7 +188,15 @@ async function submit(): Promise<void> {
     onClose();
   } catch (error: unknown) {
     const message = errorMessage(error);
-    failure = message.includes('Execution cancelled') ? 'Canceled' : message;
+    if (message.includes('Execution cancelled')) {
+      failure = 'Canceled';
+    } else if (message.length > 200) {
+      // a provider can fail with the whole output of a command: its first line here, all of it in the logs
+      logs.push(message);
+      failure = `${message.split('\n')[0]?.slice(0, 200) ?? ''}… (see the logs)`;
+    } else {
+      failure = message;
+    }
     logsOpen = logs.length > 0;
   } finally {
     running = false;
