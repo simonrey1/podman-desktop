@@ -65,19 +65,23 @@ function resolved(setting: Setting): Setting {
   };
 }
 
-// the settings of the provider in the scope; the ones with a `when` need the context keys of the extensions (not yet)
+// the settings of the provider in the scope, their `when` clause holding (e.g. the CPUs of a machine, when its provider
+// can set them)
 let fields = $derived(
   app.configuration.items
     .filter(setting => (Array.isArray(setting.scope) ? setting.scope.includes(scope) : setting.scope === scope))
-    .filter(setting => setting.id.startsWith(provider.id) && !setting.hidden && !setting.when)
+    .filter(setting => setting.id.startsWith(provider.id) && !setting.hidden && app.context.evaluate(setting.when))
     .filter(setting => !(editing && setting.readonly))
     .filter(setting => settingKind(setting) !== 'unsupported')
     .map(resolved),
 );
 
-// the values of the form, and the ones changed (an edition sends these only)
+// the values of the form, and the ones read first: an edition sends the values changed only
 let values: Record<string, unknown> = $state({});
-let changed: string[] = $state([]);
+let initial: Record<string, unknown> = {};
+let changed = $derived(
+  Object.keys(values).filter(id => JSON.stringify(values[id] ?? null) !== JSON.stringify(initial[id] ?? null)),
+);
 let loaded = $state(false);
 
 $effect(() => {
@@ -89,7 +93,16 @@ $effect(() => {
     const info = $state.snapshot(editing.info) as unknown as ConfigurationScope;
     Promise.all(target.map(async field => [field.id, await window.getConfigurationValue(field.id, info)] as const))
       .then(entries => {
-        values = Object.fromEntries(entries);
+        // a provider can store a number as a string (e.g. the memory of a machine): numbers, as the controls give them
+        const read = Object.fromEntries(
+          entries.map(([id, value]) => {
+            const field = target.find(item => item.id === id);
+            const number = field && settingKind(field) === 'number' && typeof value === 'string' && value !== '';
+            return [id, number ? Number(value) : value];
+          }),
+        );
+        initial = read;
+        values = { ...read };
         loaded = true;
       })
       .catch((error: unknown) => {
@@ -128,9 +141,6 @@ let tokenId: number | undefined;
 
 function change(id: string, value: unknown): void {
   values[id] = value;
-  if (!changed.includes(id)) {
-    changed.push(id);
-  }
 }
 
 async function submit(): Promise<void> {

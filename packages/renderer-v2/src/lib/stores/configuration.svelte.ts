@@ -38,13 +38,8 @@ function hasScope(setting: Setting, scope: ConfigurationScope): boolean {
   return Array.isArray(setting.scope) ? setting.scope.includes(scope) : setting.scope === scope;
 }
 
-/**
- * The settings of the settings pages: the default scope (not the settings of a connection, of an onboarding), not
- * hidden. The settings with a `when` clause wait for the context keys of the extensions (phase 9): not shown.
- */
-function isShown(setting: Setting): boolean {
-  return hasScope(setting, 'DEFAULT') && !setting.hidden && !setting.when;
-}
+/** whether a `when` clause holds, from the context keys */
+export type WhenEvaluator = (when: string | undefined) => boolean;
 
 /** the title of a section: its id in start case, e.g. `preferences` → `Preferences` */
 function sectionTitle(id: string): string {
@@ -56,7 +51,13 @@ function sectionTitle(id: string): string {
  * with the changes of the configuration (from a page, a command, an extension).
  */
 export class ConfigurationStore extends ListState<Setting> {
-  readonly shown: Setting[] = $derived(this.items.filter(isShown));
+  /**
+   * the settings of the settings pages: the default scope (not the settings of a connection, of an onboarding), not
+   * hidden, their `when` clause holding
+   */
+  readonly shown: Setting[] = $derived(
+    this.items.filter(setting => hasScope(setting, 'DEFAULT') && !setting.hidden && this.#when(setting.when)),
+  );
   readonly experimental: Setting[] = $derived(this.items.filter(setting => !!setting.experimental && !setting.hidden));
 
   readonly sections: SettingsSection[] = $derived.by(() => {
@@ -77,7 +78,9 @@ export class ConfigurationStore extends ListState<Setting> {
   // eslint-disable-next-line svelte/prefer-svelte-reactivity -- the values being read, not a reactive state
   readonly #reading = new Set<string>();
 
-  constructor() {
+  readonly #when: WhenEvaluator;
+
+  constructor(when: WhenEvaluator) {
     super(
       async () =>
         Object.entries(await window.getConfigurationProperties()).map(
@@ -85,6 +88,7 @@ export class ConfigurationStore extends ListState<Setting> {
         ),
       ['configuration-changed', 'extensions-started', 'extension-started', 'extension-stopped'],
     );
+    this.#when = when;
   }
 
   override start(): () => void {

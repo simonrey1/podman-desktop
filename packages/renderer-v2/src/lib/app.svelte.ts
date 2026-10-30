@@ -25,6 +25,7 @@ import { BuildsStore } from '#lib/stores/builds.svelte.js';
 import { ConfigurationStore } from '#lib/stores/configuration.svelte.js';
 import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
+import { ContextStore } from '#lib/stores/context.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
 import { ImageFilesProvidersStore } from '#lib/stores/image-files.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
@@ -47,7 +48,8 @@ import { Workbench } from '#lib/workbench/workbench.svelte.js';
  */
 export class App {
   readonly theme = new ThemeStore();
-  readonly configuration = new ConfigurationStore();
+  readonly context = new ContextStore();
+  readonly configuration = new ConfigurationStore(when => this.context.evaluate(when));
   readonly engines = new EnginesStore();
   readonly containers = new ContainersStore();
   readonly pods = new PodsStore();
@@ -88,11 +90,13 @@ export class App {
       .then(([platform, version]) => {
         this.platform = platform;
         this.version = version;
+        this.context.setPlatform(platform);
       })
       .catch((error: unknown) => console.error('Error getting the platform and the version', error));
 
     const stops = [
       this.theme,
+      this.context,
       this.configuration,
       this.messageBoxes,
       this.pickers,
