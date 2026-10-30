@@ -168,7 +168,7 @@ browses is a proposal in [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md#8-extensions-
 | Feature                                                                                                                                                                                                                 | v2                                           |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
 | Settings shell: a Settings tab (from the explorer), its pages: one per configuration section and node, the pages of their own, search in every section                                                                  | ✅                                           |
-| Settings: the settings with a `when` clause (they need the context keys, phase 9)                                                                                                                                       | ☐                                            |
+| Settings: the settings with a `when` clause, evaluated with the context keys                                                                                                                                            | ✅                                           |
 | Configuration properties rendering by type (boolean switch, number, string, enum, file/folder, password, markdown), reset to default, managed/locked, number validation, search, written as changed and kept up to date | ✅                                           |
 | Proxy (system / given / none, HTTP, HTTPS, hosts without the proxy, address validation, managed fields, restart hint for the running engines)                                                                           | ✅                                           |
 | Docker compatibility (a page once enabled: the engine answering the Docker socket, its version, check again)                                                                                                            | ✅                                           |
@@ -190,18 +190,19 @@ browses is a proposal in [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md#8-extensions-
 
 ## Extensions (`lib/extensions`, `lib/featured`, `lib/recommendation`, `lib/explore-features`)
 
-| Feature                                                                                       | v2  |
-| --------------------------------------------------------------------------------------------- | --- |
-| Extensions page: Installed / Catalog / Local tabs, search                                     | ☐   |
-| Installed cards: status, badges, start / stop / remove, update, onboarding, edit properties   | ☐   |
-| Install from an OCI image (custom)                                                            | ☐   |
-| Catalog with install, refresh                                                                 | ☐   |
-| Local (development) folders: add, start, stop, untrack                                        | ☐   |
-| Extension details: summary, auto-update, README (markdown), errors                            | ☐   |
-| Featured extensions, recommendation banners, explore-features carousel                        | ☐   |
-| Docker Desktop extensions (`/contribs/:name`, webview with dedicated preload)                 | ☐   |
-| Extension webviews (`/webviews/:id`, messages, DevTools)                                      | ☐   |
-| Context keys synced from main (for `when` clauses), extension icon fonts, registered features | ☐   |
+| Feature                                                                                     | v2  |
+| ------------------------------------------------------------------------------------------- | --- |
+| Extensions page: Installed / Catalog / Local tabs, search                                   | ☐   |
+| Installed cards: status, badges, start / stop / remove, update, onboarding, edit properties | ☐   |
+| Install from an OCI image (custom)                                                          | ☐   |
+| Catalog with install, refresh                                                               | ☐   |
+| Local (development) folders: add, start, stop, untrack                                      | ☐   |
+| Extension details: summary, auto-update, README (markdown), errors                          | ☐   |
+| Featured extensions, recommendation banners, explore-features carousel                      | ☐   |
+| Docker Desktop extensions (`/contribs/:name`, webview with dedicated preload)               | ☐   |
+| Extension webviews (`/webviews/:id`, messages, DevTools)                                    | ☐   |
+| Context keys synced from main, `when` clauses evaluated (settings, connection forms)        | ✅  |
+| Extension icon fonts, registered features                                                   | ☐   |
 
 ## Dashboard
 
