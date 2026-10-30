@@ -45,7 +45,7 @@ let mounted = $derived(group.tabs.filter(tab => tab.key === group.activeKey || v
             app.workbench.open(ref, { ...options, from: 'view' }),
           )} />
       {:catch error}
-        <p class="p-3 text-destructive">Error loading the view: {String(error)}</p>
+        <p class="p-3 text-state-error">Error loading the view: {String(error)}</p>
       {/await}
     </div>
   {/each}

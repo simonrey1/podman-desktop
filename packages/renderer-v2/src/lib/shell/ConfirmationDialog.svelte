@@ -25,7 +25,7 @@ let request = $derived(confirmations.current);
       <AlertDialog.Header>
         {#if request.destructive}
           <AlertDialog.Media>
-            <TriangleAlertIcon class="text-destructive" />
+            <TriangleAlertIcon class="text-state-error" />
           </AlertDialog.Media>
         {/if}
         <AlertDialog.Title>{request.title}</AlertDialog.Title>

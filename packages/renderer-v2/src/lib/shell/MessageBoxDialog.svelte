@@ -22,8 +22,8 @@ const messageBoxes = app.messageBoxes;
 let box = $derived(messageBoxes.current);
 
 const ICONS: Partial<Record<string, { icon: LucideIcon; class: string }>> = {
-  error: { icon: CircleAlertIcon, class: 'text-destructive' },
-  danger: { icon: CircleAlertIcon, class: 'text-destructive' },
+  error: { icon: CircleAlertIcon, class: 'text-state-error' },
+  danger: { icon: CircleAlertIcon, class: 'text-state-error' },
   warning: { icon: TriangleAlertIcon, class: 'text-state-warning' },
   info: { icon: InfoIcon, class: 'text-muted-foreground' },
   question: { icon: CircleQuestionMarkIcon, class: 'text-muted-foreground' },

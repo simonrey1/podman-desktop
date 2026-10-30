@@ -66,7 +66,7 @@ let status = $derived(connection.info.status.charAt(0).toUpperCase() + connectio
         {#if badge}<Badge variant="outline">{badge}</Badge>{/if}
       </span>
       {#if connection.info.error}
-        <span class="truncate text-xs text-destructive" title={connection.info.error}>{connection.info.error}</span>
+        <span class="truncate text-xs text-state-error" title={connection.info.error}>{connection.info.error}</span>
       {:else}
         <span class="text-xs text-muted-foreground">{connection.provider.name} · {pending?.progress ? `${pending.progress}…` : status}</span>
       {/if}

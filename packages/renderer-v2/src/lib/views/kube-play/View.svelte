@@ -160,8 +160,8 @@ function podLabel(podId: string): string {
               {#if failedPods.length}, {failedPods.length} with containers not started{/if}.
             </span>
           {:else if result.status === 'failed'}
-            <CircleXIcon class="size-4 text-destructive" />
-            <span class="min-w-0 flex-1 truncate text-destructive" title={result.error}>The play failed: {result.error}</span>
+            <CircleXIcon class="size-4 text-state-error" />
+            <span class="min-w-0 flex-1 truncate text-state-error" title={result.error}>The play failed: {result.error}</span>
           {:else}
             <CircleStopIcon class="size-4 text-muted-foreground" />
             <span class="flex-1">The play was canceled.</span>
@@ -180,7 +180,7 @@ function podLabel(podId: string): string {
                 <Button variant="outline" size="sm" onclick={(): void => openPod(pod.Id)}>Open the pod</Button>
               </li>
               {#each pod.ContainerErrors ?? [] as error, index (index)}
-                <li class="truncate text-destructive" title={error}>{error}</li>
+                <li class="truncate text-state-error" title={error}>{error}</li>
               {/each}
             {/each}
           </ul>

@@ -16,12 +16,12 @@ let { task }: { task: TaskInfo } = $props();
   {:else if task.status === 'success'}
     <CircleCheckIcon class="size-3.5 shrink-0 text-state-success" aria-label="Succeeded" />
   {:else if task.status === 'failure'}
-    <CircleXIcon class="size-3.5 shrink-0 text-destructive" aria-label="Failed" />
+    <CircleXIcon class="size-3.5 shrink-0 text-state-error" aria-label="Failed" />
   {:else}
     <BanIcon class="size-3.5 shrink-0 text-muted-foreground" aria-label="Canceled" />
   {/if}
   <span class="min-w-0 truncate text-accent-foreground">{task.name}</span>
   {#if task.error}
-    <span class="min-w-0 flex-1 truncate text-destructive" title={task.error}>{task.error}</span>
+    <span class="min-w-0 flex-1 truncate text-state-error" title={task.error}>{task.error}</span>
   {/if}
 </div>

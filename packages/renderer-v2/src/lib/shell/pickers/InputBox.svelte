@@ -70,7 +70,7 @@ const focus: Attachment<HTMLElement> = element => {
       {onkeydown} />
   {/if}
   {#if error}
-    <p class="text-xs text-destructive" role="alert">{error}</p>
+    <p class="text-xs text-state-error" role="alert">{error}</p>
   {:else}
     <p class="text-xs text-muted-foreground">
       {request.prompt ? `${request.prompt} · ` : ''}{request.multiline ? 'Ctrl+Enter' : 'Enter'} to confirm, Escape to cancel

@@ -75,7 +75,7 @@ let rows: KeyValue[] = $derived(
       }} />
   </div>
   {#if error}
-    <p class="text-destructive">{error}</p>
+    <p class="text-state-error">{error}</p>
   {/if}
 </Card>
 {#if status?.status === 'running'}

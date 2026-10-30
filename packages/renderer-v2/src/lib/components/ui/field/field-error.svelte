@@ -39,7 +39,7 @@ const singleErrorMessage = $derived(errors?.length === 1 && errors[0]?.message);
 		bind:this={ref}
 		role="alert"
 		data-slot="field-error"
-		class={cn("text-destructive text-sm font-normal", className)}
+		class={cn("text-state-error text-sm font-normal", className)}
 		{...restProps}
 	>
 		{#if children}

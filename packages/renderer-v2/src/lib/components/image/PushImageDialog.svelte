@@ -105,7 +105,7 @@ function push(): void {
             <p>{id}: {layerStatus}</p>
           {/each}
           {#each messages as message, index (index)}
-            <p class={status === 'failed' && index === messages.length - 1 ? 'text-destructive' : undefined}>{message}</p>
+            <p class={status === 'failed' && index === messages.length - 1 ? 'text-state-error' : undefined}>{message}</p>
           {/each}
         </div>
       {/if}

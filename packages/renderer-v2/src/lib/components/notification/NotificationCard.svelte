@@ -23,7 +23,7 @@ const TYPES = {
     class: 'border-state-warning/30 bg-state-warning/5',
     iconClass: 'text-state-warning',
   },
-  error: { icon: CircleAlertIcon, class: 'border-destructive/30 bg-destructive/5', iconClass: 'text-destructive' },
+  error: { icon: CircleAlertIcon, class: 'border-destructive/30 bg-destructive/5', iconClass: 'text-state-error' },
 };
 
 let type = $derived(TYPES[notification.type] ?? TYPES.info);

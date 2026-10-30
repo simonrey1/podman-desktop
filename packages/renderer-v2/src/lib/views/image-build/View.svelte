@@ -166,8 +166,8 @@ function openImage(): void {
             <Button variant="outline" size="sm" onclick={openImage}>Open the image</Button>
           {/if}
         {:else if build.status === 'failed'}
-          <CircleXIcon class="size-4 text-destructive" />
-          <span class="min-w-0 flex-1 truncate text-destructive" title={build.error}>The build failed: {build.error}</span>
+          <CircleXIcon class="size-4 text-state-error" />
+          <span class="min-w-0 flex-1 truncate text-state-error" title={build.error}>The build failed: {build.error}</span>
         {:else}
           <CircleStopIcon class="size-4 text-muted-foreground" />
           <span class="flex-1">The build was canceled.</span>

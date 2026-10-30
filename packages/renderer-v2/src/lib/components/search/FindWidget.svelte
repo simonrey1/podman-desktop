@@ -75,7 +75,7 @@ function onkeydown(event: KeyboardEvent): void {
       <input
         bind:this={input}
         bind:value={query}
-        class={['min-w-0 flex-1 bg-transparent text-sm outline-none', query && !results.count && 'text-destructive']}
+        class={['min-w-0 flex-1 bg-transparent text-sm outline-none', query && !results.count && 'text-state-error']}
         placeholder="Find"
         aria-label="Find"
         {onkeydown} />
@@ -83,7 +83,7 @@ function onkeydown(event: KeyboardEvent): void {
       <Toggle size="xs" bind:pressed={regex} aria-label="Regular expression" title="Regular expression">.*</Toggle>
     </div>
     <span
-      class={['w-12 text-center text-xs tabular-nums', query && !results.count ? 'text-destructive' : 'text-muted-foreground']}
+      class={['w-12 text-center text-xs tabular-nums', query && !results.count ? 'text-state-error' : 'text-muted-foreground']}
       aria-live="polite">
       {results.count ? results.index + 1 : 0}/{results.count}
     </span>

@@ -286,8 +286,8 @@ function created(id: string): string {
             Open the container
           </Button>
         {:else}
-          <CircleXIcon class="size-4 text-destructive" />
-          <span class="min-w-0 flex-1 truncate text-destructive" title={result.error}>
+          <CircleXIcon class="size-4 text-state-error" />
+          <span class="min-w-0 flex-1 truncate text-state-error" title={result.error}>
             The container could not be {result.start ? 'started' : 'created'}: {result.error}
           </span>
         {/if}

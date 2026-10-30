@@ -71,7 +71,7 @@ $effect(() => {
         {:else if build.status === 'succeeded'}
           <CircleCheckIcon class="text-state-success" />
         {:else if build.status === 'failed'}
-          <CircleXIcon class="text-destructive" />
+          <CircleXIcon class="text-state-error" />
         {:else}
           <CircleStopIcon class="text-muted-foreground" />
         {/if}

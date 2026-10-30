@@ -146,7 +146,7 @@ function instruction(createdBy: string | undefined): string {
         {/if}
       </Button>
       {#if error}
-        <p class="text-destructive">{error}</p>
+        <p class="text-state-error">{error}</p>
       {/if}
     </Empty.Content>
   </Empty.Root>
