@@ -9,7 +9,6 @@ import NotFound from '#lib/components/NotFound.svelte';
 import Page from '#lib/components/Page.svelte';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
 import StatusBadge from '#lib/components/StatusBadge.svelte';
-import { Badge } from '#lib/components/ui/badge/index.js';
 import { resourceKey } from '#lib/stores/actions.svelte.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -31,7 +30,7 @@ let set = $derived(connection ? connectionActions(connection, app) : undefined);
       <StatusBadge
         status={connection.info.status}
         actionKey={resourceKey('connection', connection.provider.id, connection.id)} />
-      <Badge variant="outline">{kindLabel(connection)}</Badge>
+      <span class="text-muted-foreground">{connection.provider.name} · {kindLabel(connection)}</span>
     {/if}
   {/snippet}
   {#snippet actions()}

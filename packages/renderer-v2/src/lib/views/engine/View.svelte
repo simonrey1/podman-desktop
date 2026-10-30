@@ -38,7 +38,8 @@ const usage = new ConnectionUsage(app, () =>
       <StatusBadge
         status={engine.status}
         actionKey={connection ? resourceKey('connection', connection.provider.id, connection.id) : undefined} />
-      <span class="text-muted-foreground">{engine.providerName}</span>
+      <!-- the same header as the other connections: their provider and their kind -->
+      <span class="text-muted-foreground">{engine.providerName} · Container engine</span>
     {/if}
   {/snippet}
   {#snippet actions()}
