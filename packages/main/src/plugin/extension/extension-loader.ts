@@ -1970,6 +1970,8 @@ export class ExtensionLoader implements IAsyncDisposable {
 
       this.extensionState.set(extension.id, 'failed');
       this.extensionStateErrors.set(extension.id, err);
+      // the renderers know it is not starting anymore
+      this.apiSender.send('extensions-updated');
       // Storing error in the telemetry options
       telemetryOptions['error'] = err;
     } finally {
