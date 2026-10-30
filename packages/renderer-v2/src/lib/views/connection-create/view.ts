@@ -39,5 +39,7 @@ export default defineView({
   },
   context: (params, app) => app.engines.providers.find(item => item.id === params.providerId)?.name,
   location: 'editor',
+  // keeps the values of the form while another tab is shown
+  keepAlive: true,
   component: () => import('./View.svelte'),
 });

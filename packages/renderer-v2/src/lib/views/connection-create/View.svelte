@@ -13,7 +13,6 @@ import ConnectionFields from '#lib/components/engine/ConnectionFields.svelte';
 import Page from '#lib/components/Page.svelte';
 import { Button } from '#lib/components/ui/button/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
-import type { Creation } from '#lib/stores/creations.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 import type { ViewProps } from '#lib/workbench/define-view.js';
 
@@ -22,17 +21,22 @@ import type { schema } from './view.js';
 let { view }: ViewProps<typeof schema> = $props();
 
 // creates a connection with a provider (e.g. a Podman machine, a kind cluster): the form keeps its values while it
-// runs and after it (a failure loses nothing, Create again retries), the output of the provider is a session of the panel
+// runs and after it (a failure loses nothing, Create again retries), the output of each attempt is a session of the
+// panel. Closed and opened again (e.g. from its task), the form goes back to its last creation, unless it succeeded.
 const app = getApp();
 
 let provider = $derived(app.engines.providers.find(item => item.id === view.params.providerId));
 let label = $derived(provider ? creationLabel(provider, view.params.kind) : 'resource');
+let latest = $derived(app.creations.latest(view.params.providerId, view.params.kind));
+const done = untrack(() => (latest?.status === 'succeeded' ? latest : undefined));
+let creation = $derived(latest === done ? undefined : latest);
 const form = new ConnectionForm(
   app,
   () => provider,
   untrack(() => view.params.kind),
+  undefined,
+  untrack(() => creation?.request.params),
 );
-let creation: Creation | undefined = $state();
 
 let running = $derived(creation?.status === 'running');
 // the connection created: the one of the provider and the kind appearing after the creation started
@@ -51,7 +55,7 @@ function create(): void {
   if (!provider || running) {
     return;
   }
-  creation = app.creations.start({ provider, kind: view.params.kind, label, params: form.params(false) });
+  app.creations.start({ provider, kind: view.params.kind, label, params: form.params(false) });
   showOutput();
 }
 

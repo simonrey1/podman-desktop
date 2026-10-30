@@ -42,6 +42,7 @@ import { SecretsStore } from '#lib/stores/secrets.svelte.js';
 import { TasksStore } from '#lib/stores/tasks.svelte.js';
 import { ThemeStore } from '#lib/stores/theme.svelte.js';
 import { VolumesStore } from '#lib/stores/volumes.svelte.js';
+import { NavigationHandler } from '#lib/workbench/navigation.js';
 import { Workbench } from '#lib/workbench/workbench.svelte.js';
 
 /**
@@ -82,6 +83,7 @@ export class App {
       }
     },
   });
+  readonly navigation = new NavigationHandler(this.workbench, this.engines, this.creations);
 
   /** e.g. 'darwin', 'linux' or 'win32' */
   platform = $state('');
@@ -117,6 +119,7 @@ export class App {
       this.authentication,
       this.cliTools,
       this.networks,
+      this.navigation,
     ].map(store => store.start());
     return (): void => {
       for (const stop of stops) {

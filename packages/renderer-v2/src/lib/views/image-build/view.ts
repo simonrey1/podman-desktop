@@ -31,5 +31,7 @@ export default defineView({
   title: () => 'Build an image',
   context: engineName,
   location: 'editor',
+  // keeps the values of the form while another tab is shown
+  keepAlive: true,
   component: () => import('./View.svelte'),
 });

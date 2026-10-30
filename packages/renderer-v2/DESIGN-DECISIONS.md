@@ -43,6 +43,10 @@ Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, 
 - A connection is created with **+ Add resource** in a **tab** (it takes a while, its output matters, it can fail and
   be tried again: its output is a session of the panel, as a build) and edited in a **modal**, both generated from the
   properties of its provider. The set-up of a provider (e.g. Podman not installed) is the notification of its extension on the dashboard.
+- A form tab (a connection, Build, Run, Kube play) stays mounted while another tab is shown: its values and its last
+  creation are kept. Each attempt of a creation has its own output session. The task of a creation goes back to its
+  form and to the output of this attempt, even if the form was closed (with the values of this creation, unless it
+  succeeded).
 - A connection has one id, `<provider id>.<kind>.<name>`; a container connection also has the id of its engine,
   `<provider id>.<name>`, the one its resources carry.
 

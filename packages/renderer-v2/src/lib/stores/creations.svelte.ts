@@ -36,6 +36,8 @@ const COLORS = { log: '', warn: '', error: '\x1b[31m' };
 /** A creation, running or done: its output is kept for the sessions showing it, even opened later. */
 export class Creation {
   readonly id: string;
+  /** given to the provider: the task of the creation comes back with it to open the creation */
+  readonly taskId: number;
   readonly request: CreationRequest;
   status: 'running' | 'succeeded' | 'failed' | 'canceled' = $state('running');
   error: string | undefined = $state();
@@ -47,8 +49,9 @@ export class Creation {
   readonly #listeners = new Set<(data: string) => void>();
   #tokenId: number | undefined;
 
-  constructor(id: string, request: CreationRequest) {
-    this.id = id;
+  constructor(taskId: number, request: CreationRequest) {
+    this.id = `creation-${taskId}`;
+    this.taskId = taskId;
     this.request = request;
   }
 
@@ -88,7 +91,7 @@ export class Creation {
     }[kind];
     try {
       this.#tokenId = await window.getCancellableTokenSource();
-      await create(provider.internalId, params, Symbol(this.id), logger, this.#tokenId, undefined);
+      await create(provider.internalId, params, Symbol(this.id), logger, this.#tokenId, this.taskId);
       this.status = 'succeeded';
     } catch (error: unknown) {
       const message = errorMessage(error);
@@ -128,8 +131,18 @@ export class CreationsStore {
     return this.all.find(creation => creation.id === id);
   }
 
+  /** the creation of a task of a provider */
+  ofTask(internalId: string, taskId: number | undefined): Creation | undefined {
+    return this.all.find(creation => creation.taskId === taskId && creation.request.provider.internalId === internalId);
+  }
+
+  /** the last creation of a form: of a kind of connection, with a provider */
+  latest(providerId: string, kind: ConnectionKind): Creation | undefined {
+    return this.all.findLast(creation => creation.request.provider.id === providerId && creation.request.kind === kind);
+  }
+
   start(request: CreationRequest): Creation {
-    const creation = new Creation(`creation-${++this.#next}`, request);
+    const creation = new Creation(++this.#next, request);
     this.all.push(creation);
     creation.run(this.#engines).catch((error: unknown) => console.error(`Error creating a ${request.label}`, error));
     return creation;

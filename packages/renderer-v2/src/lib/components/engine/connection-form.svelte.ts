@@ -63,7 +63,14 @@ export class ConnectionForm {
   #initial: Record<string, unknown> = {};
   #host: { cpu: number; memory: number; disk: number } | undefined = $state.raw();
 
-  constructor(app: App, provider: () => ProviderInfo | undefined, kind: ConnectionKind, editing?: Connection) {
+  /** @param restored the values of a creation to go back to, over the defaults */
+  constructor(
+    app: App,
+    provider: () => ProviderInfo | undefined,
+    kind: ConnectionKind,
+    editing?: Connection,
+    restored?: Record<string, unknown>,
+  ) {
     const scope = SCOPES[kind][editing ? 'edit' : 'create'];
     // the host bounds the resources of a connection (its CPUs, its memory, its disk)
     Promise.all([window.getOsCpu(), window.getOsMemory(), window.getOsFreeDiskSize()])
@@ -97,7 +104,7 @@ export class ConnectionForm {
       }
       const target = untrack(() => this.fields);
       if (!editing) {
-        this.values = Object.fromEntries(target.map(field => [field.id, defaultValue(field)]));
+        this.values = Object.fromEntries(target.map(field => [field.id, restored?.[field.id] ?? defaultValue(field)]));
         this.loaded = true;
         return;
       }
