@@ -53,11 +53,13 @@ import settings from './settings/view.js';
 import tasks from './tasks/view.js';
 import volumeDetails from './volume-details/view.js';
 import volumes from './volumes/view.js';
+import webview from './webview/view.js';
 
 /** Every view of the workbench, by id: one folder per view, declared with `defineView`. */
 export const VIEWS = {
   dashboard,
   extensions,
+  webview,
   'extension-details': extensionDetails,
   engine,
   connection,

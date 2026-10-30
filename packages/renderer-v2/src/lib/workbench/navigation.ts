@@ -25,8 +25,8 @@ import { viewRef } from '#lib/views/index.js';
 import type { Workbench } from '#lib/workbench/workbench.svelte.js';
 
 /**
- * Where the main process sends the user, e.g. the action of a task: the provider tasks, the connections and the catalog for
- * now, the other pages are not handled yet.
+ * Where the main process sends the user, e.g. the action of a task: the provider tasks, the connections, the catalog and the
+ * webviews for now, the other pages are not handled yet.
  */
 export class NavigationHandler {
   readonly #workbench: Workbench;
@@ -72,6 +72,11 @@ export class NavigationHandler {
         this.#openConnection(provider, 'vm', connection => connection.name === name);
         break;
       }
+      case NavigationPage.WEBVIEW:
+        this.#openWebview(request.parameters.id).catch((error: unknown) =>
+          console.error('Error opening a webview', error),
+        );
+        break;
       case NavigationPage.EXTENSIONS_CATALOG:
         this.#workbench.open(viewRef('extensions', {}), {
           state: { section: 'catalog', filter: request.parameters.searchTerm ?? '' },
@@ -79,6 +84,14 @@ export class NavigationHandler {
         break;
       default:
         console.warn(`Navigation to ${request.page} is not handled`);
+    }
+  }
+
+  /** a webview an extension just created is asked right after its creation: read from the main process */
+  async #openWebview(id: string): Promise<void> {
+    const webview = (await window.listWebviews()).find(item => item.id === id);
+    if (webview) {
+      this.#workbench.open(viewRef('webview', { viewType: webview.viewType, sourcePath: webview.sourcePath }));
     }
   }
 

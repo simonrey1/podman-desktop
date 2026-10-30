@@ -24,7 +24,7 @@ Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, 
 
 - The explorer lists the resources of one **container engine**, chosen in its dropdown ("Container engines"); the
   dashboard and the settings are not about an engine.
-- The content is in **tabs** (preview tabs, kept open once used, restored after a restart) and in the **panel**
+- The content is in **tabs** (preview tabs, kept open once used) and in the **panel**
   (sessions: logs, terminals, TTYs, build outputs). The rules are in [docs/views.md](docs/views.md).
 - The explorer keeps its width in pixels, 14rem by default (the width of the navigation of the settings); the editor
   takes the rest when the window is resized.
@@ -70,6 +70,10 @@ Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, 
 - An installation is reported by its task and a toast: the extension shows as installing wherever it is listed. Custom
   images are installed from a dialog closed at once, as the installer may show its own dialogs.
 - The Docker Desktop extensions are not listed for now (their webviews come with the webviews of the extensions).
+- A webview of an extension is a tab, opened from the Extensions group of the explorer, never a preview (what is done
+  in the page is not seen by the host, a preview tab would lose it). It stays mounted while another tab is shown: the
+  page keeps its state and shows at once, at the cost of its memory while the tab is open. The extension is told the
+  active tab is its webview (`onDidChangeViewState`). A tab follows its extension when it is stopped and started again.
 
 ## 5. Components and look
 

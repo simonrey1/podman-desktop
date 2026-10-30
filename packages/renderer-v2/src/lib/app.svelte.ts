@@ -43,6 +43,7 @@ import { SecretsStore } from '#lib/stores/secrets.svelte.js';
 import { TasksStore } from '#lib/stores/tasks.svelte.js';
 import { ThemeStore } from '#lib/stores/theme.svelte.js';
 import { VolumesStore } from '#lib/stores/volumes.svelte.js';
+import { type WebviewIdentity, WebviewsStore } from '#lib/stores/webviews.svelte.js';
 import { NavigationHandler } from '#lib/workbench/navigation.js';
 import { Workbench } from '#lib/workbench/workbench.svelte.js';
 
@@ -87,6 +88,10 @@ export class App {
   readonly extensions = new ExtensionsStore();
   readonly catalog = new CatalogStore();
   readonly developmentFolders = new DevelopmentFoldersStore();
+  readonly webviews: WebviewsStore = new WebviewsStore((): WebviewIdentity | undefined => {
+    const ref = this.workbench.editor.active?.ref;
+    return ref?.view === 'webview' ? (ref.params as WebviewIdentity) : undefined;
+  });
   readonly navigation = new NavigationHandler(this.workbench, this.engines, this.creations);
 
   /** e.g. 'darwin', 'linux' or 'win32' */
@@ -126,6 +131,7 @@ export class App {
       this.extensions,
       this.catalog,
       this.developmentFolders,
+      this.webviews,
       this.navigation,
     ].map(store => store.start());
     return (): void => {

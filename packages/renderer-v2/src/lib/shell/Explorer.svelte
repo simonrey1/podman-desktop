@@ -4,6 +4,7 @@ import SettingsIcon from '@lucide/svelte/icons/settings';
 
 import { getApp } from '#lib/app.svelte.js';
 import FilterInput from '#lib/components/FilterInput.svelte';
+import ImageIcon from '#lib/components/ImageIcon.svelte';
 import { ScrollArea } from '#lib/components/ui/scroll-area/index.js';
 import * as Sidebar from '#lib/components/ui/sidebar/index.js';
 import { viewKey, type ViewRef, viewRef } from '#lib/views/index.js';
@@ -20,6 +21,8 @@ let query = $derived(filter.trim().toLowerCase());
 let entries = $derived(
   (engine ? explorerEntries(app, engine.id) : []).filter(entry => entry.label.toLowerCase().includes(query)),
 );
+
+let webviews = $derived(app.webviews.items.filter(webview => webview.name.toLowerCase().includes(query)));
 
 function isActive(ref: ViewRef): boolean {
   return app.workbench.editor.activeKey === viewKey(ref);
@@ -73,6 +76,39 @@ function onkeydown(event: KeyboardEvent, ref: ViewRef): void {
         </Sidebar.Group>
       {:else if app.engines.loaded}
         <p class="px-4 py-2 text-muted-foreground">No container engine</p>
+      {/if}
+      {#if webviews.length}
+        <!-- the pages of the extensions -->
+        <Sidebar.Group>
+          <Sidebar.GroupLabel>Extensions</Sidebar.GroupLabel>
+          <Sidebar.Menu>
+            {#each webviews as webview (webview.id)}
+              {@const ref = viewRef('webview', { viewType: webview.viewType, sourcePath: webview.sourcePath })}
+              <Sidebar.MenuItem>
+                <!-- a link: the menu of the development mode opens the DevTools of a /webviews/ link. Kept open: what is
+                     done in a page is not seen from here, a preview tab would lose it -->
+                <Sidebar.MenuButton size="sm" isActive={isActive(ref)}>
+                  {#snippet child({ props })}
+                    <a
+                      {...props}
+                      href="/webviews/{webview.id}"
+                      onclick={(event): void => {
+                        event.preventDefault();
+                        keep(ref);
+                      }}>
+                      {#if webview.icon}
+                        <ImageIcon icon={webview.icon} class="size-4" />
+                      {:else}
+                        <PuzzleIcon />
+                      {/if}
+                      <span>{webview.name}</span>
+                    </a>
+                  {/snippet}
+                </Sidebar.MenuButton>
+              </Sidebar.MenuItem>
+            {/each}
+          </Sidebar.Menu>
+        </Sidebar.Group>
       {/if}
     </ScrollArea>
   </Sidebar.Content>
