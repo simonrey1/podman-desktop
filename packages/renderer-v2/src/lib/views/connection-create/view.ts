@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import PlusIcon from '@lucide/svelte/icons/plus';
+import ServerCogIcon from '@lucide/svelte/icons/server-cog';
 import { z } from 'zod';
 
 import { creationLabel } from '#lib/components/engine/connection-form.svelte.js';
@@ -32,7 +32,7 @@ export const schema = {
 
 export default defineView({
   schema,
-  icon: PlusIcon,
+  icon: ServerCogIcon,
   title: (params, app) => {
     const provider = app.engines.providers.find(item => item.id === params.providerId);
     return provider ? `Create a ${creationLabel(provider, params.kind)}` : 'Create a resource';

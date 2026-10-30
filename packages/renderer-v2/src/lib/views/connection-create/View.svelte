@@ -3,6 +3,7 @@ import CircleCheckIcon from '@lucide/svelte/icons/circle-check';
 import CircleStopIcon from '@lucide/svelte/icons/circle-stop';
 import CircleXIcon from '@lucide/svelte/icons/circle-x';
 import PlusIcon from '@lucide/svelte/icons/plus';
+import ServerCogIcon from '@lucide/svelte/icons/server-cog';
 import { untrack } from 'svelte';
 
 import { getApp } from '#lib/app.svelte.js';
@@ -71,7 +72,7 @@ function openCreated(): void {
 }
 </script>
 
-<Page icon={PlusIcon} title="Create a {label}">
+<Page icon={ServerCogIcon} title="Create a {label}">
   {#snippet meta()}
     {#if provider}<span class="text-muted-foreground">{provider.name}</span>{/if}
   {/snippet}

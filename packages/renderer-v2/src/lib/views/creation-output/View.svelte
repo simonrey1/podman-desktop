@@ -2,8 +2,8 @@
 import CircleCheckIcon from '@lucide/svelte/icons/circle-check';
 import CircleStopIcon from '@lucide/svelte/icons/circle-stop';
 import CircleXIcon from '@lucide/svelte/icons/circle-x';
-import PlusIcon from '@lucide/svelte/icons/plus';
 import SearchIcon from '@lucide/svelte/icons/search';
+import ServerCogIcon from '@lucide/svelte/icons/server-cog';
 import type { Terminal } from '@xterm/xterm';
 import type { Attachment } from 'svelte/attachments';
 
@@ -59,7 +59,7 @@ $effect(() => {
 
 <div class="flex h-full flex-col bg-terminal">
   <div class="bar h-tabs items-center gap-2 px-3">
-    <PlusIcon class="size-4 shrink-0 text-muted-foreground" />
+    <ServerCogIcon class="size-4 shrink-0 text-muted-foreground" />
     <span class="min-w-0 truncate font-medium">{creation?.request.label ?? 'Creation'}</span>
     {#if creation}
       <!-- the icons of the status of the creation form -->

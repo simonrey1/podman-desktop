@@ -16,7 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import PlusIcon from '@lucide/svelte/icons/plus';
+import ServerCogIcon from '@lucide/svelte/icons/server-cog';
 import { z } from 'zod';
 
 import { defineView } from '#lib/workbench/define-view.js';
@@ -28,7 +28,7 @@ export const schema = { params: z.object({ creationId: z.string() }), state: noS
 
 export default defineView({
   schema,
-  icon: PlusIcon,
+  icon: ServerCogIcon,
   title: (params, app) => app.creations.get(params.creationId)?.request.label ?? 'Creation',
   context: () => 'Creation',
   location: 'panel',
