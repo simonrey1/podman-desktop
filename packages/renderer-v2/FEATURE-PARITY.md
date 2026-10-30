@@ -149,9 +149,9 @@ The decisions behind this inventory, and the designs still open, are in [DESIGN-
 | Connection overview: container engines in the engine overview (provider, type, VM, status or error, socket with copy, usage with totals)                                                                                                                     | ✅            |
 | Connection overview: the default connection (v1: a menu of the Podman extension; v2: with the extension menus, phase 9)                                                                                                                                      | ☐             |
 | Connection lifecycle: start, stop, restart, delete (stopped, confirmed), from the lifecycle methods of the provider, in the system overview and the overviews; the progress on the connection, the error of the provider in a toast                          | ✅            |
-| Connection lifecycle: terminal, extension menus                                                                                                                                                                                                              | ☐             |
+| Connection lifecycle: extension menus (phase 9)                                                                                                                                                                                                              | ☐             |
 | Edit connection in a modal, generated from the provider's properties (resource sliders bounded by the host, the changed values sent, logs, cancel)                                                                                                           | ✅            |
-| Connection logs and terminal (panel sessions, from the overview)                                                                                                                                                                                             | ☐             |
+| Connection logs (the output of its lifecycle operations) and terminal (a shell in it), panel sessions from the overviews                                                                                                                                     | ✅            |
 | Provider details page (v1)                                                                                                                                                                                                                                   | ✕             |
 
 ## Kubernetes — out of scope
@@ -185,7 +185,7 @@ browses is a proposal in [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md#8-extensions-
 
 | Feature                                                                                                                                                       | v2  |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
-| Welcome screen on first run: the telemetry opt-in only                                                                                                        | ☐   |
+| Welcome screen on first run: the telemetry opt-in only (the message of the main process, asked once)                                                          | ✅  |
 | Onboarding wizard (global multi-extension and per extension; steps with `when`, completion events, commands, embedded forms, skip/retry/cancel, saved status) | ✕   |
 
 ## Extensions (`lib/extensions`, `lib/featured`, `lib/recommendation`, `lib/explore-features`)
