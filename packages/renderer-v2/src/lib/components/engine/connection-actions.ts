@@ -20,30 +20,40 @@ import PencilIcon from '@lucide/svelte/icons/pencil';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
 import SquareIcon from '@lucide/svelte/icons/square';
+import SquareTerminalIcon from '@lucide/svelte/icons/square-terminal';
+import TextAlignStartIcon from '@lucide/svelte/icons/text-align-start';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import type { Connection } from '#lib/stores/engines.svelte.js';
+import { viewRef } from '#lib/views/index.js';
 
 import ConnectionFormDialog from './ConnectionFormDialog.svelte';
 
 type Lifecycle = 'start' | 'stop' | 'delete' | 'edit';
 
+const TITLES = { start: 'Starting', stop: 'Stopping', delete: 'Deleting' };
+
 /**
  * Runs a lifecycle method of a connection in its provider; a failure is the last error the provider logged (the
  * reason), else the error of the call.
  */
-async function lifecycle(connection: Connection, method: Exclude<Lifecycle, 'edit'>): Promise<void> {
+async function lifecycle(connection: Connection, method: Exclude<Lifecycle, 'edit'>, app: App): Promise<void> {
   const calls = {
     start: window.startProviderConnectionLifecycle,
     stop: window.stopProviderConnectionLifecycle,
     delete: window.deleteProviderConnectionLifecycle,
   };
   let logged: string | undefined;
+  // the output of the provider is kept for the logs of the connection
+  app.connectionLogs.begin(connection.id, TITLES[method]);
   const logger = (_key: symbol, event: 'log' | 'warn' | 'error' | 'finish', args: string[]): void => {
     if (event === 'error') {
       logged = args.join(' ');
+    }
+    if (event !== 'finish') {
+      app.connectionLogs.write(connection.id, event, args.join(' '));
     }
   };
   try {
@@ -54,6 +64,7 @@ async function lifecycle(connection: Connection, method: Exclude<Lifecycle, 'edi
       logger,
     );
   } catch (error: unknown) {
+    app.connectionLogs.write(connection.id, 'error', logged ?? String(error));
     throw logged ? new Error(logged) : error;
   }
 }
@@ -78,7 +89,7 @@ export function connectionActions(connection: Connection, app: App): ResourceAct
         icon: SquareIcon,
         filled: true,
         hidden: !can('stop') || !running,
-        run: (): Promise<void> => lifecycle(connection, 'stop'),
+        run: (): Promise<void> => lifecycle(connection, 'stop', app),
       },
       {
         label: 'Start',
@@ -87,7 +98,7 @@ export function connectionActions(connection: Connection, app: App): ResourceAct
         filled: true,
         hidden: !can('start') || running,
         disabled: busy,
-        run: (): Promise<void> => lifecycle(connection, 'start'),
+        run: (): Promise<void> => lifecycle(connection, 'start', app),
       },
       {
         label: 'Restart',
@@ -96,9 +107,24 @@ export function connectionActions(connection: Connection, app: App): ResourceAct
         hidden: !can('start') || !can('stop'),
         disabled: !running,
         run: async (): Promise<void> => {
-          await lifecycle(connection, 'stop');
-          await lifecycle(connection, 'start');
+          await lifecycle(connection, 'stop', app);
+          await lifecycle(connection, 'start', app);
         },
+      },
+      {
+        label: 'Logs',
+        icon: TextAlignStartIcon,
+        // the output of its lifecycle operations
+        hidden: methods.length === 0,
+        run: (): void => app.workbench.open(viewRef('connection-logs', { connectionId: connection.id })),
+      },
+      {
+        label: 'Terminal',
+        icon: SquareTerminalIcon,
+        // a shell in the connection (e.g. in a Podman machine), when its provider gives one
+        hidden: !('shellAccess' in connection.info && connection.info.shellAccess),
+        disabled: !running,
+        run: (): void => app.workbench.open(viewRef('connection-terminal', { connectionId: connection.id })),
       },
       {
         label: 'Edit',
@@ -120,7 +146,7 @@ export function connectionActions(connection: Connection, app: App): ResourceAct
           title: `Delete ${connection.name}`,
           message: `${connection.name} will be permanently removed by ${connection.provider.name}, with what it contains. This cannot be undone.`,
         },
-        run: (): Promise<void> => lifecycle(connection, 'delete'),
+        run: (): Promise<void> => lifecycle(connection, 'delete', app),
       },
     ],
   };

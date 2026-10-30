@@ -24,6 +24,7 @@ import { ActionsStore } from '#lib/stores/actions.svelte.js';
 import { BuildsStore } from '#lib/stores/builds.svelte.js';
 import { ConfigurationStore } from '#lib/stores/configuration.svelte.js';
 import { ConfirmationsStore } from '#lib/stores/confirmations.svelte.js';
+import { ConnectionLogs } from '#lib/stores/connection-logs.js';
 import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { ContextStore } from '#lib/stores/context.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
@@ -67,6 +68,7 @@ export class App {
   readonly pickers = new PickersStore();
   readonly modals = new ModalsStore();
   readonly builds = new BuildsStore();
+  readonly connectionLogs = new ConnectionLogs();
   readonly tasks = new TasksStore(this.confirmations);
   readonly notifications = new NotificationsStore();
 

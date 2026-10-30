@@ -151,8 +151,15 @@ async function submit(): Promise<void> {
   const logger = (_key: symbol, event: 'log' | 'warn' | 'error' | 'finish', args: string[]): void => {
     if (event !== 'finish') {
       logs.push(args.join(' '));
+      // an edition is an operation of the connection: in its logs too
+      if (editing) {
+        app.connectionLogs.write(editing.id, event, args.join(' '));
+      }
     }
   };
+  if (editing) {
+    app.connectionLogs.begin(editing.id, 'Editing');
+  }
   // an edition sends the values changed only
   const params = editing
     ? Object.fromEntries(Object.entries($state.snapshot(values)).filter(([id]) => changed.includes(id)))
