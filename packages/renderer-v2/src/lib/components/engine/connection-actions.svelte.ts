@@ -16,6 +16,7 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
+import type { ProviderContainerConnectionInfo } from '@desktop-framework/api';
 import PencilIcon from '@lucide/svelte/icons/pencil';
 import PlayIcon from '@lucide/svelte/icons/play';
 import RotateCwIcon from '@lucide/svelte/icons/rotate-cw';
@@ -25,6 +26,7 @@ import TextAlignStartIcon from '@lucide/svelte/icons/text-align-start';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
+import { withConnectionContributions } from '#lib/components/contributions.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import type { Connection } from '#lib/stores/engines.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -73,7 +75,7 @@ async function lifecycle(connection: Connection, method: Exclude<Lifecycle, 'edi
  * The lifecycle of a connection, the methods its provider offers: start or stop (by its status), restart, edit (in a
  * modal), delete (stopped, once confirmed). In its row of the system overview and in the header of its overview.
  */
-export function connectionActions(connection: Connection, app: App): ResourceActionSet {
+function connectionActionsBuiltin(connection: Connection, app: App): ResourceActionSet {
   const methods = connection.info.lifecycleMethods ?? [];
   const status = connection.info.status;
   const running = status === 'started';
@@ -149,4 +151,15 @@ export function connectionActions(connection: Connection, app: App): ResourceAct
       },
     ],
   };
+}
+
+/** The actions of a connection, then the ones of the extensions on a container engine. */
+export function connectionActions(connection: Connection, app: App): ResourceActionSet {
+  const set = connectionActionsBuiltin(connection, app);
+  return connection.kind === 'container'
+    ? {
+        ...set,
+        actions: withConnectionContributions(set.actions, connection.info as ProviderContainerConnectionInfo, app),
+      }
+    : set;
 }

@@ -19,10 +19,12 @@
 import type { SecretInfo } from '@desktop-framework/api';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
+import type { App } from '#lib/app.svelte.js';
+import { withSecretContributions } from '#lib/components/contributions.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
 /** The actions of a secret: in its row, in the header of its details, and in the bulk actions. */
-export function secretActions(secret: SecretInfo): ResourceActionSet {
+function secretActionsBuiltin(secret: SecretInfo): ResourceActionSet {
   return {
     target: { key: resourceKey('secret', secret.engineId, secret.Id), name: secret.Name },
     actions: [
@@ -35,4 +37,10 @@ export function secretActions(secret: SecretInfo): ResourceActionSet {
       },
     ],
   };
+}
+
+/** The actions of a secret, then the ones of the extensions. */
+export function secretActions(secret: SecretInfo, app: App): ResourceActionSet {
+  const set = secretActionsBuiltin(secret);
+  return { ...set, actions: withSecretContributions(set.actions, secret, app) };
 }

@@ -32,6 +32,7 @@ import { EnginesStore } from '#lib/stores/engines.svelte.js';
 import { CatalogStore, DevelopmentFoldersStore, ExtensionsStore } from '#lib/stores/extensions.svelte.js';
 import { ImageFilesProvidersStore } from '#lib/stores/image-files.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
+import { MenusStore } from '#lib/stores/menus.svelte.js';
 import { MessageBoxesStore } from '#lib/stores/message-boxes.svelte.js';
 import { ModalsStore } from '#lib/stores/modals.svelte.js';
 import { NetworksStore } from '#lib/stores/networks.svelte.js';
@@ -85,6 +86,7 @@ export class App {
       }
     },
   });
+  readonly menus = new MenusStore();
   readonly extensions = new ExtensionsStore();
   readonly catalog = new CatalogStore();
   readonly developmentFolders = new DevelopmentFoldersStore();
@@ -128,6 +130,7 @@ export class App {
       this.authentication,
       this.cliTools,
       this.networks,
+      this.menus,
       this.extensions,
       this.catalog,
       this.developmentFolders,

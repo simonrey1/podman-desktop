@@ -1,6 +1,7 @@
 <script lang="ts">
 import type { VolumeInfo } from '@desktop-framework/api';
 
+import { getApp } from '#lib/app.svelte.js';
 import ResourceActions from '#lib/components/ResourceActions.svelte';
 
 import { volumeActions } from './actions.js';
@@ -13,7 +14,7 @@ interface Props {
 
 let { volume, placement = 'row' }: Props = $props();
 
-let set = $derived(volumeActions(volume));
+let set = $derived(volumeActions(volume, getApp()));
 </script>
 
 <ResourceActions target={set.target} actions={set.actions} max={placement === 'row' ? 3 : 6} size={placement === 'row' ? 'icon-sm' : 'icon'} />

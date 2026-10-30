@@ -26,6 +26,7 @@ import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
+import { withPodContributions } from '#lib/components/contributions.js';
 import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
@@ -38,7 +39,7 @@ function browserUrl(pod: PodInfo, app: App): string | undefined {
 }
 
 /** The actions of a pod: in its row, in the header of its details, and in the bulk actions. */
-export function podActions(pod: PodInfo, app: App): ResourceActionSet {
+function podActionsBuiltin(pod: PodInfo, app: App): ResourceActionSet {
   const { engineId, Id: podId } = pod;
   const running = pod.Status.toLowerCase() === 'running';
   const url = browserUrl(pod, app);
@@ -92,6 +93,12 @@ export function podActions(pod: PodInfo, app: App): ResourceActionSet {
       },
     ],
   };
+}
+
+/** The actions of a pod, then the ones of the extensions. */
+export function podActions(pod: PodInfo, app: App): ResourceActionSet {
+  const set = podActionsBuiltin(pod, app);
+  return { ...set, actions: withPodContributions(set.actions, pod, app) };
 }
 
 /** The prune of the pods of an engine, in the header of the list, removing the stopped pods. */

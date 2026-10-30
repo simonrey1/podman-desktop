@@ -32,6 +32,7 @@ import type { Uri } from '@podman-desktop/api';
 import { toast } from 'svelte-sonner';
 
 import type { App } from '#lib/app.svelte.js';
+import { withContainerContributions } from '#lib/components/contributions.js';
 import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { containerName } from '#lib/stores/containers.svelte.js';
 import { viewRef } from '#lib/views/index.js';
@@ -60,7 +61,7 @@ async function exportContainer(container: ContainerInfo): Promise<void> {
  * The actions of a container: in its row, in the header of its details, and in the bulk actions.
  * @param tty whether the container has a TTY to attach to (known from its inspect data, in its details)
  */
-export function containerActions(container: ContainerInfo, app: App, tty = false): ResourceActionSet {
+function containerActionsBuiltin(container: ContainerInfo, app: App, tty = false): ResourceActionSet {
   const { engineId, Id: containerId } = container;
   const running = container.State === 'running';
   const paused = container.State === 'paused';
@@ -145,6 +146,12 @@ export function containerActions(container: ContainerInfo, app: App, tty = false
       },
     ],
   };
+}
+
+/** The actions of a container, then the ones of the extensions. */
+export function containerActions(container: ContainerInfo, app: App, tty = false): ResourceActionSet {
+  const set = containerActionsBuiltin(container, app, tty);
+  return { ...set, actions: withContainerContributions(set.actions, container, app) };
 }
 
 /** The prune of the containers of an engine, in the header of the list, removing the stopped containers. */

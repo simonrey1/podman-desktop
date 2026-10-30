@@ -22,10 +22,11 @@ import RulerIcon from '@lucide/svelte/icons/ruler';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
+import { withVolumeContributions } from '#lib/components/contributions.js';
 import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
 /** The actions of a volume: in its row, in the header of its details, and in the bulk actions. */
-export function volumeActions(volume: VolumeInfo): ResourceActionSet {
+function volumeActionsBuiltin(volume: VolumeInfo): ResourceActionSet {
   return {
     target: { key: resourceKey('volume', volume.engineId, volume.Name), name: volume.Name },
     actions: [
@@ -40,6 +41,12 @@ export function volumeActions(volume: VolumeInfo): ResourceActionSet {
       },
     ],
   };
+}
+
+/** The actions of a volume, then the ones of the extensions. */
+export function volumeActions(volume: VolumeInfo, app: App): ResourceActionSet {
+  const set = volumeActionsBuiltin(volume);
+  return { ...set, actions: withVolumeContributions(set.actions, volume, app) };
 }
 
 /** The prune of the volumes of an engine, in the header of the list, removing the volumes not used by a container. */

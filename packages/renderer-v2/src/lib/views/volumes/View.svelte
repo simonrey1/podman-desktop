@@ -31,7 +31,7 @@ function open(row: VolumeInfo, options: { preview: boolean }): void {
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
   canSelect={(volume): boolean => !volume.containersUsage?.length}
-  actionsOf={(volume): ResourceActionSet => volumeActions(volume)}
+  actionsOf={(volume): ResourceActionSet => volumeActions(volume, app)}
   prune={volumePrune(view.params.engineId, app.engines.label(view.params.engineId, view.params.engineId))}
   bulk={['Delete']}
   onCreate={(): void => app.modals.open(CreateVolumeDialog, { engineId: view.params.engineId })}

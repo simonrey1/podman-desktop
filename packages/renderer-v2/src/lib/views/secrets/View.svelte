@@ -27,7 +27,7 @@ function open(secret: SecretInfo, options: { preview: boolean }): void {
   bind:filter={view.state.filter}
   bind:sort={view.state.sort}
   bind:selection={view.state.selection}
-  actionsOf={(secret): ResourceActionSet => secretActions(secret)}
+  actionsOf={(secret): ResourceActionSet => secretActions(secret, app)}
   bulk={['Delete']}
   onCreate={(): void => app.modals.open(CreateSecretDialog, { engineId: view.params.engineId })}
   icon={KeyRoundIcon}

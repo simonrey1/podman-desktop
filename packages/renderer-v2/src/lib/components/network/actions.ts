@@ -21,12 +21,13 @@ import GlobeIcon from '@lucide/svelte/icons/globe';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
+import { withNetworkContributions } from '#lib/components/contributions.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 
 import UpdateDnsDialog from './UpdateDnsDialog.svelte';
 
 /** The actions of a network: in its row, in the header of its details, and in the bulk actions. */
-export function networkActions(network: NetworkInspectInfo, app: App): ResourceActionSet {
+function networkActionsBuiltin(network: NetworkInspectInfo, app: App): ResourceActionSet {
   return {
     target: { key: resourceKey('network', network.engineId, network.Id), name: network.Name },
     actions: [
@@ -48,4 +49,10 @@ export function networkActions(network: NetworkInspectInfo, app: App): ResourceA
       },
     ],
   };
+}
+
+/** The actions of a network, then the ones of the extensions. */
+export function networkActions(network: NetworkInspectInfo, app: App): ResourceActionSet {
+  const set = networkActionsBuiltin(network, app);
+  return { ...set, actions: withNetworkContributions(set.actions, network, app) };
 }

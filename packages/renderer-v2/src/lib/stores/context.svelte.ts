@@ -55,8 +55,11 @@ export class ContextStore implements IContext {
     return value as T | undefined;
   }
 
-  /** whether a `when` clause holds (no clause holds) */
-  evaluate(when: string | undefined): boolean {
+  /**
+   * whether a `when` clause holds (no clause holds)
+   * @param read the keys of what the clause is about (e.g. the fields of a resource), over the context keys
+   */
+  evaluate(when: string | undefined, read?: (key: string) => unknown): boolean {
     if (!when) {
       return true;
     }
@@ -67,7 +70,13 @@ export class ContextStore implements IContext {
     if (!this.#parsed.has(when)) {
       this.#parsed.set(when, ContextKeyExpr.deserialize(when));
     }
-    return this.#parsed.get(when)?.evaluate(this) ?? false;
+    const context = read
+      ? {
+          getValue: <T extends ContextKeyValue>(key: string): T | undefined =>
+            (read(key) as T) ?? this.getValue<T>(key),
+        }
+      : this;
+    return this.#parsed.get(when)?.evaluate(context) ?? false;
   }
 
   /** the constants of the platform in the clauses: `isLinux`, `isMac`, `isWindows` */

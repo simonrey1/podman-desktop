@@ -69,6 +69,11 @@ Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, 
   the other lists, rather than the cards of v1. An extension opens its details in a tab of its own.
 - An installation is reported by its task and a toast: the extension shows as installing wherever it is listed. Custom
   images are installed from a dialog closed at once, as the installer may show its own dialogs.
+- The header of the page does not move between its sections: on the left the section and what belongs to it, on the
+  right what is the same in all of them (the filter, Install custom).
+- The actions contributed by the extensions (`contributes.menus`) follow the actions of a resource, in its row and in
+  its details. Their commands receive the fields of the objects of renderer v1, which the extensions read, over the
+  fields of the resource. They have a generic icon until the icons of the extensions are supported.
 - The Docker Desktop extensions are not listed for now (their webviews come with the webviews of the extensions).
 - A webview of an extension is a tab, opened from the Extensions group of the explorer, never a preview (what is done
   in the page is not seen by the host, a preview tab would lose it). It stays mounted while another tab is shown: the

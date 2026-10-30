@@ -32,6 +32,7 @@ import type { Uri } from '@podman-desktop/api';
 import { toast } from 'svelte-sonner';
 
 import type { App } from '#lib/app.svelte.js';
+import { withImageContributions } from '#lib/components/contributions.js';
 import { pruneKey, type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { shortId } from '#lib/stores/containers.svelte.js';
 import { imageName, imageRepositoryAndTag } from '#lib/stores/images.svelte.js';
@@ -90,7 +91,7 @@ async function updateImage(image: ImageInfo): Promise<void> {
  * The actions of an image: in its row, in the header of its details, and in the bulk actions.
  * @param used whether a container uses the image: it cannot be deleted nor updated then
  */
-export function imageActions(image: ImageInfo, used: boolean, app: App): ResourceActionSet {
+function imageActionsBuiltin(image: ImageInfo, used: boolean, app: App): ResourceActionSet {
   const { engineId, Id: imageId } = image;
   const named = imageName(image) !== '<none>';
   // a manifest lists images: deleting it keeps them
@@ -187,6 +188,12 @@ export function imageActions(image: ImageInfo, used: boolean, app: App): Resourc
       },
     ],
   };
+}
+
+/** The actions of an image, then the ones of the extensions. */
+export function imageActions(image: ImageInfo, used: boolean, app: App): ResourceActionSet {
+  const set = imageActionsBuiltin(image, used, app);
+  return { ...set, actions: withImageContributions(set.actions, image, app) };
 }
 
 /** The prunes of the images of an engine, in the header of the list: the unused images, or the untagged ones only. */

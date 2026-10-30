@@ -23,6 +23,7 @@ import SquareIcon from '@lucide/svelte/icons/square';
 import Trash2Icon from '@lucide/svelte/icons/trash-2';
 
 import type { App } from '#lib/app.svelte.js';
+import { withComposeContributions } from '#lib/components/contributions.js';
 import { type ResourceActionSet, resourceKey } from '#lib/stores/actions.svelte.js';
 import { viewRef } from '#lib/views/index.js';
 
@@ -34,7 +35,7 @@ export const COMPOSE_PROJECT_LABEL = 'com.docker.compose.project';
  * containers.
  * @param running how many of its `total` containers run
  */
-export function composeActions(
+function composeActionsBuiltin(
   engineId: string,
   project: string,
   running: number,
@@ -88,5 +89,27 @@ export function composeActions(
           app.workbench.open(viewRef('compose-details', { engineId, project }), { state: { section: 'kube' } }),
       },
     ],
+  };
+}
+
+/**
+ * The actions of a Compose project, then the ones of the extensions.
+ * @param running how many of its `total` containers run
+ */
+export function composeActions(
+  engineId: string,
+  project: string,
+  running: number,
+  total: number,
+  app: App,
+): ResourceActionSet {
+  const set = composeActionsBuiltin(engineId, project, running, total, app);
+  const containers = app.containers
+    .ofEngine(engineId)
+    .filter(container => container.Labels?.[COMPOSE_PROJECT_LABEL] === project);
+  const status = running > 0 ? 'RUNNING' : 'STOPPED';
+  return {
+    ...set,
+    actions: withComposeContributions(set.actions, { engineId, name: project, status, containers }, app),
   };
 }
