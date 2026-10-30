@@ -121,4 +121,39 @@ function onclick(event: MouseEvent): void {
     font-family: var(--font-mono);
     font-size: 0.9em;
   }
+  /* a document, e.g. the README of an extension */
+  .markdown :global(h1),
+  .markdown :global(h2),
+  .markdown :global(h3),
+  .markdown :global(h4) {
+    margin-top: 1rem;
+    color: var(--color-foreground);
+    font-weight: 600;
+  }
+  .markdown :global(:first-child):is(:global(h1), :global(h2), :global(h3), :global(h4)) {
+    margin-top: 0;
+  }
+  .markdown :global(h1) {
+    font-size: var(--text-xl);
+  }
+  .markdown :global(h2) {
+    font-size: var(--text-lg);
+  }
+  .markdown :global(pre) {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    background: var(--color-muted);
+  }
+  .markdown :global(blockquote) {
+    margin-top: 0.5rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 2px solid var(--color-border);
+    color: var(--color-muted-foreground);
+  }
+  .markdown :global(img) {
+    max-width: 100%;
+    height: auto;
+  }
 </style>
