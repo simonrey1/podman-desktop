@@ -63,8 +63,8 @@ async function submit(): Promise<void> {
     if (message.includes('Execution cancelled')) {
       failure = 'Canceled';
     } else {
-      // a provider can fail with the whole output of a command: its first line here, all of it in the logs
-      app.connectionLogs.write(target.id, 'error', message);
+      // a provider can fail with the whole output of a command: its first line here, all of it in the logs (the main
+      // process logs the failure, it comes to the logger above)
       failure = message.length > 200 ? `${message.split('\n')[0]?.slice(0, 200) ?? ''}…` : message;
     }
   } finally {

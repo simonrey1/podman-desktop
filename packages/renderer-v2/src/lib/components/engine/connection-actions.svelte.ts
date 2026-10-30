@@ -64,7 +64,7 @@ async function lifecycle(connection: Connection, method: Exclude<Lifecycle, 'edi
       logger,
     );
   } catch (error: unknown) {
-    app.connectionLogs.write(connection.id, 'error', logged ?? String(error));
+    // the main process already logs the failure, it comes to the logger above
     throw logged ? new Error(logged) : error;
   }
 }
