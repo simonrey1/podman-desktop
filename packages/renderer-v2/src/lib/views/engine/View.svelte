@@ -2,7 +2,7 @@
 import ServerIcon from '@lucide/svelte/icons/server';
 
 import { getApp } from '#lib/app.svelte.js';
-import { connectionActions } from '#lib/components/engine/connection-actions.js';
+import { connectionActions } from '#lib/components/engine/connection-actions.svelte.js';
 import { connectionDetails } from '#lib/components/engine/connection-details.js';
 import { ConnectionUsage } from '#lib/components/engine/connection-usage.svelte.js';
 import UsageCard from '#lib/components/engine/UsageCard.svelte';

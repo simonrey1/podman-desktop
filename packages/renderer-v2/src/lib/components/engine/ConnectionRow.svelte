@@ -11,7 +11,7 @@ import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { iconOf } from '#lib/stores/accessories.svelte.js';
 import type { Connection } from '#lib/stores/engines.svelte.js';
 
-import { connectionActions } from './connection-actions.js';
+import { connectionActions } from './connection-actions.svelte.js';
 import { ConnectionUsage } from './connection-usage.svelte.js';
 import UsageBars from './UsageBars.svelte';
 
