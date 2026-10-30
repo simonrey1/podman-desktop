@@ -19,6 +19,7 @@ import StatusBadge from '#lib/components/StatusBadge.svelte';
 import { Badge } from '#lib/components/ui/badge/index.js';
 import { Button } from '#lib/components/ui/button/index.js';
 import * as Field from '#lib/components/ui/field/index.js';
+import { ScrollArea } from '#lib/components/ui/scroll-area/index.js';
 import { Spinner } from '#lib/components/ui/spinner/index.js';
 import { Switch } from '#lib/components/ui/switch/index.js';
 import { errorMessage } from '#lib/stores/actions.svelte.js';
@@ -97,7 +98,7 @@ async function setAutoUpdate(enabled: boolean): Promise<void> {
 }
 </script>
 
-<Page icon={PuzzleIcon} title={name}>
+<Page icon={PuzzleIcon} title={name} body="fill">
   {#snippet meta()}
     {#if extension}
       <StatusBadge status={extension.state} actionKey={extensionKey(extension.id)} />
@@ -141,6 +142,7 @@ async function setAutoUpdate(enabled: boolean): Promise<void> {
       <NotFound noun="Extension" />
     {/if}
   {:else if section === 'error'}
+    <ScrollArea>
     <div class="flex flex-col gap-3 p-3">
       <Card title="The extension failed">
         <p class="text-state-error">{extension?.error?.message}</p>
@@ -149,7 +151,10 @@ async function setAutoUpdate(enabled: boolean): Promise<void> {
         {/if}
       </Card>
     </div>
+    </ScrollArea>
   {:else}
+    <!-- scrolls vertically only: what the README contains (an image, a code block) fits its width -->
+    <ScrollArea>
     <div class="mx-auto flex w-full max-w-6xl flex-col-reverse items-start gap-3 p-3 lg:flex-row">
       <div class="w-full min-w-0 lg:flex-1">
         <Card title="Readme">
@@ -160,16 +165,15 @@ async function setAutoUpdate(enabled: boolean): Promise<void> {
           {/if}
         </Card>
       </div>
-      <div class="flex w-full min-w-0 shrink-0 flex-col gap-3 lg:w-96">
-        <div class="flex items-center gap-3 rounded-lg bg-card p-4">
-          {#if icon}
-            <ImageIcon {icon} class="size-8" />
-          {/if}
-          <p class="min-w-0 text-muted-foreground">{extension?.description ?? entry?.description}</p>
-        </div>
-        <KeyValueCard title="Details" rows={details} />
-        {#if autoUpdatable}
-          <Card title="Updates">
+      <div class="flex w-full min-w-0 shrink-0 flex-col gap-3 lg:w-72">
+        <Card title="About">
+          <div class="flex items-center gap-3">
+            {#if icon}
+              <ImageIcon {icon} class="size-8" />
+            {/if}
+            <p class="min-w-0 text-muted-foreground">{extension?.description ?? entry?.description}</p>
+          </div>
+          {#if autoUpdatable}
             <Field.Field orientation="horizontal">
               <Switch
                 id="extension-auto-update"
@@ -180,9 +184,11 @@ async function setAutoUpdate(enabled: boolean): Promise<void> {
                 }} />
               <Field.Label for="extension-auto-update">Update automatically</Field.Label>
             </Field.Field>
-          </Card>
-        {/if}
+          {/if}
+        </Card>
+        <KeyValueCard title="Details" rows={details} stacked />
       </div>
     </div>
+    </ScrollArea>
   {/if}
 </Page>

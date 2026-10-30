@@ -27,9 +27,11 @@ interface Props {
   empty?: string;
   /** opens the view of a value having one */
   onOpen?: (ref: ViewRef) => void;
+  /** the labels above their values: for a narrow card */
+  stacked?: boolean;
 }
 
-let { title, rows, empty = 'None', onOpen }: Props = $props();
+let { title, rows, empty = 'None', onOpen, stacked = false }: Props = $props();
 </script>
 
 <Card {title}>
@@ -37,8 +39,8 @@ let { title, rows, empty = 'None', onOpen }: Props = $props();
     <dl class="flex flex-col gap-2">
       {#each rows as row (`${row.label}:${row.value}`)}
         {@const ref = row.ref}
-        <div class="flex items-baseline gap-4">
-          <dt class="w-40 shrink-0 truncate text-muted-foreground" title={row.label}>{row.label}</dt>
+        <div class={stacked ? 'flex flex-col' : 'flex items-baseline gap-4'}>
+          <dt class={['truncate text-muted-foreground', !stacked && 'w-40 shrink-0']} title={row.label}>{row.label}</dt>
           <dd class={['min-w-0 break-all select-text', row.mono && 'font-mono text-sm']}>
             {#if ref && onOpen && row.value}
               <button

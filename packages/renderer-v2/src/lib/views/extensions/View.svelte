@@ -102,9 +102,10 @@ function openDevelopmentSetting(): void {
 </script>
 
 <Page icon={PuzzleIcon} title="Extensions">
-  {#snippet actions()}
+  <!-- left: the section and what belongs to it, right: what is the same in every section. Nothing moves when
+       switching -->
+  {#snippet meta()}
     <SegmentedControl label="Section" bind:value={view.state.section} {options} />
-    <FilterInput bind:value={view.state.filter} placeholder="Filter extensions" />
     {#if section === 'catalog'}
       <ActionButton
         icon={RefreshCwIcon}
@@ -112,16 +113,20 @@ function openDevelopmentSetting(): void {
         onclick={(): void => {
           refreshCatalog().catch(console.error);
         }} />
-    {/if}
-    {#if section === 'local' && developmentMode}
+    {:else if section === 'local' && developmentMode}
       <Button
+        variant="outline"
         onclick={(): void => {
           addFolder().catch(console.error);
         }}>
         <FolderPlusIcon data-icon="inline-start" />
         Add a folder
       </Button>
-    {:else if section !== 'local' && customEnabled}
+    {/if}
+  {/snippet}
+  {#snippet actions()}
+    <FilterInput bind:value={view.state.filter} placeholder="Filter extensions" />
+    {#if customEnabled}
       <Button onclick={(): void => app.modals.open(InstallExtensionDialog, {})}>
         <DownloadIcon data-icon="inline-start" />
         Install custom
