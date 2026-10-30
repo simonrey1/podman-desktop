@@ -137,8 +137,22 @@ let shown = $derived(items.flatMap(item => (rows[item.index] ? [{ row: rows[item
 let before = $derived(items[0] ? items[0].start - scrollMargin : 0);
 let after = $derived(items.length ? virtual.totalSize - ((items.at(-1)?.end ?? 0) - scrollMargin) : 0);
 
+/** what scrolls the rows: a scroll area of a page (its overflow is set once mounted), or an element scrolling by itself */
+function scrollParent(body: HTMLElement): HTMLElement | undefined {
+  const area = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+  if (area) {
+    return area;
+  }
+  for (let element = body.parentElement; element; element = element.parentElement) {
+    if (['auto', 'scroll'].includes(getComputedStyle(element).overflowY)) {
+      return element;
+    }
+  }
+  return undefined;
+}
+
 const windowed: Attachment<HTMLElement> = body => {
-  const scroller = body.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+  const scroller = scrollParent(body);
   if (!scroller) {
     return;
   }
@@ -289,15 +303,20 @@ function onkeydown(event: KeyboardEvent, row: T): void {
             {/each}
           </Table.Row>
         {:else}
-          <Table.Row>
-            <Table.Cell colspan={columnCount}>
-              {#if noMatch}
-                {@render noMatch()}
-              {:else}
-                <div class="flex h-24 items-center justify-center text-muted-foreground">No results for “{filter}”</div>
-              {/if}
-            </Table.Cell>
-          </Table.Row>
+          <!-- no row in the window yet is not an empty list: the first rows wait for the viewport -->
+          {#if rows.length === 0}
+            <Table.Row>
+              <Table.Cell colspan={columnCount}>
+                {#if noMatch}
+                  {@render noMatch()}
+                {:else}
+                  <div class="flex h-24 items-center justify-center text-muted-foreground">
+                    No results for “{filter}”
+                  </div>
+                {/if}
+              </Table.Cell>
+            </Table.Row>
+          {/if}
         {/each}
         {#if after > 0}
           <tr aria-hidden="true">
