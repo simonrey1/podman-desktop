@@ -1,4 +1,5 @@
 <script lang="ts">
+import PuzzleIcon from '@lucide/svelte/icons/puzzle';
 import SettingsIcon from '@lucide/svelte/icons/settings';
 
 import { getApp } from '#lib/app.svelte.js';
@@ -75,9 +76,18 @@ function onkeydown(event: KeyboardEvent, ref: ViewRef): void {
       {/if}
     </ScrollArea>
   </Sidebar.Content>
-  <!-- what is not about the engine: the settings -->
+  <!-- what is not about the engine: the extensions and the settings -->
   <Sidebar.Footer>
     <Sidebar.Menu>
+      <Sidebar.MenuItem>
+        <Sidebar.MenuButton
+          size="sm"
+          isActive={isActive(viewRef('extensions', {}))}
+          onclick={(): void => keep(viewRef('extensions', {}))}>
+          <PuzzleIcon />
+          <span>Extensions</span>
+        </Sidebar.MenuButton>
+      </Sidebar.MenuItem>
       <Sidebar.MenuItem>
         <Sidebar.MenuButton
           size="sm"

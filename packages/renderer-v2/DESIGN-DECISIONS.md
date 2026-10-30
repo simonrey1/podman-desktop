@@ -61,6 +61,16 @@ Status: **Decided** (applied, or to apply as written) · **Direction** (agreed, 
 - A setting is written as it is changed; the terminal settings apply to the open terminals, the look of v2 while a
   setting keeps its default.
 
+## 4b. Extensions
+
+**Decided.**
+
+- One Extensions tab (from the explorer, next to Settings), with its sections Installed, Catalog and Local: tables, as
+  the other lists, rather than the cards of v1. An extension opens its details in a tab of its own.
+- An installation is reported by its task and a toast: the extension shows as installing wherever it is listed. Custom
+  images are installed from a dialog closed at once, as the installer may show its own dialogs.
+- The Docker Desktop extensions are not listed for now (their webviews come with the webviews of the extensions).
+
 ## 5. Components and look
 
 **Decided.**

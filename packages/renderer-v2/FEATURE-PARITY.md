@@ -190,57 +190,57 @@ browses is a proposal in [DESIGN-DECISIONS.md](DESIGN-DECISIONS.md#8-extensions-
 
 ## Extensions (`lib/extensions`, `lib/featured`, `lib/recommendation`, `lib/explore-features`)
 
-| Feature                                                                                     | v2  |
-| ------------------------------------------------------------------------------------------- | --- |
-| Extensions page: Installed / Catalog / Local tabs, search                                   | ☐   |
-| Installed cards: status, badges, start / stop / remove, update, onboarding, edit properties | ☐   |
-| Install from an OCI image (custom)                                                          | ☐   |
-| Catalog with install, refresh                                                               | ☐   |
-| Local (development) folders: add, start, stop, untrack                                      | ☐   |
-| Extension details: summary, auto-update, README (markdown), errors                          | ☐   |
-| Featured extensions, recommendation banners, explore-features carousel                      | ☐   |
-| Docker Desktop extensions (`/contribs/:name`, webview with dedicated preload)               | ☐   |
-| Extension webviews (`/webviews/:id`, messages, DevTools)                                    | ☐   |
-| Context keys synced from main, `when` clauses evaluated (settings, connection forms)        | ✅  |
-| Extension icon fonts, registered features                                                   | ☐   |
+| Feature                                                                                                                                                                            | v2  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |
+| Extensions page (from the explorer): Installed / Catalog / Local sections, a text filter (name, description, categories, keywords; not the `category:` / `is:` syntax of v1), sort | ✅  |
+| Installed list: status, badges, start / stop / remove, update, settings (the onboarding is rejected for now)                                                                       | ✅  |
+| Install from an OCI image (custom)                                                                                                                                                 | ✅  |
+| Catalog with install, refresh, the featured ones first                                                                                                                             | ✅  |
+| Local (development) folders: add, start, stop, untrack                                                                                                                             | ✅  |
+| Extension details (a tab): summary, auto-update, README (markdown), errors, install                                                                                                | ✅  |
+| Featured extensions (badge in the catalog); recommendation banners, explore-features carousel missing                                                                              | ◐   |
+| Docker Desktop extensions (`/contribs/:name`, webview with dedicated preload)                                                                                                      | ☐   |
+| Extension webviews (`/webviews/:id`, messages, DevTools)                                                                                                                           | ☐   |
+| Context keys synced from main, `when` clauses evaluated (settings, connection forms)                                                                                               | ✅  |
+| Extension icon fonts, registered features                                                                                                                                          | ☐   |
 
 ## Dashboard
 
-| Feature                                                                                                                               | v2         |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Dashboard with containers / engines counts and engines                                                                                | ✅ (basic) |
-| Reorderable / hideable sections                                                                                                       | ☐          |
-| Notifications box (markdown, actions, dismiss)                                                                                        | ✅         |
-| Release notes banner (dismiss, learn more, update)                                                                                    | ☐          |
-| Learning center (guides carousel)                                                                                                     | ☐          |
-| Providers section per provider state (not installed, installed, starting, configured, ready, stopped; install / initialize with logs) | ☐          |
-| Experimental system overview (health, connection cards, CPU / memory / disk usage)                                                    | ☐          |
+| Feature                                                                                             | v2         |
+| --------------------------------------------------------------------------------------------------- | ---------- |
+| Dashboard with containers / engines counts and engines                                              | ✅ (basic) |
+| Reorderable / hideable sections                                                                     | ☐          |
+| Notifications box (markdown, actions, dismiss)                                                      | ✅         |
+| Release notes banner (dismiss, learn more, update)                                                  | ☐          |
+| Learning center (guides carousel)                                                                   | ☐          |
+| Providers section per provider state (v2: the notifications of the extensions, the system overview) | ✕          |
+| System overview (health, connection cards, CPU / memory / disk usage)                               | ✅         |
 
 ## Application shell
 
-| Feature                                                                                                                                                                                   | v2                                   |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| Navigation: explorer of the selected engine                                                                                                                                               | ✅ (different model from v1 nav bar) |
-| Navigation for non-engine areas (extensions, settings, webviews, accounts)                                                                                                                | ☐                                    |
-| Navigation entries contributed by extensions, hideable entries                                                                                                                            | ☐                                    |
-| Title bar, window controls (Windows / Linux), macOS spacing                                                                                                                               | ✅                                   |
-| Title bar: back / forward history (keyboard shortcuts, long-press list)                                                                                                                   | ☐                                    |
-| Title bar text from main (`getTitleBarText`)                                                                                                                                              | ☐                                    |
-| Tabs, preview tabs, panel with sessions, resizable layout                                                                                                                                 | ✅ (new in v2)                       |
-| Navigation requests from main (protocol links, notifications: `NavigationPage` → view): the provider tasks and the connections (the actions of their tasks) done, the other pages missing | ◐                                    |
-| Command palette (commands, documentation, go to; Ctrl/Cmd+Shift+P, F1, Ctrl/Cmd+K)                                                                                                        | ☐                                    |
-| Status bar entries contributed by extensions / main                                                                                                                                       | ☐                                    |
-| Status bar: task indicator (running tasks, opens the tasks)                                                                                                                               | ✅                                   |
-| Status bar: pinned provider widgets                                                                                                                                                       | ☐                                    |
-| Task manager (running / completed tasks, view, cancel, clear), in the panel                                                                                                               | ✅                                   |
-| Toasts: failures of the actions, task toasts (setting tasks.Toast: running, then success / failure / canceled)                                                                            | ✅                                   |
-| Dialogs requested by extensions / main: message box (markdown, type icon, cancel / default buttons, dropdown buttons, queued)                                                             | ✅                                   |
-| Dialogs requested by extensions / main: input box (validation, password, multiline, selection), quick pick (filter, details, pick many, highlight callback)                               | ✅                                   |
-| Dialogs requested by extensions / main: custom pick (cards with markdown and details, one or several selected)                                                                            | ✅                                   |
-| Markdown rendering: links opened in the browser, image directive                                                                                                                          | ✅                                   |
-| Markdown directives: buttons and links running commands (busy while running, failures in a toast), button links                                                                           | ✅                                   |
-| Markdown directives: warnings, expandable sections (used by the onboarding)                                                                                                               | ✕                                    |
-| Troubleshooting (engine checks and reconnect, repair/cleanup, console logs, gather logs, stores)                                                                                          | ☐                                    |
-| Help menu, feedback (direct and GitHub issue)                                                                                                                                             | ☐                                    |
-| Accounts menu (sign in / out)                                                                                                                                                             | ☐                                    |
-| Keyboard: back/forward, Esc closes popups; v2 has ` (panel) and Ctrl+B (explorer)                                                                                                         | ◐                                    |
+| Feature                                                                                                                                                                                                | v2                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------ |
+| Navigation: explorer of the selected engine                                                                                                                                                            | ✅ (different model from v1 nav bar) |
+| Navigation for non-engine areas: extensions and settings done; webviews, accounts missing                                                                                                              | ◐                                    |
+| Navigation entries contributed by extensions, hideable entries                                                                                                                                         | ☐                                    |
+| Title bar, window controls (Windows / Linux), macOS spacing                                                                                                                                            | ✅                                   |
+| Title bar: back / forward history (keyboard shortcuts, long-press list)                                                                                                                                | ☐                                    |
+| Title bar text from main (`getTitleBarText`)                                                                                                                                                           | ☐                                    |
+| Tabs, preview tabs, panel with sessions, resizable layout                                                                                                                                              | ✅ (new in v2)                       |
+| Navigation requests from main (protocol links, notifications: `NavigationPage` → view): the provider tasks, the connections (the actions of their tasks) and the catalog done, the other pages missing | ◐                                    |
+| Command palette (commands, documentation, go to; Ctrl/Cmd+Shift+P, F1, Ctrl/Cmd+K)                                                                                                                     | ☐                                    |
+| Status bar entries contributed by extensions / main                                                                                                                                                    | ☐                                    |
+| Status bar: task indicator (running tasks, opens the tasks)                                                                                                                                            | ✅                                   |
+| Status bar: pinned provider widgets                                                                                                                                                                    | ☐                                    |
+| Task manager (running / completed tasks, view, cancel, clear), in the panel                                                                                                                            | ✅                                   |
+| Toasts: failures of the actions, task toasts (setting tasks.Toast: running, then success / failure / canceled)                                                                                         | ✅                                   |
+| Dialogs requested by extensions / main: message box (markdown, type icon, cancel / default buttons, dropdown buttons, queued)                                                                          | ✅                                   |
+| Dialogs requested by extensions / main: input box (validation, password, multiline, selection), quick pick (filter, details, pick many, highlight callback)                                            | ✅                                   |
+| Dialogs requested by extensions / main: custom pick (cards with markdown and details, one or several selected)                                                                                         | ✅                                   |
+| Markdown rendering: links opened in the browser, image directive                                                                                                                                       | ✅                                   |
+| Markdown directives: buttons and links running commands (busy while running, failures in a toast), button links                                                                                        | ✅                                   |
+| Markdown directives: warnings, expandable sections (used by the onboarding)                                                                                                                            | ✕                                    |
+| Troubleshooting (engine checks and reconnect, repair/cleanup, console logs, gather logs, stores)                                                                                                       | ☐                                    |
+| Help menu, feedback (direct and GitHub issue)                                                                                                                                                          | ☐                                    |
+| Accounts menu (sign in / out)                                                                                                                                                                          | ☐                                    |
+| Keyboard: back/forward, Esc closes popups; v2 has ` (panel) and Ctrl+B (explorer)                                                                                                                      | ◐                                    |

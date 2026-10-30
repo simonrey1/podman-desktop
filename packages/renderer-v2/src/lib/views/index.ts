@@ -35,6 +35,8 @@ import containers from './containers/view.js';
 import creationOutput from './creation-output/view.js';
 import dashboard from './dashboard/view.js';
 import engine from './engine/view.js';
+import extensionDetails from './extension-details/view.js';
+import extensions from './extensions/view.js';
 import imageBuild from './image-build/view.js';
 import imageDetails from './image-details/view.js';
 import imageFiles from './image-files/view.js';
@@ -55,6 +57,8 @@ import volumes from './volumes/view.js';
 /** Every view of the workbench, by id: one folder per view, declared with `defineView`. */
 export const VIEWS = {
   dashboard,
+  extensions,
+  'extension-details': extensionDetails,
   engine,
   connection,
   'connection-create': connectionCreate,

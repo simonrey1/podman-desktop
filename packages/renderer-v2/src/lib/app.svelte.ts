@@ -29,6 +29,7 @@ import { ContainersStore } from '#lib/stores/containers.svelte.js';
 import { ContextStore } from '#lib/stores/context.svelte.js';
 import { CreationsStore } from '#lib/stores/creations.svelte.js';
 import { EnginesStore } from '#lib/stores/engines.svelte.js';
+import { CatalogStore, DevelopmentFoldersStore, ExtensionsStore } from '#lib/stores/extensions.svelte.js';
 import { ImageFilesProvidersStore } from '#lib/stores/image-files.svelte.js';
 import { ImagesStore } from '#lib/stores/images.svelte.js';
 import { MessageBoxesStore } from '#lib/stores/message-boxes.svelte.js';
@@ -83,6 +84,9 @@ export class App {
       }
     },
   });
+  readonly extensions = new ExtensionsStore();
+  readonly catalog = new CatalogStore();
+  readonly developmentFolders = new DevelopmentFoldersStore();
   readonly navigation = new NavigationHandler(this.workbench, this.engines, this.creations);
 
   /** e.g. 'darwin', 'linux' or 'win32' */
@@ -119,6 +123,9 @@ export class App {
       this.authentication,
       this.cliTools,
       this.networks,
+      this.extensions,
+      this.catalog,
+      this.developmentFolders,
       this.navigation,
     ].map(store => store.start());
     return (): void => {
