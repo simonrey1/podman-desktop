@@ -116,7 +116,15 @@ export class ElectronRunner extends Runner {
       throw new Error(`Podman Desktop could not be started correctly with error: ${err}`);
     }
 
-    const rendered = await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS);
+    let rendered = await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS);
+    if (!rendered && this._page) {
+      // With a packaged app, Playwright skips its loader.js and can attach during the first navigation,
+      // which loses the preload. Playwright is attached now, so a reload is enough: no need to relaunch.
+      const preload = await this._page.evaluate(() => typeof (window as { events?: unknown }).events).catch(String);
+      console.log(`Blank window on attempt ${attempt}/${maxAttempts} (preload: ${preload}), reloading it`);
+      await this._page.reload();
+      rendered = await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS);
+    }
     if (rendered) {
       if (attempt > 1) {
         console.log(`Podman Desktop rendered successfully on attempt ${attempt}`);
