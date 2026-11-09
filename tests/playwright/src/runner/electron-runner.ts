@@ -34,6 +34,17 @@ type WindowState = {
   isCrashed: boolean;
 };
 
+/**
+ * Subset of the Chromium switches that Playwright's Electron loader.js appends in development mode:
+ * only the ones affecting renderer scheduling and painting of hidden or occluded windows.
+ */
+const PLAYWRIGHT_RENDER_SWITCHES = [
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--disable-features=PaintHolding',
+];
+
 export class ElectronRunner extends Runner {
   protected _app: ElectronApplication | undefined;
 
@@ -370,9 +381,13 @@ export class ElectronRunner extends Runner {
         height: 700,
       },
     };
-    const args = pdArgs ? [pdArgs] : ['.'];
     // executablePath defaults to this package's installation location: node_modules/.bin/electron
     const executablePath = pdArgs ? join(pdArgs, 'node_modules', '.bin', 'electron') : (pdBinary ?? undefined);
+    const args = pdArgs ? [pdArgs] : ['.'];
+    // Playwright skips its loader.js (which appends Chromium switches) when executablePath is set.
+    if (executablePath) {
+      args.push(...PLAYWRIGHT_RENDER_SWITCHES);
+    }
     const timeout = this._runnerOptions._electronLaunchTimeout;
     return {
       args,
