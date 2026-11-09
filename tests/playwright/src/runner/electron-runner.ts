@@ -37,7 +37,7 @@ type WindowState = {
 export class ElectronRunner extends Runner {
   protected _app: ElectronApplication | undefined;
 
-  protected static readonly MAX_STARTUP_ATTEMPTS = 3;
+  protected static readonly MAX_STARTUP_ATTEMPTS = 5;
   protected static readonly APP_RENDER_TIMEOUT_MS = 15_000;
 
   public constructor(options?: { runnerOptions?: RunnerOptions }) {
@@ -114,6 +114,19 @@ export class ElectronRunner extends Runner {
       console.log(`Caught exception in startup (attempt ${attempt}): ${err}`);
       await this.closeAfterFailedStart();
       throw new Error(`Podman Desktop could not be started correctly with error: ${err}`);
+    }
+
+    // With a packaged app, Playwright skips its loader.js and can attach during the first navigation,
+    // which loses the preload. Relaunch right away instead of waiting for the render timeout: a reload
+    // would recover the window, but not the startup logs the missing preload did not collect.
+    await this.getPage().waitForLoadState('domcontentloaded');
+    if (!(await this.getPage().evaluate(() => 'events' in window))) {
+      console.log(`Preload missing on attempt ${attempt}/${maxAttempts}, relaunching`);
+      await this.closeAfterFailedStart();
+      if (attempt >= maxAttempts) {
+        throw new Error(`Podman Desktop started without its preload on all ${maxAttempts} attempts.`);
+      }
+      return false;
     }
 
     const rendered = await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS);
