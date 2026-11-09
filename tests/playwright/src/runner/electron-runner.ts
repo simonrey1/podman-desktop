@@ -210,7 +210,9 @@ export class ElectronRunner extends Runner {
   }
 
   private async launchWithStartupGate(options: Parameters<typeof electron.launch>[0]): Promise<ElectronApplication> {
-    if (!options?.executablePath) {
+    // Only packaged apps: with PODMAN_DESKTOP_ARGS, the first paused script is Electron's ESM default_app,
+    // where `require` is not defined.
+    if (!options?.executablePath || !process.env.PODMAN_DESKTOP_BINARY) {
       return electron.launch(options);
     }
     const port = await new Promise<number>(resolve => {
