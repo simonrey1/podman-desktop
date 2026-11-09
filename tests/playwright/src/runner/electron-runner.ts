@@ -18,9 +18,10 @@
 
 import type { ChildProcess } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import type { AddressInfo } from 'node:net';
 import { createServer } from 'node:net';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import type { ElectronApplication, JSHandle, Page } from '@playwright/test';
 import { _electron as electron } from '@playwright/test';
@@ -37,38 +38,25 @@ type WindowState = {
 };
 
 /**
- * Playwright's loader.js defers the app `ready` event until Playwright has attached, but it is only
- * injected when no executablePath is set. This copies its "Defer ready event" part, to install it in
- * packaged apps through the Node inspector. Keep in sync with
- * https://github.com/microsoft/playwright/blob/v1.65.0/packages/playwright-core/src/server/electron/loader.ts
+ * Path of the loader.js that Playwright injects with `-r` when it launches its own Electron executable.
+ * It defers the app `ready` event until Playwright has attached, and appends Playwright's Chromium switches.
+ * Playwright skips it with an explicit executablePath, so we load it ourselves in packaged apps.
+ * Resolved through @playwright/test, to use the Playwright instance that launches the app.
  */
-const STARTUP_GATE = `(({ app }) => {
-  const originalWhenReady = app.whenReady();
-  const originalEmit = app.emit.bind(app);
-  let readyEventArgs = [];
-  let isReady = false;
-  let whenReadyCallback;
-  const whenReadyPromise = new Promise(f => (whenReadyCallback = f));
-  app.emit = (event, ...args) => {
-    if (event !== 'ready') return originalEmit(event, ...args);
-    readyEventArgs = args;
-    return app.listenerCount('ready') > 0;
-  };
-  app.isReady = () => isReady;
-  app.whenReady = () => whenReadyPromise;
-  globalThis.__playwright_run = async () => {
-    const event = await originalWhenReady;
-    isReady = true;
-    whenReadyCallback(event);
-    originalEmit('ready', ...readyEventArgs);
-  };
-})(require('electron'))`;
+function getPlaywrightElectronLoaderPath(): string {
+  let packageJson = createRequire(import.meta.url).resolve('@playwright/test/package.json');
+  for (const dependency of ['playwright', 'playwright-core']) {
+    packageJson = createRequire(packageJson).resolve(`${dependency}/package.json`);
+  }
+  return join(dirname(packageJson), 'lib', 'server', 'electron', 'loader.js');
+}
 
 /**
- * Connect to the app paused by `--inspect-brk=<port>`, install {@link STARTUP_GATE} and resume it.
- * Playwright releases the gate by calling `__playwright_run()` once attached.
+ * Connect to the app paused by `--inspect-brk=<port>`, load Playwright's Electron loader and resume it.
+ * Playwright releases the app `ready` event by calling `__playwright_run()` once attached.
  */
 async function installStartupGate(port: number): Promise<void> {
+  const loaderPath = getPlaywrightElectronLoaderPath();
   let url: string | undefined;
   for (const deadline = Date.now() + 60_000; !url && Date.now() < deadline; ) {
     url = await fetch(`http://127.0.0.1:${port}/json/list`)
@@ -91,7 +79,7 @@ async function installStartupGate(port: number): Promise<void> {
       if (message.method === 'Debugger.paused') {
         send(3, 'Debugger.evaluateOnCallFrame', {
           callFrameId: message.params.callFrames[0].callFrameId,
-          expression: STARTUP_GATE,
+          expression: `require(${JSON.stringify(loaderPath)})`,
         });
         send(4, 'Debugger.resume');
       } else if (message.error || message.result?.exceptionDetails) {
@@ -102,7 +90,7 @@ async function installStartupGate(port: number): Promise<void> {
     };
     ws.onclose = (): void => reject(new Error('Startup gate: inspector connection closed'));
   }).finally(() => ws.close());
-  console.log('[startup gate] installed, waiting for Playwright to attach');
+  console.log(`[startup gate] loaded ${loaderPath}, waiting for Playwright to attach`);
 }
 
 export class ElectronRunner extends Runner {
