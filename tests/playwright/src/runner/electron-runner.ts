@@ -37,7 +37,6 @@ type WindowState = {
 export class ElectronRunner extends Runner {
   protected _app: ElectronApplication | undefined;
 
-  protected static readonly MAX_STARTUP_ATTEMPTS = 3;
   protected static readonly APP_RENDER_TIMEOUT_MS = 15_000;
 
   public constructor(options?: { runnerOptions?: RunnerOptions }) {
@@ -51,14 +50,7 @@ export class ElectronRunner extends Runner {
       return this.getPage();
     }
 
-    const maxAttempts = ElectronRunner.MAX_STARTUP_ATTEMPTS;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const launched = await this.launchAndVerify(attempt, maxAttempts);
-      if (launched) {
-        break;
-      }
-    }
+    await this.launchAndVerify();
 
     // Direct Electron console to Node terminal and collect in buffer.
     this.getPage().on('console', msg => {
@@ -89,15 +81,14 @@ export class ElectronRunner extends Runner {
   }
 
   /**
-   * Attempt a single Electron launch cycle: launch the app, wait for the first
-   * window, and verify the renderer actually painted (Svelte mounted into #app).
+   * Launch the app, wait for the first window, and verify the renderer actually painted
+   * (Svelte mounted into #app), reloading the window once if it stayed blank.
    *
-   * @returns `true` when the app rendered successfully and is ready for use.
-   * @throws when this is the final allowed attempt and the app still failed.
+   * @throws when the app could not be started or still did not render after the reload.
    */
-  private async launchAndVerify(attempt: number, maxAttempts: number): Promise<boolean> {
+  private async launchAndVerify(): Promise<void> {
     try {
-      console.log(`Starting Podman Desktop (attempt ${attempt}/${maxAttempts})`);
+      console.log('Starting Podman Desktop');
       console.log('Electron app launch options: ');
       Object.keys(this._options).forEach(key => {
         console.log(`${key}: ${(this._options as { [k: string]: string })[key]}`);
@@ -111,33 +102,30 @@ export class ElectronRunner extends Runner {
       const filePath = await this.getElectronApp().evaluate(async ({ app }) => app.getPath('exe'));
       console.log(`The Executable Electron app. file: ${filePath}`);
     } catch (err) {
-      console.log(`Caught exception in startup (attempt ${attempt}): ${err}`);
+      console.log(`Caught exception in startup: ${err}`);
       await this.closeAfterFailedStart();
       throw new Error(`Podman Desktop could not be started correctly with error: ${err}`);
     }
 
-    const rendered = await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS);
-    if (rendered) {
-      if (attempt > 1) {
-        console.log(`Podman Desktop rendered successfully on attempt ${attempt}`);
-      }
-      return true;
+    if (await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS)) {
+      return;
     }
 
-    console.log(
-      `Blank screen detected on attempt ${attempt}/${maxAttempts} — ` +
-        `app did not render within ${ElectronRunner.APP_RENDER_TIMEOUT_MS}ms`,
-    );
+    // With a packaged app, Playwright skips its loader.js and can attach during the first navigation,
+    // which loses the preload. Playwright is attached now, so a reload is enough: no need to relaunch.
+    const preload = await this.getPage()
+      .evaluate(() => typeof (window as { events?: unknown }).events)
+      .catch(String);
+    console.log(`Blank window (preload: ${preload}), reloading it`);
+    await this.getPage().reload();
+    if (await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS)) {
+      return;
+    }
+
     await this.closeAfterFailedStart();
-
-    if (attempt >= maxAttempts) {
-      throw new Error(
-        `Podman Desktop started with a blank screen on all ${maxAttempts} attempts. ` +
-          'The Electron renderer never mounted the application UI.',
-      );
-    }
-
-    return false;
+    throw new Error(
+      `Podman Desktop window stayed blank after a reload: the Electron renderer never mounted the application UI.`,
+    );
   }
 
   /**
