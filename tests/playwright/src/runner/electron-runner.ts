@@ -18,6 +18,8 @@
 
 import type { ChildProcess } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
+import type { AddressInfo } from 'node:net';
+import { createServer } from 'node:net';
 import { join } from 'node:path';
 
 import type { ElectronApplication, JSHandle, Page } from '@playwright/test';
@@ -33,6 +35,75 @@ type WindowState = {
   isDevToolsOpened: boolean;
   isCrashed: boolean;
 };
+
+/**
+ * Playwright's loader.js defers the app `ready` event until Playwright has attached, but it is only
+ * injected when no executablePath is set. This copies its "Defer ready event" part, to install it in
+ * packaged apps through the Node inspector. Keep in sync with
+ * https://github.com/microsoft/playwright/blob/v1.65.0/packages/playwright-core/src/server/electron/loader.ts
+ */
+const STARTUP_GATE = `(({ app }) => {
+  const originalWhenReady = app.whenReady();
+  const originalEmit = app.emit.bind(app);
+  let readyEventArgs = [];
+  let isReady = false;
+  let whenReadyCallback;
+  const whenReadyPromise = new Promise(f => (whenReadyCallback = f));
+  app.emit = (event, ...args) => {
+    if (event !== 'ready') return originalEmit(event, ...args);
+    readyEventArgs = args;
+    return app.listenerCount('ready') > 0;
+  };
+  app.isReady = () => isReady;
+  app.whenReady = () => whenReadyPromise;
+  globalThis.__playwright_run = async () => {
+    const event = await originalWhenReady;
+    isReady = true;
+    whenReadyCallback(event);
+    originalEmit('ready', ...readyEventArgs);
+  };
+})(require('electron'))`;
+
+/**
+ * Connect to the app paused by `--inspect-brk=<port>`, install {@link STARTUP_GATE} and resume it.
+ * Playwright releases the gate by calling `__playwright_run()` once attached.
+ */
+async function installStartupGate(port: number): Promise<void> {
+  let url: string | undefined;
+  for (const deadline = Date.now() + 60_000; !url && Date.now() < deadline; ) {
+    url = await fetch(`http://127.0.0.1:${port}/json/list`)
+      .then(async response => ((await response.json()) as { webSocketDebuggerUrl: string }[])[0]?.webSocketDebuggerUrl)
+      .catch(() => undefined);
+    if (!url) await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  if (!url) throw new Error(`Startup gate: no inspector on port ${port}`);
+
+  const ws = new WebSocket(url);
+  const send = (id: number, method: string, params: object = {}): void =>
+    ws.send(JSON.stringify({ id, method, params }));
+  await new Promise<void>((resolve, reject) => {
+    ws.onopen = (): void => {
+      send(1, 'Debugger.enable');
+      send(2, 'Runtime.runIfWaitingForDebugger');
+    };
+    ws.onmessage = (event): void => {
+      const message = JSON.parse(String(event.data));
+      if (message.method === 'Debugger.paused') {
+        send(3, 'Debugger.evaluateOnCallFrame', {
+          callFrameId: message.params.callFrames[0].callFrameId,
+          expression: STARTUP_GATE,
+        });
+        send(4, 'Debugger.resume');
+      } else if (message.error || message.result?.exceptionDetails) {
+        reject(new Error(`Startup gate: ${JSON.stringify(message)}`));
+      } else if (message.id === 4) {
+        resolve();
+      }
+    };
+    ws.onclose = (): void => reject(new Error('Startup gate: inspector connection closed'));
+  }).finally(() => ws.close());
+  console.log('[startup gate] installed, waiting for Playwright to attach');
+}
 
 export class ElectronRunner extends Runner {
   protected _app: ElectronApplication | undefined;
@@ -102,9 +173,7 @@ export class ElectronRunner extends Runner {
       Object.keys(this._options).forEach(key => {
         console.log(`${key}: ${(this._options as { [k: string]: string })[key]}`);
       });
-      this._app = await electron.launch({
-        ...this._options,
-      });
+      this._app = await this.launchWithStartupGate(this._options as Parameters<typeof electron.launch>[0]);
       this._page = await this.getElectronApp().firstWindow();
       this._running = true;
 
@@ -138,6 +207,23 @@ export class ElectronRunner extends Runner {
     }
 
     return false;
+  }
+
+  private async launchWithStartupGate(options: Parameters<typeof electron.launch>[0]): Promise<ElectronApplication> {
+    if (!options?.executablePath) {
+      return electron.launch(options);
+    }
+    const port = await new Promise<number>(resolve => {
+      const server = createServer().listen(0, '127.0.0.1', () => {
+        const { port } = server.address() as AddressInfo;
+        server.close(() => resolve(port));
+      });
+    });
+    const [app] = await Promise.all([
+      electron.launch({ ...options, args: [`--inspect-brk=${port}`, ...(options.args ?? [])] }),
+      installStartupGate(port),
+    ]);
+    return app;
   }
 
   /**
