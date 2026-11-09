@@ -82,9 +82,9 @@ export class ElectronRunner extends Runner {
 
   /**
    * Launch the app, wait for the first window, and verify the renderer actually painted
-   * (Svelte mounted into #app), reloading the window once if it stayed blank.
+   * (Svelte mounted into #app), reloading the window once if its preload did not run.
    *
-   * @throws when the app could not be started or still did not render after the reload.
+   * @throws when the app could not be started or did not render.
    */
   private async launchAndVerify(): Promise<void> {
     try {
@@ -107,24 +107,22 @@ export class ElectronRunner extends Runner {
       throw new Error(`Podman Desktop could not be started correctly with error: ${err}`);
     }
 
-    if (await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS)) {
-      return;
-    }
-
     // With a packaged app, Playwright skips its loader.js and can attach during the first navigation,
     // which loses the preload. Playwright is attached now, so a reload is enough: no need to relaunch.
-    const preload = await this.getPage()
-      .evaluate(() => typeof (window as { events?: unknown }).events)
-      .catch(String);
-    console.log(`Blank window (preload: ${preload}), reloading it`);
-    await this.getPage().reload();
+    const page = this.getPage();
+    await page.waitForLoadState('domcontentloaded');
+    if (!(await page.evaluate(() => 'events' in window))) {
+      console.log('Blank window (preload: missing), reloading it');
+      await page.reload();
+    }
+
     if (await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS)) {
       return;
     }
 
     await this.closeAfterFailedStart();
     throw new Error(
-      `Podman Desktop window stayed blank after a reload: the Electron renderer never mounted the application UI.`,
+      `Podman Desktop did not render within ${ElectronRunner.APP_RENDER_TIMEOUT_MS}ms: the Electron renderer never mounted the application UI.`,
     );
   }
 
