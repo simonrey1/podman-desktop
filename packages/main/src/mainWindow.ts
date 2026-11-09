@@ -266,6 +266,20 @@ async function createWindow(config?: WindowConfig): Promise<BrowserWindow> {
       ? import.meta.env.VITE_DEV_SERVER_URL
       : new URL('../renderer/dist/index.html', 'file://' + __dirname).toString();
 
+  // The preload can be missing when a debugger attaches to the renderer during its first navigation
+  // (e.g. Playwright driving a packaged app), which leaves a blank window: reload once to recover.
+  browserWindow.webContents.once('dom-ready', () => {
+    browserWindow.webContents
+      .executeJavaScript('typeof window.events')
+      .then(type => {
+        if (type === 'undefined') {
+          console.warn('Preload did not run in the main window, reloading it');
+          browserWindow.webContents.reload();
+        }
+      })
+      .catch((err: unknown) => console.error('Unable to check the main window preload', err));
+  });
+
   await browserWindow.loadURL(pageUrl);
 
   return browserWindow;
