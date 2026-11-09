@@ -55,7 +55,7 @@ async function createWindow(config?: WindowConfig): Promise<BrowserWindow> {
   const INITIAL_APP_BACKGROUND_COLOR = nativeTheme.shouldUseDarkColors ? '#18181b' : '#ffffff';
 
   const browserWindowConstructorOptions: BrowserWindowConstructorOptions = {
-    show: false, // Use 'ready-to-show' event to show window
+    show: true, // experiment
     autoHideMenuBar: true, // This makes Podman Desktop look more like a native app
     width: INITIAL_APP_WIDTH,
     minWidth: INITIAL_APP_MIN_WIDTH,
