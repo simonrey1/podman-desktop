@@ -36,7 +36,7 @@ type WindowState = {
 
 /**
  * Chromium switches that Playwright's Electron loader.js appends in development mode.
- * Copied from playwright-core 1.64.1 (packages/playwright-core/src/server/chromium/chromiumSwitches.ts).
+ * Copied from playwright-core 1.65.0 (packages/playwright-core/src/server/chromium/chromiumSwitches.ts).
  */
 const PLAYWRIGHT_CHROMIUM_SWITCHES = [
   '--disable-field-trial-config',
@@ -45,7 +45,6 @@ const PLAYWRIGHT_CHROMIUM_SWITCHES = [
   '--disable-backgrounding-occluded-windows',
   '--disable-back-forward-cache',
   '--disable-breakpad',
-  '--disable-client-side-phishing-detection',
   '--disable-component-extensions-with-background-pages',
   '--disable-component-update',
   '--no-default-browser-check',
@@ -53,8 +52,8 @@ const PLAYWRIGHT_CHROMIUM_SWITCHES = [
   '--disable-dev-shm-usage',
   '--disable-edgeupdater',
   '--disable-extensions',
-  '--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion',
-  '--enable-features=CDPScreenshotNewSurface',
+  '--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,AvoidCorsURLLoaderRestartOnRedirect,TcpPortRandomizationWin,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,PreconnectToSearch,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion',
+  '--enable-features=CDPScreenshotNewSurface,SkipListAccountsWithoutGaiaCookies',
   '--allow-pre-commit-input',
   '--disable-hang-monitor',
   '--disable-ipc-flooding-protection',
@@ -68,12 +67,14 @@ const PLAYWRIGHT_CHROMIUM_SWITCHES = [
   '--password-store=basic',
   '--use-mock-keychain',
   '--no-service-autorun',
-  '--export-tagged-pdf',
   '--disable-search-engine-choice-screen',
   '--unsafely-disable-devtools-self-xss-warnings',
+  '--enable-unsafe-swiftshader',
   '--edge-skip-compat-layer-relaunch',
+  '--disable-stack-profiler',
   '--disable-infobars',
   '--disable-sync',
+  '--do-not-de-elevate',
 ];
 
 export class ElectronRunner extends Runner {
