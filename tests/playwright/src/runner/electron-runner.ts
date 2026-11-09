@@ -35,6 +35,48 @@ type WindowState = {
   isCrashed: boolean;
 };
 
+/**
+ * Chromium switches that Playwright's Electron loader.js appends in development mode.
+ * Copied from playwright-core 1.64.1 (packages/playwright-core/src/server/chromium/chromiumSwitches.ts).
+ */
+const PLAYWRIGHT_CHROMIUM_SWITCHES = [
+  '--disable-field-trial-config',
+  '--disable-background-networking',
+  '--disable-background-timer-throttling',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-back-forward-cache',
+  '--disable-breakpad',
+  '--disable-client-side-phishing-detection',
+  '--disable-component-extensions-with-background-pages',
+  '--disable-component-update',
+  '--no-default-browser-check',
+  '--disable-default-apps',
+  '--disable-dev-shm-usage',
+  '--disable-edgeupdater',
+  '--disable-extensions',
+  '--disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion',
+  '--enable-features=CDPScreenshotNewSurface',
+  '--allow-pre-commit-input',
+  '--disable-hang-monitor',
+  '--disable-ipc-flooding-protection',
+  '--disable-popup-blocking',
+  '--disable-prompt-on-repost',
+  '--disable-renderer-backgrounding',
+  '--disable-updater-scheduler',
+  '--force-color-profile=srgb',
+  '--metrics-recording-only',
+  '--no-first-run',
+  '--password-store=basic',
+  '--use-mock-keychain',
+  '--no-service-autorun',
+  '--export-tagged-pdf',
+  '--disable-search-engine-choice-screen',
+  '--unsafely-disable-devtools-self-xss-warnings',
+  '--edge-skip-compat-layer-relaunch',
+  '--disable-infobars',
+  '--disable-sync',
+];
+
 export class ElectronRunner extends Runner {
   protected _app: ElectronApplication | undefined;
 
@@ -404,9 +446,13 @@ export class ElectronRunner extends Runner {
         height: 700,
       },
     };
-    const args = pdArgs ? [pdArgs] : ['.'];
     // executablePath defaults to this package's installation location: node_modules/.bin/electron
     const executablePath = pdArgs ? join(pdArgs, 'node_modules', '.bin', 'electron') : (pdBinary ?? undefined);
+    const args = pdArgs ? [pdArgs] : ['.'];
+    // Playwright skips its loader.js (which appends these switches) when executablePath is set.
+    if (executablePath) {
+      args.push(...PLAYWRIGHT_CHROMIUM_SWITCHES);
+    }
     const timeout = this._runnerOptions._electronLaunchTimeout;
     return {
       args,
