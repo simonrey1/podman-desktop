@@ -128,6 +128,17 @@ export class ElectronRunner extends Runner {
       `Blank screen detected on attempt ${attempt}/${maxAttempts} — ` +
         `app did not render within ${ElectronRunner.APP_RENDER_TIMEOUT_MS}ms`,
     );
+
+    // With a packaged app, Playwright can attach during the first navigation, which loses the preload.
+    // Playwright is attached now, so reload the window instead of relaunching the app.
+    const preload = await this._page?.evaluate(() => typeof (window as { events?: unknown }).events).catch(String);
+    console.log(`Reloading the window (preload window.events: ${preload})`);
+    await this._page?.reload().catch((err: unknown) => console.log(`Reload failed: ${err}`));
+    if (await this.waitForAppRendered(ElectronRunner.APP_RENDER_TIMEOUT_MS)) {
+      console.log('Application UI rendered after reload');
+      return true;
+    }
+
     await this.closeAfterFailedStart();
 
     if (attempt >= maxAttempts) {
