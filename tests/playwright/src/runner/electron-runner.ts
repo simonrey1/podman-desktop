@@ -361,15 +361,22 @@ export class ElectronRunner extends Runner {
     const pdBinary = process.env.PODMAN_DESKTOP_BINARY;
     const directory = join(this._testOutput, 'videos');
     const tracesDir = join(this._testOutput, 'traces', 'raw');
-    console.log(`video will be written to: ${directory}`);
     const env = this.setupPodmanDesktopCustomFolder();
-    const recordVideo = {
-      dir: directory,
-      size: {
-        width: 1050,
-        height: 700,
-      },
-    };
+    const videoDisabled = process.env.E2E_DISABLE_VIDEO === 'true';
+    if (videoDisabled) {
+      console.log('Video recording disabled (E2E_DISABLE_VIDEO=true)');
+    } else {
+      console.log(`video will be written to: ${directory}`);
+    }
+    const recordVideo = videoDisabled
+      ? undefined
+      : {
+          dir: directory,
+          size: {
+            width: 1050,
+            height: 700,
+          },
+        };
     const args = pdArgs ? [pdArgs] : ['.'];
     // executablePath defaults to this package's installation location: node_modules/.bin/electron
     const executablePath = pdArgs ? join(pdArgs, 'node_modules', '.bin', 'electron') : (pdBinary ?? undefined);
