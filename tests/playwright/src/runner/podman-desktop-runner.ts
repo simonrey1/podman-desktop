@@ -137,6 +137,7 @@ export abstract class Runner {
   }
 
   public async stopTracing(): Promise<void> {
+    return; // experiment: tracing disabled
     let name = '';
     if (this._videoAndTraceName) name = this._videoAndTraceName;
 
@@ -166,6 +167,7 @@ export abstract class Runner {
   }
 
   public async startTracing(): Promise<void> {
+    return; // experiment: tracing disabled
     await this.getPage().context().tracing.start({ screenshots: true, snapshots: true, sources: true });
     await this.getPage().screenshot();
   }
