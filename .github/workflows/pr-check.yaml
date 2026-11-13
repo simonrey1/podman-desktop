@@ -51,6 +51,24 @@ jobs:
       - name: Setup testenv using external action
         uses: podman-desktop/e2e/.github/actions/pde2e-testenv-prepare@13e2c57c759137bfc1f437f221967461e8a98e2a
 
+      - name: Lower Podman default stop timeout
+        # Test images such as alpine run /bin/sh as PID 1, which ignores SIGTERM,
+        # so every stop/delete of a running container waits the full 10s default.
+        run: |
+          mkdir -p ~/.config/containers/containers.conf.d
+          printf '[engine]\nstop_timeout = 2\n' > ~/.config/containers/containers.conf.d/99-e2e-stop-timeout.conf
+          cat ~/.config/containers/containers.conf.d/99-e2e-stop-timeout.conf
+          echo "CLI-created container StopTimeout: $(podman create -q ghcr.io/linuxcontainers/alpine | xargs podman inspect --format '{{.Config.StopTimeout}}')"
+          sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/podman/podman.sock"
+          if [ -S "$sock" ]; then
+            id=$(curl -s --unix-socket "$sock" -H 'Content-Type: application/json' -X POST -d '{"Image":"ghcr.io/linuxcontainers/alpine"}' http://d/v1.41/containers/create | sed -E 's/.*"Id":"([^"]+)".*/\1/')
+            echo "API-created container StopTimeout: $(podman inspect --format '{{.Config.StopTimeout}}' "$id")"
+          else
+            echo "No API socket at $sock yet"
+          fi
+          podman rm -af >/dev/null
+          podman rmi -af >/dev/null 2>&1 || true
+
       - name: Remove pre-installed Docker images
         run: |
           echo "Removing pre-installed Docker images to prevent E2E test flakiness"
@@ -93,7 +111,7 @@ jobs:
           include_passed: true
           detailed_summary: true
           annotate_only: true
-          require_tests:  true
+          require_tests: true
           report_paths: '**/*results.xml'
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -103,4 +121,3 @@ jobs:
           path: |
             ./tests/**/output/
             !./tests/**/traces/raw
-
