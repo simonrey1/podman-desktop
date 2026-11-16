@@ -291,9 +291,10 @@ export class Telemetry {
     });
     let sendShutdownAnalytics = false;
 
-    app.on('before-quit', e => {
+    // the shutdown event is sent in the background without delaying the quit: preventing the quit and
+    // calling app.quit() again from this listener cancels the quit if a window is still opened (#19479)
+    app.on('before-quit', () => {
       if (!sendShutdownAnalytics && stoppedExtensions.val) {
-        e.preventDefault();
         try {
           this.internalTrack(EventType.SHUTDOWN).catch((err: unknown) => {
             console.log(`Error sending shutdown event: ${err}`);
@@ -305,7 +306,6 @@ export class Telemetry {
           console.log(`Telemetry error on shutdown: ${err}`);
         }
         sendShutdownAnalytics = true;
-        app.quit();
       }
     });
 
