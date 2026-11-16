@@ -49,7 +49,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup testenv using external action
-        uses: podman-desktop/e2e/.github/actions/pde2e-testenv-prepare@b88d2d400b93a6050b4bcd36426aa191168cc5aa
+        uses: simonrey1/e2e/.github/actions/pde2e-testenv-prepare@ce3ae0adc32e92e9138763c635c9a08cff58b2ba
+
+      - name: Check Podman stop timeout (fork experiment only)
+        run: |
+          cat ~/.config/containers/containers.conf
+          echo "CLI-created container StopTimeout: $(podman create -q ghcr.io/linuxcontainers/alpine | xargs podman inspect --format '{{.Config.StopTimeout}}')"
+          podman rm -af >/dev/null
+          podman rmi -af >/dev/null 2>&1 || true
 
       - name: Remove pre-installed Docker images
         run: |
