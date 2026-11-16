@@ -60,13 +60,14 @@ test('no window operation should be triggered on constructor', async () => {
   expect(restoreWindow).not.toHaveBeenCalled();
 });
 
-test('onReady should createWindow & register on activate listener', async () => {
+test('onReady should createWindow & register on activate and before-quit listeners', async () => {
   const plugin = new WindowPlugin(ELECTRON_APP_MOCK, vi.fn());
   await plugin.onReady();
 
   expect(createNewWindow).toHaveBeenCalledOnce();
-  expect(ELECTRON_APP_MOCK.on).toHaveBeenCalledOnce();
+  expect(ELECTRON_APP_MOCK.on).toHaveBeenCalledTimes(2);
   expect(ELECTRON_APP_MOCK.on).toHaveBeenCalledWith('activate', expect.any(Function));
+  expect(ELECTRON_APP_MOCK.on).toHaveBeenCalledWith('before-quit', expect.any(Function));
 });
 
 test('createNewWindow results should be passed to constructor callback', async () => {
@@ -86,19 +87,22 @@ test('createNewWindow results should be passed to constructor callback', async (
 
 const DUMMY_ELECTRON_EVENT: ElectronEvent = {} as unknown as ElectronEvent;
 
+function getAppListener(event: string): Parameters<ElectronApp['on']>[1] {
+  const call = vi.mocked(ELECTRON_APP_MOCK.on).mock.calls.find(([name]) => name === event);
+  assert(call, `no listener registered for ${event}`);
+  return call[1];
+}
+
 describe('activate', () => {
   let listener: (event: ElectronEvent, hasVisibleWindows: boolean) => void;
+  let beforeQuitListener: () => void;
 
   beforeEach(async () => {
     const plugin = new WindowPlugin(ELECTRON_APP_MOCK, vi.fn());
     await plugin.onReady();
 
-    expect(ELECTRON_APP_MOCK.on).toHaveBeenCalledOnce();
-
-    const mListener = vi.mocked(ELECTRON_APP_MOCK.on).mock.calls[0]?.[1];
-    assert(mListener);
-
-    listener = mListener;
+    listener = getAppListener('activate');
+    beforeQuitListener = getAppListener('before-quit');
 
     vi.mocked(createNewWindow).mockClear();
     vi.mocked(restoreWindow).mockClear();
@@ -119,5 +123,16 @@ describe('activate', () => {
     listener(DUMMY_ELECTRON_EVENT, false);
 
     expect(restoreWindow).toHaveBeenCalledOnce();
+  });
+
+  // the extensions are being stopped, for example the dock icon is clicked while the podman machine is stopping
+  test('activate listener should not create or restore a window when the application is quitting', async () => {
+    vi.mocked(isMac).mockReturnValue(true);
+    beforeQuitListener();
+
+    listener(DUMMY_ELECTRON_EVENT, false);
+
+    expect(createNewWindow).not.toHaveBeenCalled();
+    expect(restoreWindow).not.toHaveBeenCalled();
   });
 });

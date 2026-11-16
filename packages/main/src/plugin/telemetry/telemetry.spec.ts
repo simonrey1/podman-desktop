@@ -19,13 +19,15 @@
 import type { ExtensionInfo, TelemetryMessages } from '@desktop-framework/api';
 import { TelemetrySettings } from '@desktop-framework/api/telemetry';
 import type { TelemetrySender } from '@desktop-framework/extension-api';
+import { app } from 'electron';
 import type { MockInstance } from 'vitest';
-import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import { afterEach, assert, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import type { ConfigurationRegistry } from '/@/plugin/configuration-registry.js';
 import type { DefaultConfiguration } from '/@/plugin/default-configuration.js';
 import type { LockedConfiguration } from '/@/plugin/locked-configuration.js';
 import { TelemetryTrustedValue } from '/@/plugin/types/telemetry.js';
+import { stoppedExtensions } from '/@/util.js';
 import product from '/@product.json' with { type: 'json' };
 
 // eslint-disable-next-line no-restricted-imports
@@ -123,6 +125,10 @@ class TelemetryTest extends Telemetry {
 
   public override async internalTrack(event: EventType, eventProperties?: unknown): Promise<void> {
     return super.internalTrack(event, eventProperties);
+  }
+
+  public override async initTelemetry(): Promise<void> {
+    return super.initTelemetry();
   }
 }
 
@@ -290,6 +296,32 @@ describe('CI environment', () => {
     expect(consoleWarnMock).not.toHaveBeenCalledWith(expect.stringContaining('CI environment detected'));
     // regular flow, the enterprise telemetry is loaded
     expect(defaultConfigurationMock.getTelemetryInfo).toHaveBeenCalled();
+  });
+});
+
+describe('shutdown', () => {
+  afterEach(() => {
+    stoppedExtensions.val = false;
+  });
+
+  // preventing the quit and quitting again from the listener was cancelling the quit if a window was still opened (#19479)
+  test('should send the shutdown event without preventing the quit or quitting again', async () => {
+    vi.spyOn(telemetry, 'initTelemetry').mockResolvedValue(undefined);
+    const internalTrackSpy = vi.spyOn(telemetry, 'internalTrack').mockResolvedValue(undefined);
+    await telemetry.configureTelemetry();
+
+    const call = vi.mocked(app.on).mock.calls.find(([event]) => String(event) === 'before-quit');
+    assert(call, 'a before-quit listener should be registered');
+    const beforeQuitListener = call[1] as (event: { preventDefault: () => void }) => void;
+
+    // the extensions have been stopped, the application is quitting for real
+    stoppedExtensions.val = true;
+    const event = { preventDefault: vi.fn() };
+    beforeQuitListener(event);
+
+    expect(event.preventDefault).not.toHaveBeenCalled();
+    expect(app.quit).not.toHaveBeenCalled();
+    expect(internalTrackSpy).toHaveBeenCalledWith('shutdown');
   });
 });
 

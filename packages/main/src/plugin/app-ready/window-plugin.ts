@@ -23,6 +23,9 @@ import type { AppPlugin } from '/@/plugin/app-ready/app-plugin.js';
 import { isMac } from '/@/util.js';
 
 export class WindowPlugin implements AppPlugin {
+  // true once the application started to quit: the extensions are being stopped
+  #quitting = false;
+
   constructor(
     private readonly app: ElectronApp,
     private readonly resolve: (window: BrowserWindow) => void,
@@ -48,7 +51,16 @@ export class WindowPlugin implements AppPlugin {
     // Required for macOS to start the app correctly (this is will be shown in the dock)
     // We use 'activate' within whenReady in order to gracefully start on macOS, see this link:
     // https://www.electronjs.org/docs/latest/tutorial/quick-start#open-a-window-if-none-are-open-macos
+    this.app.on('before-quit', () => {
+      this.#quitting = true;
+    });
+
     this.app.on('activate', (_event, hasVisibleWindows) => {
+      // a window opened while quitting would be empty, and it would prevent the application from quitting (#19479)
+      if (this.#quitting) {
+        return;
+      }
+
       createNewWindow(this.config)
         .then(this.resolve)
         .catch((error: unknown) => {
