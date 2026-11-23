@@ -16,10 +16,10 @@
  * SPDX-License-Identifier: Apache-2.0
  ***********************************************************************/
 
-import type { HistoryStackEntry, NavigationHistoryPushInfo } from '@desktop-framework/api';
+import type { HistoryStackEntry, NavigationHistoryPushInfo, WebviewHistoryPushInfo } from '@desktop-framework/api';
 // svelte subpaths share one types entry, not real duplicates
 /* eslint-disable import/no-duplicates */
-import { SvelteSet } from 'svelte/reactivity';
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 import { get } from 'svelte/store';
 /* eslint-enable import/no-duplicates */
 import { router } from 'tinro';
@@ -30,6 +30,7 @@ import { settingsNavigationEntries } from '/@/PreferencesNavigation';
 import { extensionInfos } from '/@/stores/extensions';
 import { kubernetesNoCurrentContext } from '/@/stores/kubernetes-no-current-context';
 import { navigationRegistry, type NavigationRegistryEntry } from '/@/stores/navigation/navigation-registry';
+import { webviews } from '/@/stores/webviews';
 
 export const BACK = 'back';
 export const FORWARD = 'forward';
@@ -63,6 +64,13 @@ let isNavigatingHistory = false;
 // Extensions being navigated to via back/forward — ignore their pushes
 // until the navigation settles (webview re-mounts and replays initial route)
 const extensionsNavigatingHistory = new SvelteSet<string>();
+
+/**
+ * Webviews being navigated to via back/forward: webview id -> history entry id.
+ * The entry is delivered to the webview once it registered its history listener
+ * (see Webview.svelte); until then, its pushes are its initial route being replayed and are ignored.
+ */
+export const pendingWebviewHistoryEntries = new SvelteMap<string, string>();
 
 interface ParsedUrl {
   path: string;
@@ -341,7 +349,15 @@ function getEntryInfo(url: string): { name: string; icon?: HistoryEntryIcon } {
  * // => { name: 'My Extension → Model 1', icon: { iconImage: '...' } }
  */
 function getStackEntryInfo(stackEntry: HistoryStackEntry): { name: string; icon?: HistoryEntryIcon } {
-  const { extensionEntry } = stackEntry;
+  const { extensionEntry, webviewEntry } = stackEntry;
+  if (webviewEntry) {
+    const webview = get(webviews).find(w => w.id === webviewEntry.webviewId);
+    const label = truncate(webviewEntry.label, 24);
+    return {
+      name: webview ? `${truncate(webview.name, 24)} → ${label}` : label,
+      icon: webview?.icon ? { iconImage: webview.icon } : undefined,
+    };
+  }
   if (!extensionEntry) {
     return getEntryInfo(stackEntry.url);
   }
@@ -371,8 +387,13 @@ function navigateToIndex(index: number): boolean {
   }
 
   navigationHistory.index = index;
+  pendingWebviewHistoryEntries.clear();
   const entry = navigationHistory.stack[index];
-  if (entry?.extensionEntry) {
+  if (entry?.webviewEntry) {
+    // open the webview (no-op if already displayed), Webview.svelte delivers the entry once the webview listens
+    pendingWebviewHistoryEntries.set(entry.webviewEntry.webviewId, entry.webviewEntry.id);
+    router.goto(`/webviews/${entry.webviewEntry.webviewId}`);
+  } else if (entry?.extensionEntry) {
     extensionsNavigatingHistory.add(entry.extensionEntry.extensionId);
     window
       .navigateToExtensionHistoryEntry(entry.extensionEntry.extensionId, entry.extensionEntry.id)
@@ -570,6 +591,9 @@ router.subscribe(navigation => {
       return;
     }
 
+    // the user left before a pending webview entry could be delivered
+    pendingWebviewHistoryEntries.clear();
+
     // Truncate forward history if we're not at the end
     if (navigationHistory.index < navigationHistory.stack.length - 1) {
       navigationHistory.stack = navigationHistory.stack.slice(0, navigationHistory.index + 1);
@@ -621,3 +645,29 @@ window.events?.receive('navigation-history-push', (entry: NavigationHistoryPushI
     navigationHistory.index = navigationHistory.stack.length - 1;
   }
 });
+
+/**
+ * Push an entry sent by a webview via `acquirePodmanDesktopApi().history.push`.
+ * Pushing the current entry again is a no-op, so webviews can push on every route change.
+ */
+export function pushWebviewHistoryEntry(entry: WebviewHistoryPushInfo): void {
+  if (pendingWebviewHistoryEntries.has(entry.webviewId)) {
+    return;
+  }
+
+  const currentEntry = navigationHistory.stack[navigationHistory.index];
+  if (currentEntry?.webviewEntry?.webviewId === entry.webviewId && currentEntry.webviewEntry.id === entry.id) {
+    return;
+  }
+
+  // Truncate forward history if we're not at the end
+  if (navigationHistory.index < navigationHistory.stack.length - 1) {
+    navigationHistory.stack = navigationHistory.stack.slice(0, navigationHistory.index + 1);
+  }
+
+  navigationHistory.stack = [
+    ...navigationHistory.stack,
+    { url: `/__webview__/${entry.webviewId}/${entry.id}`, webviewEntry: { ...entry } },
+  ];
+  navigationHistory.index = navigationHistory.stack.length - 1;
+}

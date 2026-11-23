@@ -18,7 +18,7 @@
 
 import type { ColorInfo, ThemeInfo, WebviewInfo } from '@desktop-framework/api';
 import { AppearanceSettings } from '@desktop-framework/api/appearance';
-import type { WebviewApi } from '@podman-desktop/webview-api';
+import type { WebviewApi, WebviewHistoryEntry, WebviewHistoryNavigateEvent } from '@podman-desktop/webview-api';
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -34,6 +34,7 @@ export class WebviewPreload {
   #domLoaded: boolean = false;
   #acquiredApi: boolean = false;
   #cssStyleElement: HTMLStyleElement | undefined;
+  #historyListeners = new Set<(event: WebviewHistoryNavigateEvent) => void>();
 
   constructor(webviewId: string) {
     this.#webviewId = webviewId;
@@ -155,7 +156,27 @@ export class WebviewPreload {
           console.error('Error while updating the state', error);
         });
       },
+      history: Object.freeze({
+        push: (entry: WebviewHistoryEntry): void => {
+          this.sendToHost('webview-history:push', { id: entry.id, label: entry.label });
+        },
+        onDidNavigate: (listener: (event: WebviewHistoryNavigateEvent) => void): { dispose(): void } => {
+          this.#historyListeners.add(listener);
+          // tell the host the webview is ready to restore a history entry
+          this.sendToHost('webview-history:ready');
+          return {
+            dispose: (): void => {
+              this.#historyListeners.delete(listener);
+            },
+          };
+        },
+      }),
     });
+  }
+
+  // send a message to the <webview> element hosting this page
+  protected sendToHost(channel: string, ...args: unknown[]): void {
+    ipcRenderer.sendToHost(channel, ...args);
   }
 
   protected getTheme(): Promise<string> {
@@ -198,6 +219,13 @@ export class WebviewPreload {
     this.ipcRendererOn('webview-post-message', (_, target: unknown) => {
       const targetData = target as { message: unknown };
       window.dispatchEvent(new MessageEvent('message', { data: targetData.message }));
+    });
+
+    // the user navigated back/forward to one of the entries pushed by this webview
+    this.ipcRendererOn('webview-history:navigate', (_, id) => {
+      for (const listener of this.#historyListeners) {
+        listener({ id: id as string });
+      }
     });
 
     this.ipcRendererOn('webview-update-html', (_, html) => {

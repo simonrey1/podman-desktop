@@ -25,9 +25,19 @@ import { render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import { beforeEach, expect, test, vi } from 'vitest';
 
+import type * as NavigationHistory from '/@/stores/navigation-history.svelte';
+import { pendingWebviewHistoryEntries, pushWebviewHistoryEntry } from '/@/stores/navigation-history.svelte';
 import { webviews } from '/@/stores/webviews';
 
 import Webview from './Webview.svelte';
+
+vi.mock(import('/@/stores/navigation-history.svelte'), async () => {
+  const { SvelteMap } = await import('svelte/reactivity');
+  return {
+    pushWebviewHistoryEntry: vi.fn(),
+    pendingWebviewHistoryEntries: new SvelteMap<string, string>(),
+  } as unknown as typeof NavigationHistory;
+});
 
 const messages = new Map<string, (args: any) => void>();
 
@@ -158,4 +168,38 @@ test('check open devtools', async () => {
 
   //  check if send method has been called
   expect(openDevtoolsMock).toHaveBeenCalled();
+});
+
+function ipcMessage(webview: HTMLElement, channel: string, ...args: unknown[]): void {
+  webview.dispatchEvent(Object.assign(new Event('ipc-message'), { channel, args }));
+}
+
+test('history push from the webview is added to the navigation history', async () => {
+  await waitRender({ id: webviewTestList[0].id });
+  const webview = screen.getByRole('document', { name: 'Webview Podman Desktop1' });
+
+  ipcMessage(webview, 'webview-history:push', { id: '/details/foo', label: 'Foo' });
+
+  expect(pushWebviewHistoryEntry).toHaveBeenCalledWith({
+    webviewId: webviewTestList[0].id,
+    id: '/details/foo',
+    label: 'Foo',
+  });
+});
+
+test('pending history entry is delivered once the webview is ready', async () => {
+  pendingWebviewHistoryEntries.set(webviewTestList[0].id, '/details/foo');
+  await waitRender({ id: webviewTestList[0].id });
+  const webview = screen.getByRole('document', { name: 'Webview Podman Desktop1' });
+  const sendToWebviewMock = vi.fn();
+  (webview as any).send = sendToWebviewMock;
+
+  await tick();
+  expect(sendToWebviewMock).not.toHaveBeenCalled();
+
+  ipcMessage(webview, 'webview-history:ready');
+  await tick();
+
+  expect(sendToWebviewMock).toHaveBeenCalledWith('webview-history:navigate', '/details/foo');
+  expect(pendingWebviewHistoryEntries.has(webviewTestList[0].id)).toBe(false);
 });

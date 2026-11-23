@@ -55,6 +55,9 @@ class TestWebwiewPreload extends WebviewPreload {
   async getThemeInfo(theme: string): Promise<ThemeInfo> {
     return super.getThemeInfo(theme);
   }
+  sendToHost(channel: string, ...args: unknown[]): void {
+    super.sendToHost(channel, ...args);
+  }
 }
 
 const webviewInfo: WebviewInfo = {
@@ -328,4 +331,49 @@ test('check buildApi', async () => {
 
   // check ipcInvoke has been called
   expect(spyIpcInvoke).toHaveBeenCalledWith('webviewRegistry:update-state', webviewInfo.id, newFakeState);
+});
+
+describe('history', () => {
+  let historyApi: WebviewApi['history'];
+  let spySendToHost: MockInstance<(channel: string, ...args: unknown[]) => void>;
+
+  beforeEach(async () => {
+    spySendToHost = vi.spyOn(webviewPreload, 'sendToHost').mockImplementation(() => {});
+    spyBuildApi.mockRestore();
+    vi.mocked(contextBridge.exposeInMainWorld).mockImplementation((_name: string, api: () => WebviewApi) => {
+      historyApi = api().history;
+    });
+    await webviewPreload.init();
+  });
+
+  function navigate(id: string): void {
+    const call = spyIpcRendererOn.mock.calls.find(([channel]) => channel === 'webview-history:navigate');
+    if (!call) throw new Error('webview-history:navigate listener should be registered');
+    call[1]({} as IpcRendererEvent, id);
+  }
+
+  test('push should send the entry to the host', () => {
+    historyApi.push({ id: '/details/foo', label: 'Foo' });
+
+    expect(spySendToHost).toHaveBeenCalledWith('webview-history:push', { id: '/details/foo', label: 'Foo' });
+  });
+
+  test('onDidNavigate should notify the host that the webview is ready', () => {
+    historyApi.onDidNavigate(vi.fn());
+
+    expect(spySendToHost).toHaveBeenCalledWith('webview-history:ready');
+  });
+
+  test('onDidNavigate listener should be called on navigation until disposed', () => {
+    const listener = vi.fn();
+    const disposable = historyApi.onDidNavigate(listener);
+
+    navigate('/details/foo');
+    expect(listener).toHaveBeenCalledWith({ id: '/details/foo' });
+
+    listener.mockClear();
+    disposable.dispose();
+    navigate('/details/bar');
+    expect(listener).not.toHaveBeenCalled();
+  });
 });

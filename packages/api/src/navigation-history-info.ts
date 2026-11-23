@@ -36,4 +36,14 @@ export interface NavigationHistoryPushInfo {
 export interface HistoryStackEntry {
   url: string;
   extensionEntry?: NavigationHistoryPushInfo;
+  webviewEntry?: WebviewHistoryPushInfo;
+}
+
+/**
+ * Entry pushed directly by a webview via `acquirePodmanDesktopApi().history.push`.
+ */
+export interface WebviewHistoryPushInfo {
+  webviewId: string;
+  id: string;
+  label: string;
 }
