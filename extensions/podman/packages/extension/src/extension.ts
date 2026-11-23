@@ -72,6 +72,7 @@ import { PodmanRemoteConnections } from './remote/podman-remote-connections';
 import { ExtensionNotifications } from './utils/notifications';
 import { getPodmanCli } from './utils/podman-cli';
 import { PodmanConfiguration } from './utils/podman-configuration';
+import { PodmanMachineLifecycle } from './utils/podman-machine-lifecycle';
 import { ProviderConnectionShellAccessImpl } from './utils/podman-machine-stream';
 import { RegistrySetup } from './utils/registry-setup';
 import { ROSETTA_ENABLE_FILE, RosettaProvisioner } from './utils/rosetta';
@@ -120,6 +121,8 @@ let telemetryLogger: extensionApi.TelemetryLogger;
 let winPlatform: WinPlatform;
 let podmanBinary: PodmanBinary;
 let rosettaProvisioner: RosettaProvisioner;
+// DEMO ONLY (not for merge): shared machine lifecycle used by the demo restart below
+let podmanMachineLifecycle: PodmanMachineLifecycle;
 let socketCompatibility: SocketCompatibility | undefined;
 
 let certificateDetectionService: CertificateDetectionService | undefined;
@@ -870,6 +873,33 @@ export async function registerProviderFor(
         throw err;
       }
     },
+    // DEMO ONLY (not for merge): minimal restart to exercise the new restart lifecycle end to end.
+    // Set PD_DEMO_RESTART_FAIL=1 before launching Podman Desktop to simulate a failed restart.
+    restart: async (context, logger): Promise<void> => {
+      try {
+        const podmanVersion = (await podmanBinary.getBinaryInfo())?.version;
+        console.log(
+          `[restart demo] restarting ${machineInfo.name} (${machineInfo.vmType}) with Podman ${podmanVersion}`,
+        );
+        if (process.env.PD_DEMO_RESTART_FAIL) {
+          throw new Error('[restart demo] simulated restart failure');
+        }
+        await podmanMachineLifecycle.restart({
+          machineName: machineInfo.name,
+          vmType: machineInfo.vmType,
+          podmanVersion,
+          runOptions: { logger: new LoggerDelegator(context, logger) },
+        });
+        if (!extensionApi.env.isLinux) {
+          provider.updateStatus('started');
+        }
+        console.log(`[restart demo] ${machineInfo.name} restarted`);
+        containerProviderConnection.error = undefined;
+      } catch (err) {
+        containerProviderConnection.error = err instanceof Error ? err.message : String(err);
+        throw err;
+      }
+    },
     delete: async (logger): Promise<void> => {
       try {
         await execPodman(['machine', 'rm', '-f', machineInfo.name], machineInfo.vmType, {
@@ -1428,6 +1458,7 @@ export async function initInversify(
   winPlatform = inversifyContainer.get(WinPlatform);
   podmanBinary = inversifyContainer.get(PodmanBinary);
   rosettaProvisioner = inversifyContainer.get(RosettaProvisioner);
+  podmanMachineLifecycle = inversifyContainer.get(PodmanMachineLifecycle);
   socketCompatibility = inversifyContainer.get(SocketCompatibility, { optional: true });
   extensionNotifications = inversifyContainer.get(ExtensionNotifications);
   const podmanProvider = await inversifyContainer.getAsync(PodmanProvider);
