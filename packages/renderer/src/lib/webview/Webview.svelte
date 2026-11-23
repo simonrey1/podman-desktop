@@ -3,7 +3,7 @@ import type { WebviewInfo } from '@desktop-framework/api';
 import { onDestroy } from 'svelte';
 
 import Route from '/@/Route.svelte';
-import { pendingWebviewHistoryEntries, pushWebviewHistoryEntry } from '/@/stores/navigation-history.svelte';
+import { pushWebviewHistoryEntry, registerWebviewHistoryListener } from '/@/stores/navigation-history.svelte';
 import { webviews } from '/@/stores/webviews';
 
 import { webviewLifecycle } from './webview-directive';
@@ -67,35 +67,31 @@ const updateHtmlOfWebview = (webviewEvent: unknown): void => {
 
 const webviewUpdateHtmlDisposable = window.events?.receive('webview-update:html', updateHtmlOfWebview);
 
-// the webview registered a history listener (acquirePodmanDesktopApi().history.onDidNavigate)
-let historyReady = $state(false);
-
-// messages sent by the webview preload with ipcRenderer.sendToHost
-const onIpcMessage = (event: Event): void => {
-  const { channel, args } = event as Event & { channel: string; args: unknown[] };
-  if (channel === 'webview-history:push') {
-    const entry = args[0] as { id: string; label: string };
-    pushWebviewHistoryEntry({ webviewId: id, id: entry.id, label: entry.label });
-  } else if (channel === 'webview-history:ready') {
-    historyReady = true;
-  }
-};
-
-$effect(() => {
-  const element = webviewElement;
-  element?.addEventListener('ipc-message', onIpcMessage);
-  return (): void => element?.removeEventListener('ipc-message', onIpcMessage);
-});
-
-// deliver the history entry the user navigated back/forward to
-$effect(() => {
-  const entryId = pendingWebviewHistoryEntries.get(id);
-  if (!historyReady || entryId === undefined) return;
-  pendingWebviewHistoryEntries.delete(id);
-  if (webviewElement && 'send' in webviewElement && typeof webviewElement.send === 'function') {
-    webviewElement.send('webview-history:navigate', entryId);
-  }
-});
+// connect the webview history API (acquirePodmanDesktopApi().history, sent by the preload) to the navigation history
+function historyBridge(element: HTMLElement): () => void {
+  const webviewId = id;
+  let unregister: (() => void) | undefined;
+  const onIpcMessage = (event: Event): void => {
+    const { channel, args } = event as Event & { channel: string; args: unknown[] };
+    if (channel === 'webview-history:push') {
+      const entry = args[0] as { id: string; label: string };
+      pushWebviewHistoryEntry({ webviewId, id: entry.id, label: entry.label });
+    } else if (channel === 'webview-history:ready') {
+      unregister?.();
+      unregister = registerWebviewHistoryListener(webviewId, entryId =>
+        (element as HTMLElement & { send: (channel: string, ...args: unknown[]) => void }).send(
+          'webview-history:navigate',
+          entryId,
+        ),
+      );
+    }
+  };
+  element.addEventListener('ipc-message', onIpcMessage);
+  return (): void => {
+    element.removeEventListener('ipc-message', onIpcMessage);
+    unregister?.();
+  };
+}
 
 const openDevtoolsDisposable = window.events?.receive('dev-tools:open-webview', (id: unknown) => {
   if (
@@ -125,6 +121,7 @@ onDestroy(() => {
     <webview
       bind:this={webviewElement}
       use:webviewLifecycle={lifecycleOptions}
+      {@attach historyBridge}
       aria-label="Webview {webviewInfo?.name}"
       role="document"
       httpreferrer="http://{webviewInfo?.uuid}.webview.localhost:{webViewPort}"

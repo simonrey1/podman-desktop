@@ -65,12 +65,11 @@ let isNavigatingHistory = false;
 // until the navigation settles (webview re-mounts and replays initial route)
 const extensionsNavigatingHistory = new SvelteSet<string>();
 
-/**
- * Webviews being navigated to via back/forward: webview id -> history entry id.
- * The entry is delivered to the webview once it registered its history listener
- * (see Webview.svelte); until then, its pushes are its initial route being replayed and are ignored.
- */
-export const pendingWebviewHistoryEntries = new SvelteMap<string, string>();
+// Webviews listening to back/forward navigation (registered by Webview.svelte): webview id -> listener
+const webviewHistoryListeners = new SvelteMap<string, (entryId: string) => void>();
+// Entry to deliver to a webview opened by back/forward once it listens. Until then, its pushes
+// are its initial route being replayed and are ignored.
+const pendingWebviewHistoryEntries = new SvelteMap<string, string>();
 
 interface ParsedUrl {
   path: string;
@@ -390,9 +389,14 @@ function navigateToIndex(index: number): boolean {
   pendingWebviewHistoryEntries.clear();
   const entry = navigationHistory.stack[index];
   if (entry?.webviewEntry) {
-    // open the webview (no-op if already displayed), Webview.svelte delivers the entry once the webview listens
-    pendingWebviewHistoryEntries.set(entry.webviewEntry.webviewId, entry.webviewEntry.id);
-    router.goto(`/webviews/${entry.webviewEntry.webviewId}`);
+    const { webviewId, id } = entry.webviewEntry;
+    router.goto(`/webviews/${webviewId}`);
+    const listener = webviewHistoryListeners.get(webviewId);
+    if (listener) {
+      listener(id);
+    } else {
+      pendingWebviewHistoryEntries.set(webviewId, id);
+    }
   } else if (entry?.extensionEntry) {
     extensionsNavigatingHistory.add(entry.extensionEntry.extensionId);
     window
@@ -645,6 +649,24 @@ window.events?.receive('navigation-history-push', (entry: NavigationHistoryPushI
     navigationHistory.index = navigationHistory.stack.length - 1;
   }
 });
+
+/**
+ * Register the back/forward listener of a webview, and deliver the pending entry if any.
+ * @returns a function to unregister the listener
+ */
+export function registerWebviewHistoryListener(webviewId: string, listener: (entryId: string) => void): () => void {
+  webviewHistoryListeners.set(webviewId, listener);
+  const pending = pendingWebviewHistoryEntries.get(webviewId);
+  if (pending !== undefined) {
+    pendingWebviewHistoryEntries.delete(webviewId);
+    listener(pending);
+  }
+  return (): void => {
+    if (webviewHistoryListeners.get(webviewId) === listener) {
+      webviewHistoryListeners.delete(webviewId);
+    }
+  };
+}
 
 /**
  * Push an entry sent by a webview via `acquirePodmanDesktopApi().history.push`.

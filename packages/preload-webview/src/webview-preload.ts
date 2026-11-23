@@ -18,7 +18,7 @@
 
 import type { ColorInfo, ThemeInfo, WebviewInfo } from '@desktop-framework/api';
 import { AppearanceSettings } from '@desktop-framework/api/appearance';
-import type { WebviewApi, WebviewHistoryEntry, WebviewHistoryNavigateEvent } from '@podman-desktop/webview-api';
+import type { WebviewApi } from '@podman-desktop/webview-api';
 import type { IpcRendererEvent } from 'electron';
 import { contextBridge, ipcRenderer } from 'electron';
 
@@ -34,7 +34,7 @@ export class WebviewPreload {
   #domLoaded: boolean = false;
   #acquiredApi: boolean = false;
   #cssStyleElement: HTMLStyleElement | undefined;
-  #historyListeners = new Set<(event: WebviewHistoryNavigateEvent) => void>();
+  #historyListeners = new Set<(event: { id: string }) => void>();
 
   constructor(webviewId: string) {
     this.#webviewId = webviewId;
@@ -157,10 +157,10 @@ export class WebviewPreload {
         });
       },
       history: Object.freeze({
-        push: (entry: WebviewHistoryEntry): void => {
+        push: (entry: { id: string; label: string }): void => {
           this.sendToHost('webview-history:push', { id: entry.id, label: entry.label });
         },
-        onDidNavigate: (listener: (event: WebviewHistoryNavigateEvent) => void): { dispose(): void } => {
+        onDidNavigate: (listener: (event: { id: string }) => void): { dispose(): void } => {
           this.#historyListeners.add(listener);
           // tell the host the webview is ready to restore a history entry
           this.sendToHost('webview-history:ready');

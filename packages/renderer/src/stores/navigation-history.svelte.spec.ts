@@ -31,8 +31,8 @@ import {
   goForward,
   goToHistoryIndex,
   navigationHistory,
-  pendingWebviewHistoryEntries,
   pushWebviewHistoryEntry,
+  registerWebviewHistoryListener,
   replaceCurrentUrl,
 } from '/@/stores/navigation-history.svelte';
 
@@ -732,11 +732,16 @@ describe('extension history entry display names', () => {
 
 describe('webview history entries', () => {
   const webviewId = 'webview-1';
+  let unregister: (() => void) | undefined;
 
   beforeEach(() => {
     navigationHistory.stack = [];
     navigationHistory.index = -1;
-    pendingWebviewHistoryEntries.clear();
+    unregister = undefined;
+  });
+
+  afterEach(() => {
+    unregister?.();
   });
 
   function push(id: string): void {
@@ -756,34 +761,40 @@ describe('webview history entries', () => {
     expect(navigationHistory.index).toBe(1);
   });
 
-  test('navigating to a webview entry opens the webview and marks the entry as pending', () => {
+  test('webview not displayed (e.g. from the volumes page): opens it and delivers the entry once it listens', () => {
     push('/a');
     push('/b');
+    routerSubscribeCallback({ url: '/volumes' } as TinroRoute);
 
-    goBack();
-
+    goToHistoryIndex(0);
     expect(router.goto).toHaveBeenCalledWith(`/webviews/${webviewId}`);
-    expect(pendingWebviewHistoryEntries.get(webviewId)).toBe('/a');
+
+    push('/'); // the re-mounted webview starts on its default route: ignored
+    const listener = vi.fn();
+    unregister = registerWebviewHistoryListener(webviewId, listener);
+
+    expect(listener).toHaveBeenCalledExactlyOnceWith('/a');
+    expect(ids()).toEqual(['/a', '/b', '/volumes']);
     expect(navigationHistory.index).toBe(0);
   });
 
-  test('pushes are ignored while the entry is pending (webview replaying its initial route)', () => {
+  test('webview displayed and listening: the entry is delivered right away', () => {
+    const listener = vi.fn();
+    unregister = registerWebviewHistoryListener(webviewId, listener);
     push('/a');
     push('/b');
+
     goBack();
 
-    push('/'); // the re-mounted webview starts on its default route
-
-    expect(ids()).toEqual(['/a', '/b']);
-    expect(navigationHistory.index).toBe(0);
+    expect(listener).toHaveBeenCalledExactlyOnceWith('/a');
   });
 
   test('once delivered, the restored route push is a no-op and forward history is kept', () => {
+    unregister = registerWebviewHistoryListener(webviewId, vi.fn());
     push('/a');
     push('/b');
     goBack();
 
-    pendingWebviewHistoryEntries.delete(webviewId); // delivered by Webview.svelte
     push('/a'); // webview navigates to the restored route
 
     expect(ids()).toEqual(['/a', '/b']);
@@ -791,26 +802,27 @@ describe('webview history entries', () => {
   });
 
   test('jumping to an entry with the same route as the current page does not lose the next navigation', () => {
+    unregister = registerWebviewHistoryListener(webviewId, vi.fn());
     push('/a');
     push('/');
     push('/a');
 
-    goToHistoryIndex(0);
-    pendingWebviewHistoryEntries.delete(webviewId); // delivered, webview already on '/a': nothing pushed
-
+    goToHistoryIndex(0); // webview already on '/a': nothing pushed
     push('/report');
 
     expect(ids()).toEqual(['/a', '/report']);
     expect(navigationHistory.index).toBe(1);
   });
 
-  test('a router navigation clears pending webview entries', () => {
+  test('a router navigation clears the pending entry', () => {
     push('/a');
     push('/b');
     goBack();
-
     routerSubscribeCallback({ url: '/containers' } as TinroRoute);
 
-    expect(pendingWebviewHistoryEntries.size).toBe(0);
+    const listener = vi.fn();
+    unregister = registerWebviewHistoryListener(webviewId, listener);
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });
